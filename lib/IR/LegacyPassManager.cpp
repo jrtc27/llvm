@@ -237,7 +237,7 @@ public:
     Pass(PT_PassManager, ID), PMDataManager(),
     PMTopLevelManager(new FPPassManager()), wasRun(false) {}
 
-  /// \copydoc FunctionPassManager::add()
+  /// \copydoc llvm::legacy::FunctionPassManager::add()
   void add(Pass *P) {
     schedulePass(P);
   }
@@ -1359,7 +1359,7 @@ bool BBPassManager::doFinalization(Function &F) {
 // FunctionPassManager implementation
 
 /// Create new Function pass manager
-FunctionPassManager::FunctionPassManager(Module *m) : M(m) {
+llvm::legacy::FunctionPassManager::FunctionPassManager(Module *m) : M(m) {
   FPM = new FunctionPassManagerImpl();
   // FPM is the top level manager.
   FPM->setTopLevelManager(FPM);
@@ -1368,11 +1368,11 @@ FunctionPassManager::FunctionPassManager(Module *m) : M(m) {
   FPM->setResolver(AR);
 }
 
-FunctionPassManager::~FunctionPassManager() {
+llvm::legacy::FunctionPassManager::~FunctionPassManager() {
   delete FPM;
 }
 
-void FunctionPassManager::add(Pass *P) {
+void llvm::legacy::FunctionPassManager::add(Pass *P) {
   FPM->add(P);
 }
 
@@ -1380,7 +1380,7 @@ void FunctionPassManager::add(Pass *P) {
 /// track of whether any of the passes modifies the function, and if
 /// so, return true.
 ///
-bool FunctionPassManager::run(Function &F) {
+bool llvm::legacy::FunctionPassManager::run(Function &F) {
   handleAllErrors(F.materialize(), [&](ErrorInfoBase &EIB) {
     report_fatal_error("Error reading bitcode file: " + EIB.message());
   });
@@ -1390,13 +1390,13 @@ bool FunctionPassManager::run(Function &F) {
 
 /// doInitialization - Run all of the initializers for the function passes.
 ///
-bool FunctionPassManager::doInitialization() {
+bool llvm::legacy::FunctionPassManager::doInitialization() {
   return FPM->doInitialization(*M);
 }
 
 /// doFinalization - Run all of the finalizers for the function passes.
 ///
-bool FunctionPassManager::doFinalization() {
+bool llvm::legacy::FunctionPassManager::doFinalization() {
   return FPM->doFinalization(*M);
 }
 
