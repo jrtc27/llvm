@@ -52,7 +52,7 @@ define i32 @main() local_unnamed_addr !dbg !13 {
 entry:
   %val = alloca i32, align 4
   %0 = bitcast i32* %val to i8*, !dbg !18
-  call void @llvm.lifetime.start(i64 4, i8* %0), !dbg !18
+  call void @llvm.lifetime.start.p0i8(i64 4, i8* %0), !dbg !18
   %1 = load i32, i32* @data, align 4, !dbg !19, !tbaa !20
   tail call void @llvm.dbg.value(metadata i32 %1, i64 0, metadata !17, metadata !24), !dbg !25
   store i32 %1, i32* %val, align 4, !dbg !26, !tbaa !20
@@ -60,17 +60,17 @@ entry:
   call void @foo(i32 1, i32* nonnull %val), !dbg !28
   call void @foo(i32 2, i32* nonnull @data), !dbg !29
   %2 = load i32, i32* @zero, align 4, !dbg !30, !tbaa !20
-  call void @llvm.lifetime.end(i64 4, i8* %0), !dbg !31
+  call void @llvm.lifetime.end.p0i8(i64 4, i8* %0), !dbg !31
   ret i32 %2, !dbg !32
 }
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.lifetime.start(i64, i8* nocapture)
+declare void @llvm.lifetime.start.p0i8(i64, i8* nocapture)
 
 declare void @foo(i32, i32*) local_unnamed_addr
 
 ; Function Attrs: argmemonly nounwind
-declare void @llvm.lifetime.end(i64, i8* nocapture)
+declare void @llvm.lifetime.end.p0i8(i64, i8* nocapture)
 
 ; Function Attrs: nounwind readnone
 declare void @llvm.dbg.value(metadata, i64, metadata, metadata)
