@@ -202,7 +202,7 @@ namespace CallingConv {
     /// CHERI_CCallee - Calling convention used for the callee of CHERI_CCall.
     /// Ignores the first two capability arguments and the first integer
     /// argument, zeroes all unused return registers on return.
-    CHERI_CCallee = 94
+    CHERI_CCallee = 94,
 
     /// The highest possible calling convention ID. Must be some 2^k - 1.
     MaxID = 1023
