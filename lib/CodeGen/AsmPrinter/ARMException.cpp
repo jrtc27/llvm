@@ -12,7 +12,6 @@
 //===----------------------------------------------------------------------===//
 
 #include "DwarfException.h"
-#include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/CodeGen/AsmPrinter.h"
@@ -28,7 +27,6 @@
 #include "llvm/MC/MCSection.h"
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/MC/MCSymbol.h"
-#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Dwarf.h"
 #include "llvm/Support/FormattedStream.h"
 #include "llvm/Target/TargetFrameLowering.h"
@@ -77,7 +75,7 @@ void ARMException::endFunction(const MachineFunction *MF) {
     F->hasPersonalityFn() && !isNoOpWithoutInvoke(classifyEHPersonality(Per)) &&
     F->needsUnwindTableEntry();
   bool shouldEmitPersonality = forceEmitPersonality ||
-    !MMI->getLandingPads().empty();
+    !MF->getLandingPads().empty();
   if (!Asm->MF->getFunction()->needsUnwindTableEntry() &&
       !shouldEmitPersonality)
     ATS.emitCantUnwind();
@@ -101,8 +99,9 @@ void ARMException::endFunction(const MachineFunction *MF) {
 }
 
 void ARMException::emitTypeInfos(unsigned TTypeEncoding) {
-  const std::vector<const GlobalValue *> &TypeInfos = MMI->getTypeInfos();
-  const std::vector<unsigned> &FilterIds = MMI->getFilterIds();
+  const MachineFunction *MF = Asm->MF;
+  const std::vector<const GlobalValue *> &TypeInfos = MF->getTypeInfos();
+  const std::vector<unsigned> &FilterIds = MF->getFilterIds();
 
   bool VerboseAsm = Asm->OutStreamer->isVerboseAsm();
 

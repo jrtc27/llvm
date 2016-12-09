@@ -14,13 +14,33 @@
 
 #include "CodeGenRegisters.h"
 #include "CodeGenTarget.h"
+#include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/BitVector.h"
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/IntEqClasses.h"
-#include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/SetVector.h"
+#include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/SparseBitVector.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringExtras.h"
+#include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/Support/Debug.h"
+#include "llvm/Support/MathExtras.h"
+#include "llvm/Support/raw_ostream.h"
 #include "llvm/TableGen/Error.h"
+#include "llvm/TableGen/Record.h"
+#include <algorithm>
+#include <cassert>
+#include <cstdint>
+#include <iterator>
+#include <map>
+#include <set>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
 
 using namespace llvm;
 
@@ -145,12 +165,13 @@ void CodeGenRegister::buildObjectGraph(CodeGenRegBank &RegBank) {
   }
 }
 
-const std::string &CodeGenRegister::getName() const {
+const StringRef CodeGenRegister::getName() const {
   assert(TheDef && "no def");
   return TheDef->getName();
 }
 
 namespace {
+
 // Iterate over all register units in a set of registers.
 class RegUnitIterator {
   CodeGenRegister::Vec::const_iterator RegI, RegE;
@@ -158,7 +179,7 @@ class RegUnitIterator {
 
 public:
   RegUnitIterator(const CodeGenRegister::Vec &Regs):
-    RegI(Regs.begin()), RegE(Regs.end()), UnitI(), UnitE() {
+    RegI(Regs.begin()), RegE(Regs.end()) {
 
     if (RegI != RegE) {
       UnitI = (*RegI)->getRegUnits().begin();
@@ -190,7 +211,8 @@ protected:
     }
   }
 };
-} // namespace
+
+} // end anonymous namespace
 
 // Return true of this unit appears in RegUnits.
 static bool hasRegUnit(CodeGenRegister::RegUnitList &RegUnits, unsigned Unit) {
@@ -538,6 +560,7 @@ unsigned CodeGenRegister::getWeight(const CodeGenRegBank &RegBank) const {
 // sub-registers. We provide a SetTheory expander class that returns the new
 // registers.
 namespace {
+
 struct TupleExpander : SetTheory::Expander {
   void expand(SetTheory &ST, Record *Def, SetTheory::RecSet &Elts) override {
     std::vector<Record*> Indices = Def->getValueAsListOfDefs("SubRegIndices");
@@ -587,10 +610,9 @@ struct TupleExpander : SetTheory::Expander {
       Elts.insert(NewReg);
 
       // Copy Proto super-classes.
-      ArrayRef<Record *> Supers = Proto->getSuperClasses();
-      ArrayRef<SMRange> Ranges = Proto->getSuperClassRanges();
-      for (unsigned i = 0, e = Supers.size(); i != e; ++i)
-        NewReg->addSuperClass(Supers[i], Ranges[i]);
+      ArrayRef<std::pair<Record *, SMRange>> Supers = Proto->getSuperClasses();
+      for (const auto &SuperPair : Supers)
+        NewReg->addSuperClass(SuperPair.first, SuperPair.second);
 
       // Copy Proto fields.
       for (unsigned i = 0, e = Proto->getValues().size(); i != e; ++i) {
@@ -640,7 +662,8 @@ struct TupleExpander : SetTheory::Expander {
     }
   }
 };
-}
+
+} // end anonymous namespace
 
 //===----------------------------------------------------------------------===//
 //                            CodeGenRegisterClass
@@ -768,13 +791,15 @@ bool CodeGenRegisterClass::contains(const CodeGenRegister *Reg) const {
 }
 
 namespace llvm {
+
   raw_ostream &operator<<(raw_ostream &OS, const CodeGenRegisterClass::Key &K) {
     OS << "{ S=" << K.SpillSize << ", A=" << K.SpillAlignment;
     for (const auto R : *K.Members)
       OS << ", " << R->getName();
     return OS << " }";
   }
-}
+
+} // end namespace llvm
 
 // This is a simple lexicographical order that can be used to search for sets.
 // It is not the same as the topological order provided by TopoOrderRC.
@@ -814,7 +839,7 @@ static bool TopoOrderRC(const CodeGenRegisterClass &PA,
   auto *A = &PA;
   auto *B = &PB;
   if (A == B)
-    return 0;
+    return false;
 
   // Order by ascending spill size.
   if (A->SpillSize < B->SpillSize)
@@ -1171,20 +1196,13 @@ void CodeGenRegBank::computeSubRegLaneMasks() {
   CoveringLanes = ~0u;
   for (auto &Idx : SubRegIndices) {
     if (Idx.getComposites().empty()) {
+      if (Bit > 32) {
+        PrintFatalError(
+          Twine("Ran out of lanemask bits to represent subregister ")
+          + Idx.getName());
+      }
       Idx.LaneMask = 1u << Bit;
-      // Share bit 31 in the unlikely case there are more than 32 leafs.
-      //
-      // Sharing bits is harmless; it allows graceful degradation in targets
-      // with more than 32 vector lanes. They simply get a limited resolution
-      // view of lanes beyond the 32nd.
-      //
-      // See also the comment for getSubRegIndexLaneMask().
-      if (Bit < 31)
-        ++Bit;
-      else
-        // Once bit 31 is shared among multiple leafs, the 'lane' it represents
-        // is no longer covering its registers.
-        CoveringLanes &= ~(1u << Bit);
+      ++Bit;
     } else {
       Idx.LaneMask = 0;
     }
@@ -1200,45 +1218,57 @@ void CodeGenRegBank::computeSubRegLaneMasks() {
   for (const auto &Idx : SubRegIndices) {
     const auto &Composites = Idx.getComposites();
     auto &LaneTransforms = Idx.CompositionLaneMaskTransform;
-    // Go through all leaf subregisters and find the ones that compose with Idx.
-    // These make out all possible valid bits in the lane mask we want to
-    // transform. Looking only at the leafs ensure that only a single bit in
-    // the mask is set.
-    unsigned NextBit = 0;
-    for (auto &Idx2 : SubRegIndices) {
-      // Skip non-leaf subregisters.
-      if (!Idx2.getComposites().empty())
-        continue;
-      // Replicate the behaviour from the lane mask generation loop above.
-      unsigned SrcBit = NextBit;
-      unsigned SrcMask = 1u << SrcBit;
-      if (NextBit < 31)
-        ++NextBit;
-      assert(Idx2.LaneMask == SrcMask);
 
-      // Get the composed subregister if there is any.
-      auto C = Composites.find(&Idx2);
-      if (C == Composites.end())
-        continue;
-      const CodeGenSubRegIndex *Composite = C->second;
-      // The Composed subreg should be a leaf subreg too
-      assert(Composite->getComposites().empty());
+    if (Composites.empty()) {
+      // Moving from a class with no subregisters we just had a single lane:
+      // The subregister must be a leaf subregister and only occupies 1 bit.
+      // Move the bit from the class without subregisters into that position.
+      unsigned DstBit = Log2_32(Idx.LaneMask);
+      assert(Idx.LaneMask == 1u << DstBit && "Must be a leaf subregister");
+      MaskRolPair MaskRol = { 1, (uint8_t)DstBit };
+      LaneTransforms.push_back(MaskRol);
+    } else {
+      // Go through all leaf subregisters and find the ones that compose with
+      // Idx. These make out all possible valid bits in the lane mask we want to
+      // transform. Looking only at the leafs ensure that only a single bit in
+      // the mask is set.
+      unsigned NextBit = 0;
+      for (auto &Idx2 : SubRegIndices) {
+        // Skip non-leaf subregisters.
+        if (!Idx2.getComposites().empty())
+          continue;
+        // Replicate the behaviour from the lane mask generation loop above.
+        unsigned SrcBit = NextBit;
+        unsigned SrcMask = 1u << SrcBit;
+        if (NextBit < 31)
+          ++NextBit;
+        assert(Idx2.LaneMask == SrcMask);
 
-      // Create Mask+Rotate operation and merge with existing ops if possible.
-      unsigned DstBit = Log2_32(Composite->LaneMask);
-      int Shift = DstBit - SrcBit;
-      uint8_t RotateLeft = Shift >= 0 ? (uint8_t)Shift : 32+Shift;
-      for (auto &I : LaneTransforms) {
-        if (I.RotateLeft == RotateLeft) {
-          I.Mask |= SrcMask;
-          SrcMask = 0;
+        // Get the composed subregister if there is any.
+        auto C = Composites.find(&Idx2);
+        if (C == Composites.end())
+          continue;
+        const CodeGenSubRegIndex *Composite = C->second;
+        // The Composed subreg should be a leaf subreg too
+        assert(Composite->getComposites().empty());
+
+        // Create Mask+Rotate operation and merge with existing ops if possible.
+        unsigned DstBit = Log2_32(Composite->LaneMask);
+        int Shift = DstBit - SrcBit;
+        uint8_t RotateLeft = Shift >= 0 ? (uint8_t)Shift : 32+Shift;
+        for (auto &I : LaneTransforms) {
+          if (I.RotateLeft == RotateLeft) {
+            I.Mask |= SrcMask;
+            SrcMask = 0;
+          }
+        }
+        if (SrcMask != 0) {
+          MaskRolPair MaskRol = { SrcMask, RotateLeft };
+          LaneTransforms.push_back(MaskRol);
         }
       }
-      if (SrcMask != 0) {
-        MaskRolPair MaskRol = { SrcMask, RotateLeft };
-        LaneTransforms.push_back(MaskRol);
-      }
     }
+
     // Optimize if the transformation consists of one step only: Set mask to
     // 0xffffffff (including some irrelevant invalid bits) so that it should
     // merge with more entries later while compressing the table.
@@ -1274,11 +1304,18 @@ void CodeGenRegBank::computeSubRegLaneMasks() {
         continue;
       LaneMask |= SubRegIndex.LaneMask;
     }
+
+    // For classes without any subregisters set LaneMask to 1 instead of 0.
+    // This makes it easier for client code to handle classes uniformly.
+    if (LaneMask == 0)
+      LaneMask = 1;
+
     RegClass.LaneMask = LaneMask;
   }
 }
 
 namespace {
+
 // UberRegSet is a helper class for computeRegUnitWeights. Each UberRegSet is
 // the transitive closure of the union of overlapping register
 // classes. Together, the UberRegSets form a partition of the registers. If we
@@ -1297,12 +1334,13 @@ namespace {
 // their weight increased.
 struct UberRegSet {
   CodeGenRegister::Vec Regs;
-  unsigned Weight;
+  unsigned Weight = 0;
   CodeGenRegister::RegUnitList SingularDeterminants;
 
-  UberRegSet(): Weight(0) {}
+  UberRegSet() = default;
 };
-} // namespace
+
+} // end anonymous namespace
 
 // Partition registers into UberRegSets, where each set is the transitive
 // closure of the union of overlapping register classes.
@@ -1311,7 +1349,6 @@ struct UberRegSet {
 static void computeUberSets(std::vector<UberRegSet> &UberSets,
                             std::vector<UberRegSet*> &RegSets,
                             CodeGenRegBank &RegBank) {
-
   const auto &Registers = RegBank.getRegisters();
 
   // The Register EnumValue is one greater than its index into Registers.
@@ -1568,6 +1605,12 @@ void CodeGenRegBank::pruneUnitSets() {
           && UnitWeight == RegUnits[SuperSet.Units.back()].Weight) {
         DEBUG(dbgs() << "UnitSet " << SubIdx << " subsumed by " << SuperIdx
               << "\n");
+        // We can pick any of the set names for the merged set. Go for the
+        // shortest one to avoid picking the name of one of the classes that are
+        // artificially created by tablegen. So "FPR128_lo" instead of
+        // "QQQQ_with_qsub3_in_FPR128_lo".
+        if (RegUnitSets[SubIdx].Name.size() < RegUnitSets[SuperIdx].Name.size())
+          RegUnitSets[SuperIdx].Name = RegUnitSets[SubIdx].Name;
         break;
       }
     }
@@ -1740,8 +1783,7 @@ void CodeGenRegBank::computeRegUnitSets() {
     std::vector<unsigned> RUSets;
     for (unsigned i = 0, e = RegUnitSets.size(); i != e; ++i) {
       RegUnitSet &RUSet = RegUnitSets[i];
-      if (std::find(RUSet.Units.begin(), RUSet.Units.end(), UnitIdx)
-          == RUSet.Units.end())
+      if (!is_contained(RUSet.Units, UnitIdx))
         continue;
       RUSets.push_back(i);
     }
@@ -1774,7 +1816,7 @@ void CodeGenRegBank::computeRegUnitLaneMasks() {
       CodeGenRegister *SubReg = S->second;
       // Ignore non-leaf subregisters, their lane masks are fully covered by
       // the leaf subregisters anyway.
-      if (SubReg->getSubRegs().size() != 0)
+      if (!SubReg->getSubRegs().empty())
         continue;
       CodeGenSubRegIndex *SubRegIndex = S->first;
       const CodeGenRegister *SubRegister = S->second;
@@ -1813,11 +1855,14 @@ void CodeGenRegBank::computeDerivedInfo() {
 
   computeRegUnitLaneMasks();
 
-  // Compute register class HasDisjunctSubRegs flag.
+  // Compute register class HasDisjunctSubRegs/CoveredBySubRegs flag.
   for (CodeGenRegisterClass &RC : RegClasses) {
     RC.HasDisjunctSubRegs = false;
-    for (const CodeGenRegister *Reg : RC.getMembers())
+    RC.CoveredBySubRegs = true;
+    for (const CodeGenRegister *Reg : RC.getMembers()) {
       RC.HasDisjunctSubRegs |= Reg->HasDisjunctSubRegs;
+      RC.CoveredBySubRegs &= Reg->CoveredBySubRegs;
+    }
   }
 
   // Get the weight of each set.
@@ -1989,7 +2034,6 @@ void CodeGenRegBank::inferMatchingSuperRegClass(CodeGenRegisterClass *RC,
     }
   }
 }
-
 
 //
 // Infer missing register classes.

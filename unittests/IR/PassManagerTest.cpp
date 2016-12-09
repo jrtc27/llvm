@@ -19,23 +19,17 @@ using namespace llvm;
 
 namespace {
 
-class TestFunctionAnalysis {
+class TestFunctionAnalysis : public AnalysisInfoMixin<TestFunctionAnalysis> {
 public:
   struct Result {
     Result(int Count) : InstructionCount(Count) {}
     int InstructionCount;
   };
 
-  /// \brief Returns an opaque, unique ID for this pass type.
-  static void *ID() { return (void *)&PassID; }
-
-  /// \brief Returns the name of the analysis.
-  static StringRef name() { return "TestFunctionAnalysis"; }
-
   TestFunctionAnalysis(int &Runs) : Runs(Runs) {}
 
   /// \brief Run the analysis pass over the function and return a result.
-  Result run(Function &F, FunctionAnalysisManager *AM) {
+  Result run(Function &F, FunctionAnalysisManager &AM) {
     ++Runs;
     int Count = 0;
     for (Function::iterator BBI = F.begin(), BBE = F.end(); BBI != BBE; ++BBI)
@@ -46,28 +40,24 @@ public:
   }
 
 private:
-  /// \brief Private static data to provide unique ID.
-  static char PassID;
+  friend AnalysisInfoMixin<TestFunctionAnalysis>;
+  static AnalysisKey Key;
 
   int &Runs;
 };
 
-char TestFunctionAnalysis::PassID;
+AnalysisKey TestFunctionAnalysis::Key;
 
-class TestModuleAnalysis {
+class TestModuleAnalysis : public AnalysisInfoMixin<TestModuleAnalysis> {
 public:
   struct Result {
     Result(int Count) : FunctionCount(Count) {}
     int FunctionCount;
   };
 
-  static void *ID() { return (void *)&PassID; }
-
-  static StringRef name() { return "TestModuleAnalysis"; }
-
   TestModuleAnalysis(int &Runs) : Runs(Runs) {}
 
-  Result run(Module &M, ModuleAnalysisManager *AM) {
+  Result run(Module &M, ModuleAnalysisManager &AM) {
     ++Runs;
     int Count = 0;
     for (Module::iterator I = M.begin(), E = M.end(); I != E; ++I)
@@ -76,47 +66,45 @@ public:
   }
 
 private:
-  static char PassID;
+  friend AnalysisInfoMixin<TestModuleAnalysis>;
+  static AnalysisKey Key;
 
   int &Runs;
 };
 
-char TestModuleAnalysis::PassID;
+AnalysisKey TestModuleAnalysis::Key;
 
-struct TestModulePass {
+struct TestModulePass : PassInfoMixin<TestModulePass> {
   TestModulePass(int &RunCount) : RunCount(RunCount) {}
 
-  PreservedAnalyses run(Module &M) {
+  PreservedAnalyses run(Module &M, ModuleAnalysisManager &) {
     ++RunCount;
     return PreservedAnalyses::none();
   }
 
-  static StringRef name() { return "TestModulePass"; }
-
   int &RunCount;
 };
 
-struct TestPreservingModulePass {
-  PreservedAnalyses run(Module &M) { return PreservedAnalyses::all(); }
-
-  static StringRef name() { return "TestPreservingModulePass"; }
+struct TestPreservingModulePass : PassInfoMixin<TestPreservingModulePass> {
+  PreservedAnalyses run(Module &M, ModuleAnalysisManager &) {
+    return PreservedAnalyses::all();
+  }
 };
 
-struct TestMinPreservingModulePass {
-  PreservedAnalyses run(Module &M, ModuleAnalysisManager *AM) {
+struct TestMinPreservingModulePass
+    : PassInfoMixin<TestMinPreservingModulePass> {
+  PreservedAnalyses run(Module &M, ModuleAnalysisManager &AM) {
     PreservedAnalyses PA;
 
     // Force running an analysis.
-    (void)AM->getResult<TestModuleAnalysis>(M);
+    (void)AM.getResult<TestModuleAnalysis>(M);
 
     PA.preserve<FunctionAnalysisManagerModuleProxy>();
     return PA;
   }
-
-  static StringRef name() { return "TestMinPreservingModulePass"; }
 };
 
-struct TestFunctionPass {
+struct TestFunctionPass : PassInfoMixin<TestFunctionPass> {
   TestFunctionPass(int &RunCount, int &AnalyzedInstrCount,
                    int &AnalyzedFunctionCount,
                    bool OnlyUseCachedResults = false)
@@ -124,11 +112,11 @@ struct TestFunctionPass {
         AnalyzedFunctionCount(AnalyzedFunctionCount),
         OnlyUseCachedResults(OnlyUseCachedResults) {}
 
-  PreservedAnalyses run(Function &F, FunctionAnalysisManager *AM) {
+  PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
     ++RunCount;
 
     const ModuleAnalysisManager &MAM =
-        AM->getResult<ModuleAnalysisManagerFunctionProxy>(F).getManager();
+        AM.getResult<ModuleAnalysisManagerFunctionProxy>(F).getManager();
     if (TestModuleAnalysis::Result *TMA =
             MAM.getCachedResult<TestModuleAnalysis>(*F.getParent()))
       AnalyzedFunctionCount += TMA->FunctionCount;
@@ -136,18 +124,16 @@ struct TestFunctionPass {
     if (OnlyUseCachedResults) {
       // Hack to force the use of the cached interface.
       if (TestFunctionAnalysis::Result *AR =
-              AM->getCachedResult<TestFunctionAnalysis>(F))
+              AM.getCachedResult<TestFunctionAnalysis>(F))
         AnalyzedInstrCount += AR->InstructionCount;
     } else {
       // Typical path just runs the analysis as needed.
-      TestFunctionAnalysis::Result &AR = AM->getResult<TestFunctionAnalysis>(F);
+      TestFunctionAnalysis::Result &AR = AM.getResult<TestFunctionAnalysis>(F);
       AnalyzedInstrCount += AR.InstructionCount;
     }
 
     return PreservedAnalyses::all();
   }
-
-  static StringRef name() { return "TestFunctionPass"; }
 
   int &RunCount;
   int &AnalyzedInstrCount;
@@ -157,43 +143,42 @@ struct TestFunctionPass {
 
 // A test function pass that invalidates all function analyses for a function
 // with a specific name.
-struct TestInvalidationFunctionPass {
+struct TestInvalidationFunctionPass
+    : PassInfoMixin<TestInvalidationFunctionPass> {
   TestInvalidationFunctionPass(StringRef FunctionName) : Name(FunctionName) {}
 
-  PreservedAnalyses run(Function &F) {
+  PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
     return F.getName() == Name ? PreservedAnalyses::none()
                                : PreservedAnalyses::all();
   }
 
-  static StringRef name() { return "TestInvalidationFunctionPass"; }
-
   StringRef Name;
 };
 
-std::unique_ptr<Module> parseIR(const char *IR) {
-  LLVMContext &C = getGlobalContext();
+std::unique_ptr<Module> parseIR(LLVMContext &Context, const char *IR) {
   SMDiagnostic Err;
-  return parseAssemblyString(IR, Err, C);
+  return parseAssemblyString(IR, Err, Context);
 }
 
 class PassManagerTest : public ::testing::Test {
 protected:
+  LLVMContext Context;
   std::unique_ptr<Module> M;
 
 public:
   PassManagerTest()
-      : M(parseIR("define void @f() {\n"
-                  "entry:\n"
-                  "  call void @g()\n"
-                  "  call void @h()\n"
-                  "  ret void\n"
-                  "}\n"
-                  "define void @g() {\n"
-                  "  ret void\n"
-                  "}\n"
-                  "define void @h() {\n"
-                  "  ret void\n"
-                  "}\n")) {}
+      : M(parseIR(Context, "define void @f() {\n"
+                           "entry:\n"
+                           "  call void @g()\n"
+                           "  call void @h()\n"
+                           "  ret void\n"
+                           "}\n"
+                           "define void @g() {\n"
+                           "  ret void\n"
+                           "}\n"
+                           "define void @h() {\n"
+                           "  ret void\n"
+                           "}\n")) {}
 };
 
 TEST_F(PassManagerTest, BasicPreservedAnalyses) {
@@ -232,13 +217,13 @@ TEST_F(PassManagerTest, BasicPreservedAnalyses) {
 TEST_F(PassManagerTest, Basic) {
   FunctionAnalysisManager FAM;
   int FunctionAnalysisRuns = 0;
-  FAM.registerPass(TestFunctionAnalysis(FunctionAnalysisRuns));
+  FAM.registerPass([&] { return TestFunctionAnalysis(FunctionAnalysisRuns); });
 
   ModuleAnalysisManager MAM;
   int ModuleAnalysisRuns = 0;
-  MAM.registerPass(TestModuleAnalysis(ModuleAnalysisRuns));
-  MAM.registerPass(FunctionAnalysisManagerModuleProxy(FAM));
-  FAM.registerPass(ModuleAnalysisManagerFunctionProxy(MAM));
+  MAM.registerPass([&] { return TestModuleAnalysis(ModuleAnalysisRuns); });
+  MAM.registerPass([&] { return FunctionAnalysisManagerModuleProxy(FAM); });
+  FAM.registerPass([&] { return ModuleAnalysisManagerFunctionProxy(MAM); });
 
   ModulePassManager MPM;
 
@@ -253,8 +238,8 @@ TEST_F(PassManagerTest, Basic) {
     {
       // Pointless scope to test move assignment.
       FunctionPassManager NestedFPM;
-      NestedFPM.addPass(TestFunctionPass(FunctionPassRunCount1, AnalyzedInstrCount1,
-                                   AnalyzedFunctionCount1));
+      NestedFPM.addPass(TestFunctionPass(
+          FunctionPassRunCount1, AnalyzedInstrCount1, AnalyzedFunctionCount1));
       FPM = std::move(NestedFPM);
     }
     NestedMPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
@@ -315,7 +300,7 @@ TEST_F(PassManagerTest, Basic) {
     MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
   }
 
-  MPM.run(*M, &MAM);
+  MPM.run(*M, MAM);
 
   // Validate module pass counters.
   EXPECT_EQ(1, ModulePassRunCount);
@@ -345,5 +330,165 @@ TEST_F(PassManagerTest, Basic) {
   EXPECT_EQ(7, FunctionAnalysisRuns);
 
   EXPECT_EQ(1, ModuleAnalysisRuns);
+}
+
+// A customized pass manager that passes extra arguments through the
+// infrastructure.
+typedef AnalysisManager<Function, int> CustomizedAnalysisManager;
+typedef PassManager<Function, CustomizedAnalysisManager, int, int &>
+    CustomizedPassManager;
+
+class CustomizedAnalysis : public AnalysisInfoMixin<CustomizedAnalysis> {
+public:
+  struct Result {
+    Result(int I) : I(I) {}
+    int I;
+  };
+
+  Result run(Function &F, CustomizedAnalysisManager &AM, int I) {
+    return Result(I);
+  }
+
+private:
+  friend AnalysisInfoMixin<CustomizedAnalysis>;
+  static AnalysisKey Key;
+};
+
+AnalysisKey CustomizedAnalysis::Key;
+
+struct CustomizedPass : PassInfoMixin<CustomizedPass> {
+  std::function<void(CustomizedAnalysis::Result &, int &)> Callback;
+
+  template <typename CallbackT>
+  CustomizedPass(CallbackT Callback) : Callback(Callback) {}
+
+  PreservedAnalyses run(Function &F, CustomizedAnalysisManager &AM, int I,
+                        int &O) {
+    Callback(AM.getResult<CustomizedAnalysis>(F, I), O);
+    return PreservedAnalyses::none();
+  }
+};
+
+TEST_F(PassManagerTest, CustomizedPassManagerArgs) {
+  CustomizedAnalysisManager AM;
+  AM.registerPass([&] { return CustomizedAnalysis(); });
+
+  CustomizedPassManager PM;
+
+  // Add an instance of the customized pass that just accumulates the input
+  // after it is round-tripped through the analysis.
+  int Result = 0;
+  PM.addPass(
+      CustomizedPass([](CustomizedAnalysis::Result &R, int &O) { O += R.I; }));
+
+  // Run this over every function with the input of 42.
+  for (Function &F : *M)
+    PM.run(F, AM, 42, Result);
+
+  // And ensure that we accumulated the correct result.
+  EXPECT_EQ(42 * (int)M->size(), Result);
+}
+
+/// A test analysis pass which caches in its result another analysis pass and
+/// uses it to serve queries. This requires the result to invalidate itself
+/// when its dependency is invalidated.
+struct TestIndirectFunctionAnalysis
+    : public AnalysisInfoMixin<TestIndirectFunctionAnalysis> {
+  struct Result {
+    Result(TestFunctionAnalysis::Result &Dep) : Dep(Dep) {}
+    TestFunctionAnalysis::Result &Dep;
+
+    bool invalidate(Function &F, const PreservedAnalyses &PA,
+                    FunctionAnalysisManager::Invalidator &Inv) {
+      return !PA.preserved<TestIndirectFunctionAnalysis>() ||
+             Inv.invalidate<TestFunctionAnalysis>(F, PA);
+    }
+  };
+
+  TestIndirectFunctionAnalysis(int &Runs) : Runs(Runs) {}
+
+  /// Run the analysis pass over the function and return a result.
+  Result run(Function &F, FunctionAnalysisManager &AM) {
+    ++Runs;
+    return Result(AM.getResult<TestFunctionAnalysis>(F));
+  }
+
+private:
+  friend AnalysisInfoMixin<TestIndirectFunctionAnalysis>;
+  static AnalysisKey Key;
+
+  int &Runs;
+};
+
+AnalysisKey TestIndirectFunctionAnalysis::Key;
+
+struct LambdaPass : public PassInfoMixin<LambdaPass> {
+  using FuncT = std::function<PreservedAnalyses(Function &, FunctionAnalysisManager &)>;
+
+  LambdaPass(FuncT Func) : Func(std::move(Func)) {}
+
+  PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM) {
+    return Func(F, AM);
+  }
+
+  FuncT Func;
+};
+
+TEST_F(PassManagerTest, IndirectAnalysisInvalidation) {
+  FunctionAnalysisManager FAM(/*DebugLogging*/ true);
+  int AnalysisRuns = 0, IndirectAnalysisRuns = 0;
+  FAM.registerPass([&] { return TestFunctionAnalysis(AnalysisRuns); });
+  FAM.registerPass(
+      [&] { return TestIndirectFunctionAnalysis(IndirectAnalysisRuns); });
+
+  ModuleAnalysisManager MAM(/*DebugLogging*/ true);
+  MAM.registerPass([&] { return FunctionAnalysisManagerModuleProxy(FAM); });
+  FAM.registerPass([&] { return ModuleAnalysisManagerFunctionProxy(MAM); });
+
+  int InstrCount = 0;
+  ModulePassManager MPM(/*DebugLogging*/ true);
+  FunctionPassManager FPM(/*DebugLogging*/ true);
+  // First just use the analysis to get the instruction count, and preserve
+  // everything.
+  FPM.addPass(LambdaPass([&](Function &F, FunctionAnalysisManager &AM) {
+    InstrCount +=
+        AM.getResult<TestIndirectFunctionAnalysis>(F).Dep.InstructionCount;
+    return PreservedAnalyses::all();
+  }));
+  // Next, invalidate
+  //   - both analyses for "f",
+  //   - just the underlying (indirect) analysis for "g", and
+  //   - just the direct analysis for "h".
+  FPM.addPass(LambdaPass([&](Function &F, FunctionAnalysisManager &AM) {
+    InstrCount +=
+        AM.getResult<TestIndirectFunctionAnalysis>(F).Dep.InstructionCount;
+    auto PA = PreservedAnalyses::none();
+    if (F.getName() == "g")
+      PA.preserve<TestFunctionAnalysis>();
+    else if (F.getName() == "h")
+      PA.preserve<TestIndirectFunctionAnalysis>();
+    return PA;
+  }));
+  // Finally, use the analysis again on each function, forcing re-computation
+  // for all of them.
+  FPM.addPass(LambdaPass([&](Function &F, FunctionAnalysisManager &AM) {
+    InstrCount +=
+        AM.getResult<TestIndirectFunctionAnalysis>(F).Dep.InstructionCount;
+    return PreservedAnalyses::all();
+  }));
+  MPM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+  MPM.run(*M, MAM);
+
+  // There are generally two possible runs for each of the three functions. But
+  // for one function, we only invalidate the indirect analysis so the base one
+  // only gets run five times.
+  EXPECT_EQ(5, AnalysisRuns);
+  // The indirect analysis is invalidated for each function (either directly or
+  // indirectly) and run twice for each.
+  EXPECT_EQ(6, IndirectAnalysisRuns);
+
+  // There are five instructions in the module and we add the count three
+  // times.
+  EXPECT_EQ(5 * 3, InstrCount);
 }
 }

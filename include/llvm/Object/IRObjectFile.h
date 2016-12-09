@@ -14,20 +14,22 @@
 #ifndef LLVM_OBJECT_IROBJECTFILE_H
 #define LLVM_OBJECT_IROBJECTFILE_H
 
+#include "llvm/ADT/PointerUnion.h"
+#include "llvm/Object/ModuleSymbolTable.h"
 #include "llvm/Object/SymbolicFile.h"
 
 namespace llvm {
 class Mangler;
 class Module;
 class GlobalValue;
+class Triple;
 
 namespace object {
 class ObjectFile;
 
 class IRObjectFile : public SymbolicFile {
   std::unique_ptr<Module> M;
-  std::unique_ptr<Mangler> Mang;
-  std::vector<std::pair<std::string, uint32_t>> AsmSymbols;
+  ModuleSymbolTable SymTab;
 
 public:
   IRObjectFile(MemoryBufferRef Object, std::unique_ptr<Module> M);
@@ -40,8 +42,8 @@ public:
   const GlobalValue *getSymbolGV(DataRefImpl Symb) const {
     return const_cast<IRObjectFile *>(this)->getSymbolGV(Symb);
   }
-  basic_symbol_iterator symbol_begin_impl() const override;
-  basic_symbol_iterator symbol_end_impl() const override;
+  basic_symbol_iterator symbol_begin() const override;
+  basic_symbol_iterator symbol_end() const override;
 
   const Module &getModule() const {
     return const_cast<IRObjectFile*>(this)->getModule();
@@ -50,6 +52,8 @@ public:
     return *M;
   }
   std::unique_ptr<Module> takeModule();
+
+  StringRef getTargetTriple() const;
 
   static inline bool classof(const Binary *v) {
     return v->isIR();
@@ -65,8 +69,8 @@ public:
   static ErrorOr<MemoryBufferRef>
   findBitcodeInMemBuffer(MemoryBufferRef Object);
 
-  static ErrorOr<std::unique_ptr<IRObjectFile>> create(MemoryBufferRef Object,
-                                                       LLVMContext &Context);
+  static Expected<std::unique_ptr<IRObjectFile>> create(MemoryBufferRef Object,
+                                                        LLVMContext &Context);
 };
 }
 }

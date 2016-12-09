@@ -15,7 +15,6 @@
 #include "llvm/MC/MCObjectStreamer.h"
 #include "llvm/MC/SectionKind.h"
 #include "llvm/Support/DataTypes.h"
-#include <vector>
 
 namespace llvm {
 class MCAsmBackend;
@@ -36,7 +35,6 @@ public:
   /// state management
   void reset() override {
     SeenIdent = false;
-    LocalCommons.clear();
     BundleGroups.clear();
     MCObjectStreamer::reset();
   }
@@ -59,7 +57,7 @@ public:
   void EmitCOFFSymbolType(int Type) override;
   void EndCOFFSymbolDef() override;
 
-  void emitELFSize(MCSymbolELF *Symbol, const MCExpr *Value) override;
+  void emitELFSize(MCSymbol *Symbol, const MCExpr *Value) override;
 
   void EmitLocalCommonSymbol(MCSymbol *Symbol, uint64_t Size,
                              unsigned ByteAlignment) override;
@@ -76,8 +74,6 @@ public:
   void EmitIdent(StringRef IdentString) override;
 
   void EmitValueToAlignment(unsigned, int64_t, unsigned, unsigned) override;
-
-  void Flush() override;
 
   void FinishImpl() override;
 
@@ -96,14 +92,6 @@ private:
   void mergeFragment(MCDataFragment *, MCDataFragment *);
 
   bool SeenIdent;
-
-  struct LocalCommon {
-    const MCSymbol *Symbol;
-    uint64_t Size;
-    unsigned ByteAlignment;
-  };
-
-  std::vector<LocalCommon> LocalCommons;
 
   /// BundleGroups - The stack of fragments holding the bundle-locked
   /// instructions.
