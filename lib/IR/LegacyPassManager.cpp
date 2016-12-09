@@ -393,7 +393,7 @@ public:
     Pass(PT_PassManager, ID), PMDataManager(),
                               PMTopLevelManager(new MPPassManager()) {}
 
-  /// \copydoc PassManager::add()
+  /// \copydoc llvm::legacy::PassManager::add()
   void add(Pass *P) {
     schedulePass(P);
   }
@@ -1707,23 +1707,23 @@ bool PassManagerImpl::run(Module &M) {
 // PassManager implementation
 
 /// Create new pass manager
-PassManager::PassManager() {
+llvm::legacy::PassManager::PassManager() {
   PM = new PassManagerImpl();
   // PM is the top level manager
   PM->setTopLevelManager(PM);
 }
 
-PassManager::~PassManager() {
+llvm::legacy::PassManager::~PassManager() {
   delete PM;
 }
 
-void PassManager::add(Pass *P) {
+void llvm::legacy::PassManager::add(Pass *P) {
   PM->add(P);
 }
 
 /// run - Execute all of the passes scheduled for execution.  Keep track of
 /// whether any of the passes modifies the module, and if so, return true.
-bool PassManager::run(Module &M) {
+bool llvm::legacy::PassManager::run(Module &M) {
   return PM->run(M);
 }
 
