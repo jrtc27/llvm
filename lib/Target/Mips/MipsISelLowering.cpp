@@ -3192,7 +3192,6 @@ MipsTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   getOpndList(Ops, RegsToPass, IsPICCall, GlobalOrExternal, InternalLinkage,
               IsCallReloc, CLI, Callee, Chain);
 
-<<<<<<< HEAD
   // If we're doing a CCall then any unused arg registers should be zero.
   if (UseClearRegs && (CallConv == CallingConv::CHERI_CCall)) {
     assert(CapArgs >= 2);
