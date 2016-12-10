@@ -10,7 +10,8 @@
 // BC2F
 class CheriFmtCBT<bits<5> op, dag outs, dag ins, string asmstr,
                 list<dag> pattern> :
-  MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>
+  MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>,
+  Requires<[IsCHERI]>
 {
   bits<5>  cb;
   bits<16> offset;
@@ -27,7 +28,8 @@ class CheriFmtCBT<bits<5> op, dag outs, dag ins, string asmstr,
 
 class CheriFmtRegs<bits<5> op, bits<3> fmt, dag outs, dag ins, string asmstr,
                 list<dag> pattern> :
-  MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther> {
+  MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>,
+  Requires<[IsCHERI]> {
   bits<5> r0;
   bits<5> r1;
   bits<5> r2;
@@ -119,7 +121,8 @@ class CheriFmtPtrCmp<bits<3> cmp, RegisterOperand RC, string instr_asm,
 }
 
 class CheriFmt3CCall<dag outs, dag ins, string asmstr, list<dag> pattern> :
-  MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther> {
+  MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>,
+  Requires<[IsCHERI]> {
   bits<5> cs;
   bits<5> cb;
   bits<11> imm;
@@ -158,7 +161,8 @@ class CheriFmtClearTag<dag outs, dag ins, string asmstr,
 // Load / Store capabilities
 class CheriFmtCLS<bits<6> op, dag outs, dag ins, string asmstr,
                 list<dag> pattern> :
-  MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>
+  MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>,
+  Requires<[IsCHERI]>
 {
   bits<5>  cs;
   bits<5>  cb;
@@ -174,7 +178,8 @@ class CheriFmtCLS<bits<6> op, dag outs, dag ins, string asmstr,
 
 class CheriFmtCLX<bits<2> t, bits<1> e, dag outs, dag ins, string asmstr,
                 list<dag> pattern> :
-  MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>
+  MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>,
+  Requires<[IsCHERI]>
 {
   bits<5>  rd;
   bits<5>  cb;
@@ -192,7 +197,8 @@ class CheriFmtCLX<bits<2> t, bits<1> e, dag outs, dag ins, string asmstr,
 
 class CheriFmtCSX<bits<2> t, bits<1> e, dag outs, dag ins, string asmstr,
                 list<dag> pattern> :
-  MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>
+  MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>,
+  Requires<[IsCHERI]>
 {
   bits<5>  rs;
   bits<5>  cb;
@@ -210,7 +216,8 @@ class CheriFmtCSX<bits<2> t, bits<1> e, dag outs, dag ins, string asmstr,
 
 class CheriFmtClearRegs<bits<5> regset, dag outs, dag ins, string asmstr,
                         list<dag> pattern> :
-  MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>
+  MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>,
+  Requires<[IsCHERI]>
 {
   bits<16> mask;
 
@@ -221,7 +228,8 @@ class CheriFmtClearRegs<bits<5> regset, dag outs, dag ins, string asmstr,
 }
 
 class CheriFmtCLL<bit isSigned, bits<2> type, dag outs, dag ins, string asmstr> :
-                  MipsInst<outs, ins, asmstr, [], NoItinerary, FrmOther>
+                  MipsInst<outs, ins, asmstr, [], NoItinerary, FrmOther>,
+                  Requires<[IsCHERI]>
 {
   bits<5> rd;
   bits<5> cb;
@@ -239,7 +247,8 @@ class CheriFmtCLL<bit isSigned, bits<2> type, dag outs, dag ins, string asmstr> 
 }
 
 class CheriFmtCSC<bits<3> type, dag outs, dag ins, string asmstr> :
-                  MipsInst<outs, ins, asmstr, [], NoItinerary, FrmOther>
+                  MipsInst<outs, ins, asmstr, [], NoItinerary, FrmOther>,
+                  Requires<[IsCHERI]>
 {
   bits<5> rs;
   bits<5> rd;
@@ -258,7 +267,8 @@ class CheriFmtCSC<bits<3> type, dag outs, dag ins, string asmstr> :
 }
 
 class CheriFmt3Op<bits<6> type, dag outs, dag ins, string asmstr, list<dag> pattern> :
-                  MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>
+                  MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>,
+                  Requires<[IsCHERI]>
 {
   bits<5> r1;
   bits<5> r2;

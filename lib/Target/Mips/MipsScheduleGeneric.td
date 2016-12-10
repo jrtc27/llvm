@@ -23,7 +23,7 @@ def MipsGenericModel : SchedMachineModel {
   int MispredictPenalty = 4;
 
   int HighLatency = 37;
-  list<Predicate> UnsupportedFeatures = [];
+  list<Predicate> UnsupportedFeatures = [IsCHERI];
 
   let CompleteModel = 1;
   let PostRAScheduler = 1;

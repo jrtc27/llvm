@@ -156,7 +156,8 @@ def : Pat<(setole CheriOpnd: $cb, CheriOpnd:$ct), (CLE32 CheriOpnd: $cb, CheriOp
 
 class CheriPseudo<dag outs, dag ins, string asmstr,
                 list<dag> pattern> :
-  MipsInst<outs, ins, asmstr, pattern, NoItinerary, Pseudo>
+  MipsInst<outs, ins, asmstr, pattern, NoItinerary, Pseudo>,
+  Requires<[IsCHERI]>
 {
   let isPseudo = 1;
   let usesCustomInserter = 1;
@@ -322,7 +323,6 @@ def : Pat<(store CheriOpnd:$cs, GPR64Opnd:$rt),
           (STORECAP CheriOpnd:$cs, GPR64Opnd:$rt, (i64 0), C0)>;
 
 // Load a capability
-let Predicates = [IsCHERI] in {
 def LOADCAP : CheriFmtCLS<0x36, (outs CheriOpnd:$cs), (ins GPR64Opnd:$rt, simm11s4:$offset, CheriOpnd:$cb),
                         "clc\t$cs, ${rt}, ${offset}(${cb})",
                         [(set CheriOpnd:$cs, (load (add (add GPR64Opnd:$rt, (ptrtoint CheriOpnd:$cb)), (i64 simm11s4Pattern:$offset))))]> {
@@ -532,7 +532,6 @@ let usesCustomInserter = 1 in {
   def CAP_ATOMIC_CMP_SWAP_I64  : CapAtomicCmpSwap<atomic_cmp_swap_64, GPR64>;
 
 }
-}
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers for capability-using calls and returns
 ////////////////////////////////////////////////////////////////////////////////
@@ -554,7 +553,8 @@ def CClearHi : ClearRegs<3, "cclearhi">;
 
 
 def  CCallPseudo : PseudoSE<(outs), (ins GPR64Opnd:$rs, uimm32: $mask),
-                            [(CheriJmpLink GPR64Opnd:$rs, (i32 uimm32_pat: $mask))], NoItinerary>
+                            [(CheriJmpLink GPR64Opnd:$rs, (i32 uimm32_pat: $mask))], NoItinerary>,
+                   Requires<[IsCHERI]>
 {
   let isCall=1;
   let Defs = [RA];
@@ -568,7 +568,8 @@ def CapJmpLink : SDNode<"MipsISD::CapJmpLink",SDT_MipsCapJmpLink,
 let isCall=1, hasDelaySlot=1, Defs = [C17] in {
 def CapJumpLinkPseudo :
   PseudoSE<(outs), (ins CheriOpnd: $rs), [(CapJmpLink CheriOpnd: $rs)], NoItinerary>,
-  PseudoInstExpansion<(CJALR C17, CheriOpnd:$rs)>;
+  PseudoInstExpansion<(CJALR C17, CheriOpnd:$rs)>,
+  Requires<[IsCHERI]>;
 }
 def CapRet : SDNode<"MipsISD::CapRet", SDTNone,
                      [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
