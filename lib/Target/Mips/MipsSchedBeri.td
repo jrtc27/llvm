@@ -6,5 +6,8 @@ def BeriModel : SchedMachineModel {
                              // This is overriden by OperandCycles if the
                              // Itineraries are queried instead.
   let MispredictPenalty = 8;
+
+  let CompleteModel = 0;
+  list<Predicate> UnsupportedFeatures = [HasMSA];
 }
 
