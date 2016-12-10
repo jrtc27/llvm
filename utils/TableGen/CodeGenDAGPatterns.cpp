@@ -165,6 +165,9 @@ bool EEVT::TypeSet::MergeInTypeInfo(const EEVT::TypeSet &InVT, TreePattern &TP){
   // Handle the abstract cases, seeing if we can resolve them better.
   switch (TypeVec[0]) {
   default: break;
+  case MVT::iFATPTR:
+    if (TypeVec.size() < 2 || TypeVec[1] != MVT::iPTR)
+      break;
   case MVT::iPTR:
   case MVT::iPTRAny:
     if (InVT.hasIntegerTypes()) {
@@ -174,7 +177,7 @@ bool EEVT::TypeSet::MergeInTypeInfo(const EEVT::TypeSet &InVT, TreePattern &TP){
 
       if (InCopy.isConcrete()) {
         // If the RHS has one integer type, upgrade iPTR to i32.
-        TypeVec[0] = InVT.TypeVec[0];
+        TypeVec = { InVT.TypeVec[0] };
         return true;
       }
 
@@ -186,15 +189,19 @@ bool EEVT::TypeSet::MergeInTypeInfo(const EEVT::TypeSet &InVT, TreePattern &TP){
 
   // If the input constraint is iAny/iPTR and this is an integer type list,
   // remove non-integer types from the list.
-  if ((InVT.TypeVec[0] == MVT::iPTR || InVT.TypeVec[0] == MVT::iPTRAny) &&
-      hasIntegerTypes()) {
+  if ((InVT.TypeVec[0] == MVT::iPTR || InVT.TypeVec[0] == MVT::iPTRAny ||
+       (InVT.TypeVec[0] == MVT::iFATPTR && InVT.TypeVec.size() >= 2 &&
+        InVT.TypeVec[1] == MVT::iPTR)) && hasIntegerTypes()) {
     bool MadeChange = EnforceInteger(TP);
 
     // If we're merging in iPTR/iPTRAny and the node currently has a list of
     // multiple different integer types, replace them with a single iPTR.
-    if ((InVT.TypeVec[0] == MVT::iPTR || InVT.TypeVec[0] == MVT::iPTRAny) &&
-        TypeVec.size() != 1) {
-      TypeVec.assign(1, InVT.TypeVec[0]);
+    if (TypeVec.size() != 1) {
+      if (InVT.TypeVec[0] == MVT::iFATPTR)
+        TypeVec.assign(1, MVT::iPTR);
+      else
+        TypeVec.assign(1, InVT.TypeVec[0]);
+
       MadeChange = true;
     }
 
@@ -1007,7 +1014,7 @@ bool SDTypeConstraint::ApplyTypeConstraint(TreePatternNode *N,
       // FIXME: We should be able to do the type inference correctly from the
       // two types, but for now just disable this constraint on architectures
       // with fat pointers.
-      return false;
+      //return false;
       MVT::SimpleValueType Ptrs[] = { MVT::iFATPTR, MVT::iPTR };
       ArrayRef<MVT::SimpleValueType> PtrTys(Ptrs);
       return NodeToApply->UpdateNodeType(ResNo, PtrTys, TP);
@@ -2371,8 +2378,10 @@ InferAllTypes(const StringMap<SmallVector<TreePatternNode*,1> > *InNamedTypes) {
   }
 
   bool HasUnresolvedTypes = false;
-  for (const TreePatternNode *Tree : Trees)
+  for (TreePatternNode *Tree : Trees) {
+    Tree->RemoveUnresolvedFatPointers();
     HasUnresolvedTypes |= Tree->ContainsUnresolvedType();
+  }
   return !HasUnresolvedTypes;
 }
 

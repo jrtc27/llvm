@@ -152,6 +152,13 @@ namespace EEVT {
     /// EnforceSameSize - 'this' is now constrained to be the same size as VT.
     bool EnforceSameSize(EEVT::TypeSet &VT, TreePattern &TP);
 
+    void RemoveUnresolvedFatPointers() {
+      if (TypeVec.size() == 2 &&
+          ((TypeVec[0] == MVT::iPTR && TypeVec[1] == MVT::iFATPTR) ||
+           (TypeVec[0] == MVT::iFATPTR && TypeVec[1] == MVT::iPTR)))
+        TypeVec = { MVT::iPTR };
+    }
+
     bool operator!=(const TypeSet &RHS) const { return TypeVec != RHS.TypeVec; }
     bool operator==(const TypeSet &RHS) const { return TypeVec == RHS.TypeVec; }
 
@@ -498,6 +505,15 @@ public:   // Higher level manipulation routines.
   // def from the ins/outs lists.
   // Return true if the type changed.
   bool UpdateNodeTypeFromInst(unsigned ResNo, Record *Operand, TreePattern &TP);
+
+  //
+  void RemoveUnresolvedFatPointers() {
+    for (unsigned i = 0, e = Types.size(); i != e; ++i)
+      Types[i].RemoveUnresolvedFatPointers();
+
+    for (unsigned i = 0, e = getNumChildren(); i != e; ++i)
+      getChild(i)->RemoveUnresolvedFatPointers();
+  }
 
   /// ContainsUnresolvedType - Return true if this tree contains any
   /// unresolved types.
