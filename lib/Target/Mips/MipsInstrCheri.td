@@ -454,12 +454,12 @@ def CLWC1 : CheriPseudo<(outs FGR32Opnd: $rd),
 def CSDC1 : CheriPseudo<(outs),
   (ins FGR64Opnd:$rs, GPR64Opnd:$rt, simm8s3:$offset, CheriOpnd:$cb),
   "csdc1\t$rs,  ${rt}, ${offset}(${cb})",
-  [(store (add (add (ptrtoint CheriOpnd:$cb), GPR64Opnd:$rt), (i64 simm8s3Pattern:$offset)), FGR64Opnd: $rs)]>;
+  [(store FGR64Opnd: $rs, (add (add (ptrtoint CheriOpnd:$cb), GPR64Opnd:$rt), (i64 simm8s3Pattern:$offset)))]>;
 
 def CSWC1 : CheriPseudo<(outs),
   (ins FGR32Opnd:$rs, GPR64Opnd:$rt, simm8s2:$offset, CheriOpnd:$cb),
   "cswc1\t$rs,  ${rt}, ${offset}(${cb})",
-  [(store (add (add (ptrtoint CheriOpnd:$cb), GPR64Opnd:$rt), (i64 simm8s2Pattern:$offset)), FGR32Opnd: $rs)]>;
+  [(store FGR32Opnd: $rs, (add (add (ptrtoint CheriOpnd:$cb), GPR64Opnd:$rt), (i64 simm8s2Pattern:$offset)))]>;
 
 defm : LoadViaCap0<CLWC1, load>;
 defm : LoadViaCap0<CLDC1, load>;
