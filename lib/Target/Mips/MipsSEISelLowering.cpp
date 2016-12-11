@@ -3863,8 +3863,7 @@ MipsSETargetLowering::emitCapSelect(MachineInstr &MI,
   const TargetInstrInfo *TII = Subtarget.getInstrInfo();
   const BasicBlock *LLVM_BB = BB->getBasicBlock();
   MachineFunction *F = BB->getParent();
-  MachineFunction::iterator It = BB;
-  ++It;
+  MachineFunction::iterator It = std::next(MachineFunction::iterator(BB));
   // Splice the current basic block.  We intend to transform:
   //   CAP_SELECT dst, cond, trueCap, falseCap
   // into the following sequence:
