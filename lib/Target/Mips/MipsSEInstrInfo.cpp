@@ -216,8 +216,8 @@ storeRegToStack(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
       // Ensure that capabilities have a 32-byte alignment
       // FIXME: This shouldn't be needed.  Whatever is allocating the frame index
       // ought to set it.
-      MachineFrameInfo *MFI = MBB.getParent()->getFrameInfo();
-      MFI->setObjectAlignment(FI, Subtarget.isCheri128() ? 16 : 32);
+      MachineFrameInfo &MFI = MBB.getParent()->getFrameInfo();
+      MFI.setObjectAlignment(FI, Subtarget.isCheri128() ? 16 : 32);
     } else {
       llvm_unreachable("Unexpected register type for CHERI!");
     }
@@ -257,8 +257,8 @@ storeRegToStack(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
     // Ensure that capabilities have a 32-byte alignment
     // FIXME: This shouldn't be needed.  Whatever is allocating the frame index
     // ought to set it.
-    MachineFrameInfo *MFI = MBB.getParent()->getFrameInfo();
-    MFI->setObjectAlignment(FI, Subtarget.isCheri128() ? 16 : 32);
+    MachineFrameInfo &MFI = MBB.getParent()->getFrameInfo();
+    MFI.setObjectAlignment(FI, Subtarget.isCheri128() ? 16 : 32);
     BuildMI(MBB, I, DL, get(Opc)).addReg(SrcReg, getKillRegState(isKill))
       .addFrameIndex(FI).addImm(Offset).addMemOperand(MMO)
       .addReg(Mips::C0);
@@ -481,7 +481,7 @@ bool MipsSEInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
     expandEhReturn(MBB, MI);
     break;
   case Mips::CapRetPseudo:
-    BuildMI(MBB, &*MI, MI.getDebugLoc(), get(Mips::PseudoReturnCap))
+    BuildMI(MBB, &MI, MI.getDebugLoc(), get(Mips::PseudoReturnCap))
       .addReg(Mips::C17);
     break;
   case Mips::CPSETUP:
