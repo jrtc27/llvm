@@ -157,7 +157,8 @@ const MCExpr *MipsTargetObjectFile::lowerAddressSpaceCast(
   // ref and a later step will deal with it.
   if (Ty->getPointerAddressSpace() == 200) {
     GlobalValue *GV = cast<GlobalValue>(Op->stripPointerCasts());
-    return MCSymbolRefExpr::create(TM.getSymbol(GV, Mang), getContext());
+    return MCSymbolRefExpr::create(TM.getSymbol(GV, getMangler()),
+                                   getContext());
   }
   return nullptr;
 }
