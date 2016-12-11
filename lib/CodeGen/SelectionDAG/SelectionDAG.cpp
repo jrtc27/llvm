@@ -4366,7 +4366,7 @@ static SDValue getMemsetStringVal(EVT VT, const SDLoc &dl, SelectionDAG &DAG,
 
 SDValue SelectionDAG::getMemBasePlusOffset(SDValue Base, unsigned Offset,
                                            const SDLoc &DL) {
-  return DAG.getPointerAdd(DL, Base, Offset);
+  return getPointerAdd(DL, Base, Offset);
 }
 
 /// isMemSrcFromString - Returns true if memcpy source is a string constant.
