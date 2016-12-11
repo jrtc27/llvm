@@ -43,9 +43,9 @@ class MipsTargetMachine;
                                      const Constant *C,
                                      unsigned &Align) const override;
 
-    const MCExpr *
-    getExecutableRelativeSymbol(const ConstantExpr *CE, Mangler &Mang,
-                                const TargetMachine &TM) const override;
+    const MCExpr *lowerAddressSpaceCast(const Constant *Op, const Type *Ty,
+                                        Mangler &Mang,
+                                        const TargetMachine &TM) const override;
   };
 } // end namespace llvm
 

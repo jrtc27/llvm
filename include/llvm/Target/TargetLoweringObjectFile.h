@@ -162,6 +162,12 @@ public:
     return nullptr;
   }
 
+  virtual const MCExpr *lowerAddressSpaceCast(const Constant *Op, const Type *Ty,
+                                              Mangler &Mang,
+                                              const TargetMachine &TM) const {
+    return nullptr;
+  }
+
   /// \brief Target supports replacing a data "PC"-relative access to a symbol
   /// through another symbol, by accessing the later via a GOT entry instead?
   bool supportIndirectSymViaGOTPCRel() const {

@@ -1823,6 +1823,22 @@ const MCExpr *AsmPrinter::lowerConstant(const Constant *CV) {
     return MCBinaryExpr::createAnd(OpExpr, MaskExpr, Ctx);
   }
 
+  case Instruction::AddressSpaceCast: {
+    if (const MCExpr *CastExpr
+        = getObjFileLowering().lowerAddressSpaceCast(CE->getOperand(0),
+                                                     CE->getType(),
+                                                     Mang,
+                                                     TM))
+      return CastExpr;
+
+    std::string S;
+    raw_string_ostream OS(S);
+    OS << "Unsupported AddressSpaceCast in static initializer: ";
+    CE->printAsOperand(OS, /*PrintType=*/false,
+                   !MF ? nullptr : MF->getFunction()->getParent());
+    report_fatal_error(OS.str());
+  }
+
   case Instruction::Sub: {
     GlobalValue *LHSGV;
     APInt LHSOffset;
