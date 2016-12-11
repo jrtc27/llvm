@@ -172,7 +172,7 @@ void MipsCheriTargetMachine::anchor() { }
 MipsCheriTargetMachine::
 MipsCheriTargetMachine(const Target &T, const Triple &TT,
                       StringRef CPU, StringRef FS, const TargetOptions &Options,
-                      Reloc::Model RM, CodeModel::Model CM,
+                      Optional<Reloc::Model> RM, CodeModel::Model CM,
                       CodeGenOpt::Level OL)
   : MipsebTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL) {}
 
@@ -266,15 +266,6 @@ TargetPassConfig *MipsTargetMachine::createPassConfig(PassManagerBase &PM) {
   return new MipsPassConfig(this, PM);
 }
 
-void MipsPassConfig::addPreRegAlloc() {
-  if (getOptLevel() == CodeGenOpt::None)
-    addPass(createMipsOptimizePICCallPass(getMipsTargetMachine()));
-
-  MipsTargetMachine &TM = getMipsTargetMachine();
-  if (TM.getSubtargetImpl()->isCheri())
-    addPass(createCheriAddressingModeFolder(TM));
-}
-
 void MipsPassConfig::addIRPasses() {
   TargetPassConfig::addIRPasses();
   addPass(createAtomicExpandPass(&getMipsTargetMachine()));
@@ -301,6 +292,10 @@ bool MipsPassConfig::addInstSelector() {
 
 void MipsPassConfig::addPreRegAlloc() {
   addPass(createMipsOptimizePICCallPass(getMipsTargetMachine()));
+
+  MipsTargetMachine &TM = getMipsTargetMachine();
+  if (TM.getSubtargetImpl()->isCheri())
+    addPass(createCheriAddressingModeFolder(TM));
 }
 
 TargetIRAnalysis MipsTargetMachine::getTargetIRAnalysis() {
