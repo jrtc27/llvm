@@ -3352,11 +3352,11 @@ TargetLowering::expandUnalignedLoad(LoadSDNode *LD, SelectionDAG &DAG) const {
   // pass them through and get a trap at run time if we did it wrong.  There's
   // no way to fix up a capability store if it's unaligned, because the tagged
   // memory depends on the fact that they're aligned.
-  if (LD->getMemoryVT() == MVT::iFATPTR) {
+  if (LoadedVT == MVT::iFATPTR) {
     if (LD->getAlignment() != 32)
-      DAG.getLoad(VT, dl, Chain, Ptr, LD->getPointerInfo(), LD->isVolatile(),
-          LD->isNonTemporal(), LD->isInvariant(), 32, LD->getAAInfo());
-    return;
+      DAG.getLoad(VT, dl, Chain, Ptr, LD->getPointerInfo(), 32,
+          LD->getMemOperand()->getFlags(), LD->getAAInfo());
+    return std::make_pair(SDValue(LD, 0), SDValue(LD, 1));
   }
   if (VT.isFloatingPoint() || VT.isVector()) {
     EVT intVT = EVT::getIntegerVT(*DAG.getContext(), LoadedVT.getSizeInBits());
@@ -3515,10 +3515,9 @@ SDValue TargetLowering::expandUnalignedStore(StoreSDNode *ST,
   // no way to fix up a capability store if it's unaligned, because the tagged
   // memory depends on the fact that they're aligned.
   if (ST->getMemoryVT() == MVT::iFATPTR) {
-    if (ST->getAlignment() != 32)
-      DAG.getStore(Chain, dl, Val, Ptr, ST->getPointerInfo(), ST->isVolatile(),
-          ST->isNonTemporal(), 32);
-    return;
+    if (Alignment != 32)
+      DAG.getStore(Chain, dl, Val, Ptr, ST->getPointerInfo(), 32);
+    return SDValue(ST, 0);
   }
 
   if (ST->getMemoryVT().isFloatingPoint() ||
