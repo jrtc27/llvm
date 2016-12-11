@@ -722,11 +722,12 @@ Value *llvm::emitStrLen(Value *Ptr, IRBuilder<> &B, const DataLayout &DL,
 
   Module *M = B.GetInsertBlock()->getModule();
   LLVMContext &Context = B.GetInsertBlock()->getContext();
-  Ptr = CastToCStr(Ptr, B);
+  Ptr = castToCStr(Ptr, B);
   Constant *StrLen = M->getOrInsertFunction("strlen", DL.getIntPtrType(Context),
                                             Ptr->getType(), nullptr);
   inferLibFuncAttributes(*M->getFunction("strlen"), *TLI);
   CallInst *CI = B.CreateCall(StrLen, Ptr, "strlen");
+  if (const Function *F = dyn_cast<Function>(StrLen->stripPointerCasts()))
     CI->setCallingConv(F->getCallingConv());
 
   return CI;
@@ -738,7 +739,7 @@ Value *llvm::emitStrChr(Value *Ptr, char C, IRBuilder<> &B,
     return nullptr;
 
   Module *M = B.GetInsertBlock()->getModule();
-  Ptr = CastToCStr(Ptr, B);
+  Ptr = castToCStr(Ptr, B);
   Type *I8Ptr = Ptr->getType();
   Type *I32Ty = B.getInt32Ty();
   Constant *StrChr =
@@ -758,14 +759,14 @@ Value *llvm::emitStrNCmp(Value *Ptr1, Value *Ptr2, Value *Len, IRBuilder<> &B,
 
   Module *M = B.GetInsertBlock()->getModule();
   LLVMContext &Context = B.GetInsertBlock()->getContext();
-  Ptr1 = CastToCStr(Ptr1, B);
+  Ptr1 = castToCStr(Ptr1, B);
   Type *I8Ptr = Ptr1->getType();
   Value *StrNCmp = M->getOrInsertFunction("strncmp", B.getInt32Ty(),
                                           I8Ptr, I8Ptr,
                                           DL.getIntPtrType(Context), nullptr);
   inferLibFuncAttributes(*M->getFunction("strncmp"), *TLI);
   CallInst *CI = B.CreateCall(
-      StrNCmp, {Ptr1, B), castToCStr(Ptr2, B), Len}, "strncmp");
+      StrNCmp, {Ptr1, castToCStr(Ptr2, B), Len}, "strncmp");
 
   if (const Function *F = dyn_cast<Function>(StrNCmp->stripPointerCasts()))
     CI->setCallingConv(F->getCallingConv());
@@ -779,7 +780,7 @@ Value *llvm::emitStrCpy(Value *Dst, Value *Src, IRBuilder<> &B,
     return nullptr;
 
   Module *M = B.GetInsertBlock()->getModule();
-  Dst = CastToCStr(Dst, B);
+  Dst = castToCStr(Dst, B);
   Type *I8Ptr = Dst->getType();
   Value *StrCpy = M->getOrInsertFunction(Name, I8Ptr, I8Ptr, I8Ptr, nullptr);
   inferLibFuncAttributes(*M->getFunction(Name), *TLI);
@@ -796,7 +797,7 @@ Value *llvm::emitStrNCpy(Value *Dst, Value *Src, Value *Len, IRBuilder<> &B,
     return nullptr;
 
   Module *M = B.GetInsertBlock()->getModule();
-  Dst = CastToCStr(Dst, B);
+  Dst = castToCStr(Dst, B);
   Type *I8Ptr = Dst->getType();
   Value *StrNCpy = M->getOrInsertFunction(Name, I8Ptr, I8Ptr, I8Ptr,
                                           Len->getType(), nullptr);
@@ -819,8 +820,8 @@ Value *llvm::emitMemCpyChk(Value *Dst, Value *Src, Value *Len, Value *ObjSize,
   AS = AttributeSet::get(M->getContext(), AttributeSet::FunctionIndex,
                          Attribute::NoUnwind);
   LLVMContext &Context = B.GetInsertBlock()->getContext();
-  Dst = CastToCStr(Dst, B);
-  Src = CastToCStr(Src, B);
+  Dst = castToCStr(Dst, B);
+  Src = castToCStr(Src, B);
   Type *I8Ptr = Dst->getType();
   Value *MemCpy = M->getOrInsertFunction(
       "__memcpy_chk", AttributeSet::get(M->getContext(), AS), I8Ptr,
@@ -839,7 +840,7 @@ Value *llvm::emitMemChr(Value *Ptr, Value *Val, Value *Len, IRBuilder<> &B,
 
   Module *M = B.GetInsertBlock()->getModule();
   LLVMContext &Context = B.GetInsertBlock()->getContext();
-  Ptr = CastToCStr(Ptr, B);
+  Ptr = castToCStr(Ptr, B);
   Type *I8Ptr = Ptr->getType();
   Value *MemChr = M->getOrInsertFunction("memchr", I8Ptr,
                                          I8Ptr, B.getInt32Ty(),
@@ -860,7 +861,7 @@ Value *llvm::emitMemCmp(Value *Ptr1, Value *Ptr2, Value *Len, IRBuilder<> &B,
 
   Module *M = B.GetInsertBlock()->getModule();
   LLVMContext &Context = B.GetInsertBlock()->getContext();
-  Ptr1 = CastToCStr(Ptr1, B);
+  Ptr1 = castToCStr(Ptr1, B);
   Type *I8Ptr = Ptr1->getType();
   Value *MemCmp = M->getOrInsertFunction("memcmp", B.getInt32Ty(),
                                          I8Ptr, I8Ptr,
