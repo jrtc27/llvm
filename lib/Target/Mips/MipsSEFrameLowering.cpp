@@ -837,8 +837,8 @@ spillCalleeSavedRegisters(MachineBasicBlock &MBB,
       BuildMI(MBB, &*MI, MI->getDebugLoc(), TII.get(Mips::CGetPCC), Mips::C16);
       BuildMI(MBB, &*MI, MI->getDebugLoc(), TII.get(Mips::CSetOffset), Mips::C16)
           .addReg(Mips::C16).addReg(Mips::RA_64, RegState::Kill);
-      MachineFrameInfo *MFI = MBB.getParent()->getFrameInfo();
-      MFI->setObjectAlignment(CSI[i].getFrameIdx(), 32);
+      MachineFrameInfo &MFI = MBB.getParent()->getFrameInfo();
+      MFI.setObjectAlignment(CSI[i].getFrameIdx(), 32);
     }
 
     // ISRs require HI/LO to be spilled into kernel registers to be then
