@@ -150,8 +150,7 @@ MCSection *MipsTargetObjectFile::getSectionForConstant(const DataLayout &DL,
 }
 
 const MCExpr *MipsTargetObjectFile::lowerAddressSpaceCast(
-    const Constant *Op, const Type *Ty, Mangler &Mang,
-    const TargetMachine &TM) const {
+    const Constant *Op, const Type *Ty, const TargetMachine &TM) const {
 
   // In the pure-capability ABI, we end up with address space casts for
   // constant initialisers for function pointers.  Just pass through a symbol

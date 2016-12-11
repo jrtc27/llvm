@@ -1823,11 +1823,10 @@ const MCExpr *AsmPrinter::lowerConstant(const Constant *CV) {
     return MCBinaryExpr::createAnd(OpExpr, MaskExpr, Ctx);
   }
 
-  case Instruction::AddressSpaceCast: {
+  case Instruction::AddrSpaceCast: {
     if (const MCExpr *CastExpr
         = getObjFileLowering().lowerAddressSpaceCast(CE->getOperand(0),
                                                      CE->getType(),
-                                                     Mang,
                                                      TM))
       return CastExpr;
 

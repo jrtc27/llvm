@@ -163,7 +163,6 @@ public:
   }
 
   virtual const MCExpr *lowerAddressSpaceCast(const Constant *Op, const Type *Ty,
-                                              Mangler &Mang,
                                               const TargetMachine &TM) const {
     return nullptr;
   }
