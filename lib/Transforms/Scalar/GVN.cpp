@@ -874,7 +874,7 @@ static int AnalyzeLoadFromClobberingWrite(Type *LoadTy, Value *LoadPtr,
   if (DL.isFatPointer(LoadPtr->getType()->getPointerAddressSpace())) {
     uint64_t Size = 0;
     bool KnownSize = getObjectSize(StoreBase, Size, DL,
-        gvn.getTargetLibraryInfo());
+        &gvn.getTargetLibraryInfo());
     // If we don't know the size of the underlying object then we can't
     // assume that we can look through this pointer.
     unsigned SrcValSize = DL.getTypeStoreSize(LoadTy);
@@ -902,7 +902,7 @@ static int AnalyzeLoadFromClobberingStore(Type *LoadTy, Value *LoadPtr,
   // If this is a pointer type that's larger than the largest integer that we
   // support, then ignore it.
   if (LoadTy->isPointerTy() &&
-      DL.getTypeSizeInBits(LoadTy) > DL.getLargestLegalIntTypeSize())
+      DL.getTypeSizeInBits(LoadTy) > DL.getLargestLegalIntTypeSizeInBits())
     return -1;
 
   Value *StorePtr = DepSI->getPointerOperand();
@@ -957,7 +957,7 @@ static int AnalyzeLoadFromClobberingMemInst(Type *LoadTy, Value *LoadPtr,
   // If this is a pointer type that's larger than the largest integer that we
   // support, then ignore it.
   if (LoadTy->isPointerTy() &&
-      DL.getTypeSizeInBits(LoadTy) > DL.getLargestLegalIntTypeSize())
+      DL.getTypeSizeInBits(LoadTy) > DL.getLargestLegalIntTypeSizeInBits())
     return -1;
   uint64_t MemSizeInBits = SizeCst->getZExtValue()*8;
 
@@ -1227,7 +1227,7 @@ Value *AvailableValue::MaterializeAdjustedValue(LoadInst *LI,
             DL);
         uint64_t Size;
         bool KnownSize = getObjectSize(Object, Size, DL,
-            gvn.getTargetLibraryInfo());
+            &gvn.getTargetLibraryInfo());
         // If we don't know the size of the underlying object then we can't
         // assume that we can look through this pointer.
         if (!KnownSize) {

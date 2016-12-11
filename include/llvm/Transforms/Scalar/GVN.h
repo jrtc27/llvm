@@ -59,7 +59,7 @@ public:
   DominatorTree &getDominatorTree() const { return *DT; }
   AliasAnalysis *getAliasAnalysis() const { return VN.getAliasAnalysis(); }
   MemoryDependenceResults &getMemDep() const { return *MD; }
-  TargetLibraryInfo &getTargetLibraryInfo() const { return *TLI; }
+  const TargetLibraryInfo &getTargetLibraryInfo() const { return *TLI; }
 
   struct Expression;
 
