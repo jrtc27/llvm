@@ -104,7 +104,7 @@ public:
     if (TargetMachine::isCompatibleDataLayout(Candidate))
       return true;
     DataLayout MutableCandidate(Candidate);
-    MutableCandidate.setAllocaAS(getDataLayout().getAllocaAS());
+    MutableCandidate.setAllocaAS(createDataLayout().getAllocaAS());
     return TargetMachine::isCompatibleDataLayout(MutableCandidate);
   }
 };
