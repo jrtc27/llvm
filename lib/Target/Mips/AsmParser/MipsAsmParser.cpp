@@ -1421,9 +1421,9 @@ public:
 
   /// Create a register that is definitely an Cheri register.
   static std::unique_ptr<MipsOperand>
-  CreateCheriReg(unsigned Index, const MCRegisterInfo *RegInfo, SMLoc S,
-                   SMLoc E, MipsAsmParser &Parser) {
-    return CreateReg(Index, RegKind_Cheri, RegInfo, S, E, Parser);
+  createCheriReg(unsigned Index, StringRef Str, const MCRegisterInfo *RegInfo,
+                 SMLoc S, SMLoc E, MipsAsmParser &Parser) {
+    return CreateReg(Index, Str, RegKind_Cheri, RegInfo, S, E, Parser);
   }
 
   static std::unique_ptr<MipsOperand>
@@ -2738,7 +2738,7 @@ bool MipsAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
     const MipsMCExpr *HigherExpr =
         MipsMCExpr::create(MipsMCExpr::MEK_HIGHER, SymExpr, getContext());
 
-    if (UseSrcReg &&
+    if (UseSrcReg && ATReg &&
         getContext().getRegisterInfo()->isSuperOrSubRegisterEq(DstReg,
                                                                SrcReg)) {
       // If $rs is the same as $rd:
@@ -2760,27 +2760,24 @@ bool MipsAsmParser::loadAndAddSymbolAddress(const MCExpr *SymExpr,
       TOut.emitRRX(Mips::DADDiu, ATReg, ATReg, MCOperand::createExpr(LoExpr),
                    IDLoc, STI);
       TOut.emitRRR(Mips::DADDu, DstReg, ATReg, SrcReg, IDLoc, STI);
+    }
 
     if (!Is32BitSym) {
       // If it's a 64-bit architecture and we are allowed to use AT, expand to:
       // la d,sym => lui     d,%highest(sym)
-      //             lui     t,%hi16(sym)
+      //             lui     t,%hi(sym)
       //             daddiu  d,d,%higher(sym)
-      //             daddiu  t,t,%lo16(sym)
+      //             daddiu  t,t,%lo(sym)
       //             dsll32  d,d,0
       //             daddu   d,d,t
       // If we are not allowed to use AT:
       // la d,sym => lui     d,%highest(sym)
       //             daddiu  d,d,%higher(sym)
       //             dsll    d,d,16
-      //             daddiu  d,d,%hi16(sym)
+      //             daddiu  d,d,%hi(sym)
       //             dsll    d,d,16
-      //             daddiu  d,d,%lo16(sym)
+      //             daddiu  d,d,%lo(sym)
       // 
-      const MipsMCExpr *HighestExpr = MipsMCExpr::create(
-          MCSymbolRefExpr::VK_Mips_HIGHEST, Symbol, getContext());
-      const MipsMCExpr *HigherExpr = MipsMCExpr::create(
-          MCSymbolRefExpr::VK_Mips_HIGHER, Symbol, getContext());
       MCOperand Highest = MCOperand::createExpr(HighestExpr);
       MCOperand Higher = MCOperand::createExpr(HigherExpr);
       MCOperand Hi = MCOperand::createExpr(HiExpr);
@@ -5020,8 +5017,9 @@ MipsAsmParser::matchAnyRegisterNameWithoutDollar(OperandVector &Operands,
 
   Index = matchCheriRegisterName(Identifier);
   if (Index != -1) {
-    Operands.push_back(MipsOperand::CreateCheriReg(
-        Index, getContext().getRegisterInfo(), S, getLexer().getLoc(), *this));
+    Operands.push_back(MipsOperand::createCheriReg(
+        Index, Identifier, getContext().getRegisterInfo(), S,
+        getLexer().getLoc(), *this));
     return MatchOperand_Success;
   }
 
