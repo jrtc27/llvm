@@ -188,7 +188,7 @@ public:
 
       for (auto *i = Casts.begin(), *e = Casts.end(); i != e; ++i) {
         Instruction *I2P = i->second;
-        ilist_iterator<llvm::Instruction> InsertPt = I2P->getParent()->begin();
+        auto InsertPt = I2P->getParent()->begin();
         while (InsertPt.getNodePtrUnchecked() != I2P) {
           ++InsertPt;
         }
