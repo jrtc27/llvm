@@ -189,12 +189,11 @@ public:
       for (auto *i = Casts.begin(), *e = Casts.end(); i != e; ++i) {
         Instruction *I2P = i->second;
         auto InsertPt = I2P->getParent()->begin();
-        while (InsertPt.getNodePtrUnchecked() != I2P) {
+        while (&*InsertPt != I2P) {
           ++InsertPt;
         }
         ++InsertPt;
-        Value *New = RangeCheckedValue(InsertPt.getNodePtrUnchecked(), i->first,
-                                       I2P, BitCast);
+        Value *New = RangeCheckedValue(&*InsertPt, i->first, I2P, BitCast);
         I2P->replaceAllUsesWith(New);
         cast<Instruction>(BitCast)->setOperand(0, I2P);
       }
