@@ -156,7 +156,7 @@ const MCExpr *MipsTargetObjectFile::lowerAddressSpaceCast(
   // constant initialisers for function pointers.  Just pass through a symbol
   // ref and a later step will deal with it.
   if (Ty->getPointerAddressSpace() == 200) {
-    GlobalValue *GV = cast<GlobalValue>(Op->stripPointerCasts());
+    const GlobalValue *GV = cast<GlobalValue>(Op->stripPointerCasts());
     return MCSymbolRefExpr::create(TM.getSymbol(GV, getMangler()),
                                    getContext());
   }
