@@ -3647,7 +3647,6 @@ void SelectionDAGBuilder::visitStore(const StoreInst &I) {
   SDValue Root = getRoot();
   SmallVector<SDValue, 4> Chains(std::min(MaxParallelChains, NumValues));
   SDLoc dl = getCurSDLoc();
-  EVT PtrVT = Ptr.getValueType();
   unsigned Alignment = I.getAlignment();
   AAMDNodes AAInfo;
   I.getAAMetadata(AAInfo);
