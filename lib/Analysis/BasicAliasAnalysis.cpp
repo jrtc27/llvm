@@ -408,7 +408,7 @@ bool BasicAAResult::DecomposeGEPExpression(const Value *V,
     unsigned AS = GEPOp->getPointerAddressSpace();
     // Walk the indices of the GEP, accumulating them into BaseOff/VarIndices.
     gep_type_iterator GTI = gep_type_begin(GEPOp);
-    unsigned PointerSize = DL.getPointerSizeInBits(AS);
+    unsigned PointerBaseSize = DL.getPointerBaseSizeInBits(AS);
     // Assume all GEP operands are constants until proven otherwise.
     bool GepHasConstantOffset = true;
     for (User::const_op_iterator I = GEPOp->op_begin() + 1, E = GEPOp->op_end();
@@ -443,8 +443,8 @@ bool BasicAAResult::DecomposeGEPExpression(const Value *V,
       // If the integer type is smaller than the pointer size, it is implicitly
       // sign extended to pointer size.
       unsigned Width = Index->getType()->getIntegerBitWidth();
-      if (PointerSize > Width)
-        SExtBits += PointerSize - Width;
+      if (PointerBaseSize > Width)
+        SExtBits += PointerBaseSize - Width;
 
       // Use GetLinearExpression to decompose the index into a C1*V+C2 form.
       APInt IndexScale(Width, 0), IndexOffset(Width, 0);
@@ -473,7 +473,7 @@ bool BasicAAResult::DecomposeGEPExpression(const Value *V,
 
       // Make sure that we have a scale that makes sense for this target's
       // pointer size.
-      Scale = adjustToPointerSize(Scale, PointerSize);
+      Scale = adjustToPointerSize(Scale, PointerBaseSize);
 
       if (Scale) {
         VariableGEPIndex Entry = {Index, ZExtBits, SExtBits,
@@ -485,9 +485,9 @@ bool BasicAAResult::DecomposeGEPExpression(const Value *V,
     // Take care of wrap-arounds
     if (GepHasConstantOffset) {
       Decomposed.StructOffset =
-          adjustToPointerSize(Decomposed.StructOffset, PointerSize);
+          adjustToPointerSize(Decomposed.StructOffset, PointerBaseSize);
       Decomposed.OtherOffset =
-          adjustToPointerSize(Decomposed.OtherOffset, PointerSize);
+          adjustToPointerSize(Decomposed.OtherOffset, PointerBaseSize);
     }
 
     // Analyze the base pointer next.
