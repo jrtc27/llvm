@@ -277,8 +277,6 @@ class MipsTargetELFStreamer : public MipsTargetStreamer {
   bool MicroMipsEnabled;
   const MCSubtargetInfo &STI;
   bool Pic;
-  int GPSaveLocation;
-  bool GPSaveIsReg;
 
 public:
   bool isMicroMipsEnabled() const { return MicroMipsEnabled; }
