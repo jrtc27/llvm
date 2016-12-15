@@ -593,11 +593,6 @@ bool MipsTargetAsmStreamer::emitDirectiveCpRestore(
   return true;
 }
 
-void MipsTargetAsmStreamer::emitDirectiveCpreturn() {
-  OS << "\t.cpreturn\n";
-  forbidModuleDirective();
-}
-
 void MipsTargetAsmStreamer::emitDirectiveCpsetup(unsigned RegNo,
                                                  int RegOrOffset,
                                                  const MCSymbol &Sym,
