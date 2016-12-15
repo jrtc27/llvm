@@ -1,6 +1,6 @@
 ; RUN: opt -S -gvn -mtriple=cheri-unknown-freebsd %s | FileCheck %s
 ; ModuleID = 'union2.c'
-target datalayout = "E-m:m-pf200:256:256-i8:8:32-i16:16:32-i64:64-n32:64-S128-A200"
+target datalayout = "E-m:e-pf200:256:256-i8:8:32-i16:16:32-i64:64-n32:64-S128-A200"
 target triple = "cheri-unknown-freebsd"
 
 ; Function Attrs: nounwind

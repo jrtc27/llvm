@@ -1,11 +1,11 @@
 ; RUN: llc  -mtriple cheri-unknown-freebsd %s -o - -O0 | FileCheck %s
 ; ModuleID = 'brazdil.c'
-target datalayout = "E-m:m-pf200:256:256-i8:8:32-i16:16:32-i64:64-n32:64-S128"
+target datalayout = "E-m:e-pf200:256:256-i8:8:32-i16:16:32-i64:64-n32:64-S128"
 target triple = "cheri-unknown-freebsd"
 
 ; Check that the store of the global pointer is not moved after the branch and
 ; that the branch is replaced by a branch-on-tag-set.
-; CHECK: cbts	$c3, $BB0_2
+; CHECK: cbts	$c3, .LBB0_2
 
 @.str = private unnamed_addr constant [20 x i8] c"Storing in slot %p\0A\00", align 1
 

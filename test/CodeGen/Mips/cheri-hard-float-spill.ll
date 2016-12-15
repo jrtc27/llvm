@@ -1,6 +1,6 @@
 ; RUN: llc %s -mtriple=cheri-unknown-freebsd -target-abi sandbox -o -
 ; ModuleID = 'bugpoint-reduced-simplified.bc'
-target datalayout = "E-m:m-pf200:256:256-i8:8:32-i16:16:32-i64:64-n32:64-S128-A200"
+target datalayout = "E-m:e-pf200:256:256-i8:8:32-i16:16:32-i64:64-n32:64-S128-A200"
 target triple = "cheri-unknown-freebsd"
 
 %struct.site.5.59.89.167.203.227.257.329.347.443.779 = type { i16, i16, i16, i16, i8, i32, %struct.double_prn.0.54.84.162.198.222.252.324.342.438.774, i32, [4 x %struct.su3_matrix.2.56.86.164.200.224.254.326.344.440.776], [4 x %struct.anti_hermitmat.3.57.87.165.201.225.255.327.345.441.777], [4 x double], %struct.su3_vector.4.58.88.166.202.226.256.328.346.442.778, %struct.su3_vector.4.58.88.166.202.226.256.328.346.442.778, %struct.su3_vector.4.58.88.166.202.226.256.328.346.442.778, %struct.su3_vector.4.58.88.166.202.226.256.328.346.442.778, %struct.su3_vector.4.58.88.166.202.226.256.328.346.442.778, %struct.su3_vector.4.58.88.166.202.226.256.328.346.442.778, [4 x %struct.su3_vector.4.58.88.166.202.226.256.328.346.442.778], [4 x %struct.su3_vector.4.58.88.166.202.226.256.328.346.442.778], %struct.su3_vector.4.58.88.166.202.226.256.328.346.442.778, %struct.su3_matrix.2.56.86.164.200.224.254.326.344.440.776, %struct.su3_matrix.2.56.86.164.200.224.254.326.344.440.776 }
