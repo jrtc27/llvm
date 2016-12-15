@@ -2,7 +2,6 @@
 # RUN: FileCheck -check-prefix=CHECK32  %s
 # RUN: llvm-mc %s -triple=mips64el-unknown-linux -show-encoding -mcpu=mips64r2 | \
 # RUN: FileCheck -check-prefix=CHECK64  %s
-# XFAIL:
 
 #------------------------------------------------------------------------------
 # Branch likely instructions
