@@ -14,7 +14,7 @@
 # CHECK32:   nop                    # encoding: [0x00,0x00,0x00,0x00]
 # CHECK32:   beql $9, $6, 1332      # encoding: [0x4d,0x01,0x26,0x51]
 # CHECK32:   nop                    # encoding: [0x00,0x00,0x00,0x00]
-# CHECK32:   bgezl $6, 1332         # encoding: [0x4d,0X01,0xc3,0x04]
+# CHECK32:   bgezl $6, 1332         # encoding: [0x4d,0x01,0xc3,0x04]
 # CHECK32:   nop                    # encoding: [0x00,0x00,0x00,0x00]
 # CHECK32:   bgezall $6, 1332       # encoding: [0x4d,0x01,0xd3,0x04]
 # CHECK32:   nop                    # encoding: [0x00,0x00,0x00,0x00]
@@ -33,7 +33,7 @@
 # CHECK64:   nop                    # encoding: [0x00,0x00,0x00,0x00]
 # CHECK64:   beql $9, $6, 1332      # encoding: [0x4d,0x01,0x26,0x51]
 # CHECK64:   nop                    # encoding: [0x00,0x00,0x00,0x00]
-# CHECK64:   bgezl $6, 1332         # encoding: [0x4d,0X01,0xc3,0x04]
+# CHECK64:   bgezl $6, 1332         # encoding: [0x4d,0x01,0xc3,0x04]
 # CHECK64:   nop                    # encoding: [0x00,0x00,0x00,0x00]
 # CHECK64:   bgezall $6, 1332       # encoding: [0x4d,0x01,0xd3,0x04]
 # CHECK64:   nop                    # encoding: [0x00,0x00,0x00,0x00]
@@ -48,7 +48,7 @@
 
         bc1fl 1332
         nop
-	bc1tl 1332
+        bc1tl 1332
         nop
         beql $9, $6, 1332
         nop
@@ -56,7 +56,7 @@
         nop
         bgezall $6, 1332
         nop
-	bltzall $6, 1332
+        bltzall $6, 1332
         nop
         bgtzl $6, 1332
         nop
