@@ -48,7 +48,7 @@
 
         bc1fl 1332
         nop
-	bc1tl 1332
+        bc1tl 1332
         nop
         beql $9, $6, 1332
         nop
@@ -56,7 +56,7 @@
         nop
         bgezall $6, 1332
         nop
-	bltzall $6, 1332
+        bltzall $6, 1332
         nop
         bgtzl $6, 1332
         nop
