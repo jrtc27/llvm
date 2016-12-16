@@ -506,7 +506,8 @@ define i32* @test41(i32* %tmp1) {
 ; addrspacecasts, which can break the semantics.
 define i32 addrspace(1)* @test41_addrspacecast_smaller(i32* %tmp1) {
 ; CHECK-LABEL: @test41_addrspacecast_smaller(
-; CHECK-NEXT:    [[TMP64:%.*]] = addrspacecast i32* %tmp1 to i32 addrspace(1)*
+; CHECK-NEXT:    [[TMP1_CAST:%.*]] = bitcast i32* %tmp1 to { i32 }*
+; CHECK-NEXT:    [[TMP64:%.*]] = addrspacecast { i32 }* [[TMP1_CAST]] to { i32 } addrspace(1)*
 ; CHECK-NEXT:    [[TMP65:%.*]] = getelementptr { i32 }, { i32 } addrspace(1)* [[TMP64]], i32 0, i32 0
 ; CHECK-NEXT:    ret i32 addrspace(1)* [[TMP65]]
 ;
@@ -517,8 +518,9 @@ define i32 addrspace(1)* @test41_addrspacecast_smaller(i32* %tmp1) {
 
 define i32* @test41_addrspacecast_larger(i32 addrspace(1)* %tmp1) {
 ; CHECK-LABEL: @test41_addrspacecast_larger(
-; CHECK-NEXT:    [[TMP64:%.*]] = addrspacecast i32 addrspace(1)* %tmp1 to i32*
-; CHECK-NEXT:    [[TMP65:%.*]] = getelementptr { i32 }, { i32 }* [[TMP64]], i32 0, i32 0
+; CHECK-NEXT:    [[TMP1_CAST:%.*]] = bitcast i32 addrspace(1)* %tmp1 to { i32 } addrspace(1)*
+; CHECK-NEXT:    [[TMP64:%.*]] = addrspacecast { i32 } addrspace(1)* [[TMP1_CAST]] to { i32 }*
+; CHECK-NEXT:    [[TMP65:%.*]] = getelementptr { i32 }, { i32 }* [[TMP64]], i64 0, i32 0
 ; CHECK-NEXT:    ret i32* [[TMP65]]
 ;
   %tmp64 = addrspacecast i32 addrspace(1)* %tmp1 to { i32 }*
