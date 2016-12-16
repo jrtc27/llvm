@@ -694,17 +694,27 @@ SpeculationFailure:
 static bool CanCoerceMustAliasedValueToLoad(Value *StoredVal,
                                             Type *LoadTy,
                                             const DataLayout &DL) {
+  Type *StoredValTy = StoredVal->getType();
+
+  uint64_t StoredValSize = DL.getTypeSizeInBits(StoredValTy);
+  uint64_t LoadValSize = DL.getTypeSizeInBits(LoadTy);
+
   // If the loaded or stored value is an first class array or struct, don't try
   // to transform them.  We need to be able to bitcast to integer.
   if (LoadTy->isStructTy() || LoadTy->isArrayTy() ||
-      StoredVal->getType()->isStructTy() ||
-      StoredVal->getType()->isArrayTy())
+      StoredValTy->isStructTy() ||
+      StoredValTy->isArrayTy())
     return false;
 
   // The store has to be at least as big as the load.
-  if (DL.getTypeSizeInBits(StoredVal->getType()) <
-        DL.getTypeSizeInBits(LoadTy))
+  if (StoredValSize < LoadValSize)
     return false;
+
+  // Can't reuse a capability store
+  if (StoredValSize != LoadValSize &&
+      StoredValTy->getScalarType()->isPointerTy() &&
+      DL.isFatPointer(StoredValTy->getScalarType()->getPointerAddressSpace()))
+      return false;
 
   return true;
 }
@@ -771,8 +781,6 @@ static Value *CoerceAvailableValueToLoadType(Value *StoredVal, Type *LoadedTy,
 
   // Convert source pointers to integers, which can be manipulated.
   if (StoredValTy->getScalarType()->isPointerTy()) {
-    if (DL.isFatPointer(StoredValTy->getScalarType()->getPointerAddressSpace()))
-      return nullptr;
     StoredValTy = DL.getIntPtrType(StoredValTy);
     StoredVal = IRB.CreatePtrToInt(StoredVal, StoredValTy);
   }
