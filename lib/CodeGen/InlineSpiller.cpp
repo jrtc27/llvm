@@ -394,9 +394,10 @@ bool InlineSpiller::hoistSpillInsideBB(LiveInterval &SpillLI,
   // floating point via a capability.  As such, the storeRegToStackSlot call
   // will insert two instructions and we must update the maps for both of them.
   if (MII != MBB->begin()) {
-    --MII; // Point to the instruction before the store instruction.
-    if (LIS.isNotInMIMap(*MII))
-      LIS.InsertMachineInstrInMaps(*MII);
+    // Point to the instruction before the store instruction.
+    auto PrevMII = std::prev(MII);
+    if (LIS.isNotInMIMap(*PrevMII))
+      LIS.InsertMachineInstrInMaps(*PrevMII);
   }
 #endif
   DEBUG(dbgs() << "\thoisted: " << SrcVNI->def << '\t' << *MII);
