@@ -42,7 +42,7 @@ define void @inner2(i32 *%ptr) {
   %D = getelementptr inbounds i32, i32* %ptr, i32 %A
   %E = bitcast i32* %ptr to i8*
   %F = select i1 false, i32* %ptr, i32* @glbl
-  call void @llvm.lifetime.star.p0i8t(i64 0, i8* %E)
+  call void @llvm.lifetime.start.p0i8(i64 0, i8* %E)
   call void @extern()
   ret void
 }
