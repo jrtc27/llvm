@@ -4692,7 +4692,6 @@ bool MipsAsmParser::parseOperand(OperandVector &Operands, StringRef Mnemonic) {
   DEBUG(dbgs() << ".. Generic Parser\n");
 
   switch (getLexer().getKind()) {
-  case AsmToken::Identifier:
   case AsmToken::Dollar: {
     // Parse the register.
     SMLoc S = Parser.getTok().getLoc();
