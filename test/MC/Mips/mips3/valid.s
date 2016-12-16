@@ -226,7 +226,6 @@ a:
         swr       $s1,-26590($14)
         sync                           # CHECK: sync                   # encoding: [0x00,0x00,0x00,0x0f]
         sync 0                         # CHECK: sync                   # encoding: [0x00,0x00,0x00,0x0f]
-        sync 1                         # CHECK: sync 1                 # encoding: [0x00,0x00,0x00,0x4f]
         syscall                        # CHECK: syscall                # encoding: [0x00,0x00,0x00,0x0c]
         syscall   256                  # CHECK: syscall 256            # encoding: [0x00,0x00,0x40,0x0c]
         teq       $0,$3                # CHECK: teq $zero, $3          # encoding: [0x00,0x03,0x00,0x34]
