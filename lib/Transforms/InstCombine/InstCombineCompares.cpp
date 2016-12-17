@@ -1793,7 +1793,7 @@ Instruction *InstCombiner::foldICmpOrConstant(ICmpInst &Cmp, BinaryOperator *Or,
 
   Value *P, *Q;
   if (match(Or, m_Or(m_PtrToInt(m_Value(P)), m_PtrToInt(m_Value(Q))))) {
-    unsigned IntSize = Or->getType()->getIntegerBitWidth();
+    unsigned IntSize = Or->getType()->getScalarType()->getIntegerBitWidth();
     if ((DL.getPointerTypeSizeInBits(P->getType()) != IntSize) ||
         (DL.getPointerTypeSizeInBits(Q->getType()) != IntSize))
       return nullptr;
