@@ -3828,7 +3828,7 @@ Instruction *InstCombiner::foldICmpUsingKnownBits(ICmpInst &I) {
   // Get scalar or pointer size.
   unsigned BitWidth = Ty->isIntOrIntVectorTy()
                           ? Ty->getScalarSizeInBits()
-                          : DL.getTypeSizeInBits(Ty->getScalarType());
+                          : DL.getTypeIntegerRangeInBits(Ty->getScalarType());
 
   if (!BitWidth)
     return nullptr;
