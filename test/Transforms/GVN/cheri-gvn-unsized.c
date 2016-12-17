@@ -13,36 +13,36 @@ void sk_push(stack_st *);
 // CHECK-LABEL: fn1:
 void fn1() {
   // Call fn2
-  // CHECK: ld	$1, %call16(fn2)($gp)
-  // CHECK: cgetpccsetoffset	$c12, $1
+  // CHECK: ld	[[FN2:\$[0-9]+]], %call16(fn2)($gp)
+  // CHECK: cgetpccsetoffset	$c12, [[FN2]]
   // CHECK: cjalr	$c12, $c17
   // Load address of a
-  // CHECK: ld	$2, %got_disp(a)($gp)
-  // CHECK: cfromptr	$c1, $c0, $2
+  // CHECK: ld	[[A:\$[0-9]+]], %got_disp(a)($gp)
+  // CHECK: cfromptr	[[A_CAP:\$c[0-9]+]], $c0, [[A]]
   // Store in a
-  // CHECK: csc	$c3, $zero, 0($c1)
+  // CHECK: csc	$c3, $zero, 0([[A_CAP]])
   a = (POLICYINFO *__capability)fn2();
   // Load address of b
-  // CHECK: ld	$2, %got_disp(b)($gp)
-  // CHECK: cfromptr	$c1, $c0, $2
+  // CHECK: ld	[[B:\$[0-9]+]], %got_disp(b)($gp)
+  // CHECK: cfromptr	[[B_CAP:\$c[0-9]+]], $c0, [[B]]
   // Store in b
-  // CHECK: csc	$c3, $zero, 0($c2)
+  // CHECK: csc	$c3, $zero, 0([[B_CAP]])
   b = a;
   // Load qualifiers
-  // CHECK: clc	$c1, $zero, 0($c3)
+  // CHECK: clc	[[QUAL_CAP:\$c[0-9]+]], $zero, 0($c3)
   // Create NULL capability
-  // CHECK: cfromptr	$c4, $c0, $zero
+  // CHECK: cfromptr	[[NULL_CAP:\$c[0-9]+]], $c0, $zero
   // Check if qualifiers is NULL
-  // CHECK: ceq	$1, $c1, $c4
-  // CHECK: bnez	$1, .LBB0_2
+  // CHECK: ceq	[[CMP:\$[0-9]+]], [[QUAL_CAP]], [[NULL_CAP]]
+  // CHECK: bnez	[[CMP]], .LBB0_2
   if (b->qualifiers)
     // Store above NULL capability in qualifiers
-    // CHECK: csc	$c4, $zero, 0($c3)
+    // CHECK: csc	[[NULL_CAP]], $zero, 0($c3)
     b->qualifiers = 0;
   // CHECK-LABEL: .LBB0_2:
   // Call sk_push
-  // CHECK: ld	$1, %call16(sk_push)($gp)
-  // CHECK: cgetpccsetoffset	$c12, $1
+  // CHECK: ld	[[SK_PUSH:\$[0-9]+]], %call16(sk_push)($gp)
+  // CHECK: cgetpccsetoffset	$c12, [[SK_PUSH]]
   // CHECK: cjalr	$c12, $c17
   sk_push((stack_st *)b->qualifiers);
 }
