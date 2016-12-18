@@ -746,15 +746,19 @@ void IntrinsicEmitter::EmitIntrinsicToBuiltinMap(
                         "': duplicate " + CompilerName + " builtin name!");
       Table.GetOrAddStringOffset(BuiltinName);
     }
-    if (!Ints[i].GCCBuiltinAliasName.empty()) {
+    const std::string &BuiltinAliasName =
+        IsGCC ? Ints[i].GCCBuiltinAliasName : "";
+    if (!BuiltinAliasName.empty()) {
       // Get the map for this target prefix.
-      std::map<std::string, std::string> &BIM =BuiltinMap[Ints[i].TargetPrefix];
+      std::map<std::string, std::string> &BIM =
+          BuiltinMap[Ints[i].TargetPrefix];
 
-      if (!BIM.insert(std::make_pair(Ints[i].GCCBuiltinAliasName,
+      if (!BIM.insert(std::make_pair(BuiltinAliasName,
                                      Ints[i].EnumName)).second)
         PrintFatalError("Intrinsic '" + Ints[i].TheDef->getName() +
-              "': duplicate GCC builtin name!");
-      Table.GetOrAddStringOffset(Ints[i].GCCBuiltinAliasName);
+              "': duplicate " + CompilerName + " builtin name!");
+
+      Table.GetOrAddStringOffset(BuiltinAliasName);
     }
   }
 
