@@ -132,6 +132,36 @@ bool MipsDAGToDAGISel::selectIntAddrSImm10Lsl3(SDValue Addr, SDValue &Base,
   return false;
 }
 
+bool MipsDAGToDAGISel::selectIntCapSImm8(SDValue Cap, SDValue &Base,
+                                         SDValue &Offset) const {
+  llvm_unreachable("Unimplemented function.");
+  return false;
+}
+
+bool MipsDAGToDAGISel::selectIntCapSImm8Lsl1(SDValue Cap, SDValue &Base,
+                                             SDValue &Offset) const {
+  llvm_unreachable("Unimplemented function.");
+  return false;
+}
+
+bool MipsDAGToDAGISel::selectIntCapSImm8Lsl2(SDValue Cap, SDValue &Base,
+                                             SDValue &Offset) const {
+  llvm_unreachable("Unimplemented function.");
+  return false;
+}
+
+bool MipsDAGToDAGISel::selectIntCapSImm8Lsl3(SDValue Cap, SDValue &Base,
+                                             SDValue &Offset) const {
+  llvm_unreachable("Unimplemented function.");
+  return false;
+}
+
+bool MipsDAGToDAGISel::selectIntCapSImm11Lsl4(SDValue Cap, SDValue &Base,
+                                              SDValue &Offset) const {
+  llvm_unreachable("Unimplemented function.");
+  return false;
+}
+
 bool MipsDAGToDAGISel::selectAddr16(SDValue Addr, SDValue &Base,
                                     SDValue &Offset) {
   llvm_unreachable("Unimplemented function.");

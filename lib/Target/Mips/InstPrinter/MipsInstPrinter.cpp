@@ -196,6 +196,23 @@ printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &O) {
 }
 
 void MipsInstPrinter::
+printMemCapOperand(const MCInst *MI, int opNum, raw_ostream &O) {
+  if (opNum+1 >= (int)MI->getNumOperands()) {
+    printOperand(MI, opNum, O);
+    return;
+  }
+
+  // Load/Store memory operands -- imm($capreg)
+  // MemOperand is always last operand of instruction (base + offset).
+  // Offset comes *before* capability register
+
+  printOperand(MI, opNum, O);
+  O << "(";
+  printOperand(MI, opNum+1, O);
+  O << ")";
+}
+
+void MipsInstPrinter::
 printFCCOperand(const MCInst *MI, int opNum, raw_ostream &O) {
   const MCOperand& MO = MI->getOperand(opNum);
   O << MipsFCCToString((Mips::CondCode)MO.getImm());

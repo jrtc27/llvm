@@ -537,6 +537,77 @@ bool MipsSEDAGToDAGISel::selectIntAddrSImm10Lsl3(SDValue Addr, SDValue &Base,
   return selectAddrDefault(Addr, Base, Offset);
 }
 
+/// ComplexPattern used in MipsInstrCheri
+/// Used in CHERI Load/Store instructions
+bool MipsSEDAGToDAGISel::selectCapDefault(SDValue Cap, SDValue &Offset,
+                                          SDValue &Base) const {
+  EVT BaseTy = MVT::getIntegerVT(64); // TODO: Don't hard-code 64-bit
+
+  Base = Cap;
+  Offset = CurDAG->getTargetConstant(0, SDLoc(Cap), BaseTy);
+  return true;
+}
+
+bool MipsSEDAGToDAGISel::selectCapOffset(
+    SDValue Cap, SDValue &Offset, SDValue &Base, unsigned OffsetBits,
+    unsigned ShiftAmount = 0) const {
+  if (CurDAG->isBaseWithConstantOffset(Cap)) {
+    ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Cap.getOperand(0));
+    if (isIntN(OffsetBits + ShiftAmount, CN->getSExtValue())) {
+      EVT BaseTy = MVT::getIntegerVT(64); // TODO: Don't hard-code 64-bit
+
+      Base = Cap.getOperand(1);
+      if (OffsetToAlignment(CN->getZExtValue(), 1ull << ShiftAmount) != 0)
+        return false;
+
+      Offset = CurDAG->getTargetConstant(CN->getZExtValue(), SDLoc(Cap),
+                                         BaseTy);
+      return true;
+    }
+  }
+  return false;
+}
+
+bool MipsSEDAGToDAGISel::selectIntCapSImm8(SDValue Cap, SDValue &Offset,
+                                           SDValue &Base) const {
+  if (selectCapOffset(Cap, Offset, Base, 8))
+    return true;
+
+  return selectCapDefault(Cap, Offset, Base);
+}
+
+bool MipsSEDAGToDAGISel::selectIntCapSImm8Lsl1(SDValue Cap, SDValue &Offset,
+                                               SDValue &Base) const {
+  if (selectCapOffset(Cap, Offset, Base, 8, 1))
+    return true;
+
+  return selectCapDefault(Cap, Offset, Base);
+}
+
+bool MipsSEDAGToDAGISel::selectIntCapSImm8Lsl2(SDValue Cap, SDValue &Offset,
+                                               SDValue &Base) const {
+  if (selectCapOffset(Cap, Offset, Base, 8, 2))
+    return true;
+
+  return selectCapDefault(Cap, Offset, Base);
+}
+
+bool MipsSEDAGToDAGISel::selectIntCapSImm8Lsl3(SDValue Cap, SDValue &Offset,
+                                               SDValue &Base) const {
+  if (selectCapOffset(Cap, Offset, Base, 8, 3))
+    return true;
+
+  return selectCapDefault(Cap, Offset, Base);
+}
+
+bool MipsSEDAGToDAGISel::selectIntCapSImm11Lsl4(SDValue Cap, SDValue &Offset,
+                                                SDValue &Base) const {
+  if (selectCapOffset(Cap, Offset, Base, 11, 4))
+    return true;
+
+  return selectCapDefault(Cap, Offset, Base);
+}
+
 // Select constant vector splats.
 //
 // Returns true and sets Imm if:

@@ -163,15 +163,14 @@ class CheriFmtCLS<bits<6> op, dag outs, dag ins, string asmstr,
   MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>, Sched<[]>
 {
   bits<5>  cs;
-  bits<5>  cb;
   bits<5>  rt;
-  bits<11> offset;
+  bits<16> memcap;
 
   let Opcode = op;
   let Inst{25-21} = cs;
-  let Inst{20-16} = cb;
+  let Inst{20-16} = memcap{15-11};
   let Inst{15-11} = rt;
-  let Inst{10-0}  = offset;
+  let Inst{10-0}  = memcap{10-0};
 }
 
 class CheriFmtCLX<bits<2> t, bits<1> e, dag outs, dag ins, string asmstr,
@@ -179,15 +178,14 @@ class CheriFmtCLX<bits<2> t, bits<1> e, dag outs, dag ins, string asmstr,
   MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>, Sched<[]>
 {
   bits<5>  rd;
-  bits<5>  cb;
   bits<5>  rt;
-  bits<8>  offset;
+  bits<13> memcap;
 
   let Opcode = 0x32;
   let Inst{25-21} = rd;
-  let Inst{20-16} = cb;
+  let Inst{20-16} = memcap{12-8};
   let Inst{15-11} = rt;
-  let Inst{10-3}  = offset;
+  let Inst{10-3}  = memcap{7-0};
   let Inst{2}     = e;
   let Inst{1-0}   = t;
 }
@@ -197,15 +195,14 @@ class CheriFmtCSX<bits<2> t, bits<1> e, dag outs, dag ins, string asmstr,
   MipsInst<outs, ins, asmstr, pattern, NoItinerary, FrmOther>, Sched<[]>
 {
   bits<5>  rs;
-  bits<5>  cb;
   bits<5>  rt;
-  bits<8>  offset;
+  bits<13> memcap;
 
   let Opcode = 0x3a;
   let Inst{25-21} = rs;
-  let Inst{20-16} = cb;
+  let Inst{20-16} = memcap{12-8};
   let Inst{15-11} = rt;
-  let Inst{10-3}  = offset;
+  let Inst{10-3}  = memcap{7-0};
   let Inst{2}     = e;
   let Inst{1-0}   = t;
 }

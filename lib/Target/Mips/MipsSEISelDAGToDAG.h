@@ -94,6 +94,27 @@ private:
   bool selectIntAddrSImm10Lsl3(SDValue Addr, SDValue &Base,
                                SDValue &Offset) const override;
 
+  bool selectCapDefault(SDValue Cap, SDValue &Offset, SDValue &Base) const;
+
+  bool selectCapOffset(SDValue Cap, SDValue &Offset, SDValue &Base,
+                       unsigned OffsetBits,
+                       unsigned ShiftAmount) const;
+
+  bool selectIntCapSImm8(SDValue Cap, SDValue &Offset,
+                         SDValue &Base) const override;
+
+  bool selectIntCapSImm8Lsl1(SDValue Cap, SDValue &Offset,
+                             SDValue &Base) const override;
+
+  bool selectIntCapSImm8Lsl2(SDValue Cap, SDValue &Offset,
+                             SDValue &Base) const override;
+
+  bool selectIntCapSImm8Lsl3(SDValue Cap, SDValue &Offset,
+                             SDValue &Base) const override;
+
+  bool selectIntCapSImm11Lsl4(SDValue Cap, SDValue &Offset,
+                              SDValue &Base) const override;
+
   /// \brief Select constant vector splats.
   bool selectVSplat(SDNode *N, APInt &Imm,
                     unsigned MinSizeInBits) const override;

@@ -25,31 +25,126 @@ def CheriJmpLink : SDNode<"MipsISD::CheriJmpLink",SDT_CheriJmpLink,
 
 // Scaled immediate offsets
 
-class SImmScaled<int Width, int Scale> : AsmOperandClass {
-  let Name = "SImm" # Width # "s" # Scale;
+def ConstantSImm11Lsl4AsmOperandClass : AsmOperandClass {
+  let Name = "SImm11Lsl4";
   let RenderMethod = "addImmOperands";
-  let PredicateMethod = "isScaledImmediate<" # Width # ", " # Scale # ">";
+  let PredicateMethod = "isScaledSImm<11, 4>";
+  let SuperClasses = [SImm16AsmOperandClass];
+  let DiagnosticType = "SImm11_Lsl4";
 }
 
-multiclass ShiftImmPattern<int Width, int Shift> {
-  def NAME # Pattern : ImmLeaf<i64,
-    "return isShiftedInt<" # Width # ", " # Shift # ">(Imm);"
-    >;
-  def NAME : Operand<i64> {
-    let ParserMatchClass = SImmScaled<Width, Shift>;
-    let EncoderMethod = "getShiftedImmediate<" # Width # ", " # Shift # ">";
-    let DecoderMethod = "DecodeShiftedImmediate<" # Width # ", " # Shift # ">";
+def ConstantSImm8AsmOperandClass : AsmOperandClass {
+  let Name = "SImm8";
+  let RenderMethod = "addImmOperands";
+  let PredicateMethod = "isScaledSImm<8, 0>";
+  let SuperClasses = [SImm16AsmOperandClass];
+  let DiagnosticType = "SImm8";
+}
+
+foreach I = {1, 2, 3} in
+  def ConstantSImm8Lsl # I # AsmOperandClass : AsmOperandClass {
+    let Name = "SImm8Lsl" # I;
+    let RenderMethod = "addImmOperands";
+    let PredicateMethod = "isScaledSImm<8, " # I # ">";
+    let SuperClasses = [SImm16AsmOperandClass];
+    let DiagnosticType = "SImm8_Lsl" # I;
   }
+
+
+
+def simm11_lsl4 : Operand<i32> {
+  let DecoderMethod = "DecodeSImmWithOffsetAndScale<11, 4>";
+  let ParserMatchClass =
+      !cast<AsmOperandClass>("ConstantSImm11Lsl4AsmOperandClass");
 }
 
-// 11-bit immediate offset used by C[SL]CR
-defm simm11s4  : ShiftImmPattern<11, 4>;
-// 8-bit immediate offset used by C[SL][DWHB]
-defm simm8s3  : ShiftImmPattern<8, 3>;
-defm simm8s2  : ShiftImmPattern<8, 2>;
-defm simm8s1  : ShiftImmPattern<8, 1>;
-defm simm8    : ShiftImmPattern<8, 0>;
+def simm8 : Operand<i32> {
+  let DecoderMethod = "DecodeSImmWithOffsetAndScale<8>";
+  let ParserMatchClass =
+      !cast<AsmOperandClass>("ConstantSImm8AsmOperandClass");
+}
 
+foreach I = {1, 2, 3} in
+  def simm8_lsl # I : Operand<i32> {
+    let DecoderMethod = "DecodeSImmWithOffsetAndScale<8, " # I # ">";
+    let ParserMatchClass =
+        !cast<AsmOperandClass>("ConstantSImm8Lsl" # I # "AsmOperandClass");
+  }
+
+
+
+def MipsMemCapAsmOperand : AsmOperandClass {
+  let Name = "MemCap";
+  let ParserMethod = "parseMemCapOperand";
+}
+
+def MipsMemCapSimm11Lsl4AsmOperand : AsmOperandClass {
+  let Name = "MemCapOffsetSimm11_4";
+  let SuperClasses = [MipsMemCapAsmOperand];
+  let RenderMethod = "addMemCapOperands";
+  let ParserMethod = "parseMemCapOperand";
+  let PredicateMethod = "isMemCapWithSimmOffset<11, 4>";
+  let DiagnosticType = "MemCapSImm11Lsl4";
+}
+
+def MipsMemCapSimm8AsmOperand : AsmOperandClass {
+  let Name = "MemCapOffsetSimm8";
+  let SuperClasses = [MipsMemCapAsmOperand];
+  let RenderMethod = "addMemCapOperands";
+  let ParserMethod = "parseMemCapOperand";
+  let PredicateMethod = "isMemCapWithSimmOffset<8>";
+  let DiagnosticType = "MemCapSImm8";
+}
+
+foreach I = {1, 2, 3} in
+  def MipsMemCapSimm8Lsl # I # AsmOperand : AsmOperandClass {
+    let Name = "MemCapOffsetSimm8_" # I;
+    let SuperClasses = [MipsMemCapAsmOperand];
+    let RenderMethod = "addMemCapOperands";
+    let ParserMethod = "parseMemCapOperand";
+    let PredicateMethod = "isMemCapWithSimmOffset<8, " # I # ">";
+    let DiagnosticType = "MemCapSImm8Lsl" # I;
+  }
+
+
+
+class memcap_generic : Operand<iFATPTR> {
+  let PrintMethod = "printMemCapOperand";
+  let OperandType = "OPERAND_MEMORY";
+}
+
+def memcap_simm11_lsl4 : memcap_generic {
+  let MIOperandInfo = (ops simm11_lsl4, CheriOpnd);
+  let EncoderMethod = "getMemCapEncoding<11, 4>";
+  let DecoderMethod = "DecodeMemCap<11, 4>";
+  let ParserMatchClass = MipsMemCapSimm11Lsl4AsmOperand;
+}
+
+def memcap_simm8 : memcap_generic {
+  let MIOperandInfo = (ops simm8, CheriOpnd);
+  let EncoderMethod = "getMemCapEncoding<8>";
+  let DecoderMethod = "DecodeMemCap<8>";
+  let ParserMatchClass = MipsMemCapSimm8AsmOperand;
+}
+
+foreach I = {1, 2, 3} in
+  def memcap_simm8_lsl # I : memcap_generic {
+    let MIOperandInfo = (ops !cast<Operand>("simm8_lsl" # I), CheriOpnd);
+    let EncoderMethod = "getMemCapEncoding<8, " # I  # ">";
+    let DecoderMethod = "DecodeMemCap<8, " # I  # ">";
+    let ParserMatchClass =
+            !cast<AsmOperandClass>("MipsMemCapSimm8Lsl" # I # "AsmOperand");
+  }
+
+
+
+// 11-bit immediate offset used by C[SL]C
+def capimm11lsl4 : ComplexPattern<iFATPTR, 2, "selectIntCapSImm11Lsl4">;
+// 8-bit immediate offset used by C[SL][DWHB]
+def capimm8lsl3 : ComplexPattern<iFATPTR, 2, "selectIntCapSImm8Lsl3">;
+def capimm8lsl2 : ComplexPattern<iFATPTR, 2, "selectIntCapSImm8Lsl2">;
+def capimm8lsl1 : ComplexPattern<iFATPTR, 2, "selectIntCapSImm8Lsl1">;
+def capimm8 : ComplexPattern<iFATPTR, 2, "selectIntCapSImm8">;
 
 // ClearRegs values
 // TODO: Add some nice parsing so that we can get handle register lists for
@@ -310,117 +405,134 @@ def : Pat<(ptrtoint CheriOpnd:$rt),
 
 
 let DecoderNamespace="CHERI" in
-def STORECAP : CheriFmtCLS<0x3e, (outs), (ins CheriOpnd:$cs, GPR64Opnd:$rt, simm11s4:$offset, CheriOpnd:$cb),
-                         "csc\t$cs, ${rt}, ${offset}(${cb})",
-                         [(store CheriOpnd:$cs, (add (add GPR64Opnd:$rt, (ptrtoint CheriOpnd:$cb)), (i64 simm11s4Pattern:$offset)))]>;
+def STORECAP : CheriFmtCLS<0x3e, (outs), (ins CheriOpnd:$cs, GPR64Opnd:$rt, memcap_simm11_lsl4:$memcap),
+                         "csc\t$cs, ${rt}, ${memcap}",
+                         [(store CheriOpnd:$cs, (ptradd capimm11lsl4:$memcap, GPR64Opnd:$rt))]>;
 
 def CLEARTAG : CheriFmtClearTag<(outs CheriOpnd:$cd), (ins CheriOpnd:$cb), "ccleartag\t$cd, $cb",
                                 [(set CheriOpnd:$cd, (int_cheri_cap_tag_clear CheriOpnd:$cb))]>;
 
 def : Pat<(store CheriOpnd:$cs, CheriOpnd:$cb),
-          (STORECAP CheriOpnd:$cs, ZERO_64, (i64 0), $cb)>;
+          (STORECAP CheriOpnd:$cs, ZERO_64, 0, CheriOpnd:$cb)>;
+def : Pat<(store CheriOpnd:$cs, capimm11lsl4:$memcap),
+          (STORECAP CheriOpnd:$cs, ZERO_64, capimm11lsl4:$memcap)>;
 def : Pat<(store CheriOpnd:$cs, GPR64Opnd:$rt),
-          (STORECAP CheriOpnd:$cs, GPR64Opnd:$rt, (i64 0), C0)>;
+          (STORECAP CheriOpnd:$cs, GPR64Opnd:$rt, 0, C0)>;
+def : Pat<(store CheriOpnd:$cs, (ptradd capimm11lsl4:$memcap, GPR64Opnd:$rt)),
+          (STORECAP CheriOpnd:$cs, GPR64Opnd:$rt, capimm11lsl4:$memcap)>;
 
 // Load a capability
-let Predicates = [IsCHERI] in {
-def LOADCAP : CheriFmtCLS<0x36, (outs CheriOpnd:$cs), (ins GPR64Opnd:$rt, simm11s4:$offset, CheriOpnd:$cb),
-                        "clc\t$cs, ${rt}, ${offset}(${cb})",
-                        [(set CheriOpnd:$cs, (load (add (add GPR64Opnd:$rt, (ptrtoint CheriOpnd:$cb)), (i64 simm11s4Pattern:$offset))))]> {
+def LOADCAP : CheriFmtCLS<0x36, (outs CheriOpnd:$cs), (ins GPR64Opnd:$rt, memcap_simm11_lsl4:$memcap),
+                        "clc\t$cs, ${rt}, ${memcap}",
+                        [(set CheriOpnd:$cs, (load (ptradd capimm11lsl4:$memcap, GPR64Opnd:$rt)))]> {
   let DecoderNamespace="CHERI";
 }
 
 def : Pat<(load GPR64Opnd:$rt),
-          (LOADCAP GPR64Opnd:$rt, (i64 0), C0)>;
+          (LOADCAP GPR64Opnd:$rt, 0, C0)>;
+def : Pat<(load capimm11lsl4:$memcap),
+          (LOADCAP ZERO_64, capimm11lsl4:$memcap)>;
 def : Pat<(load CheriOpnd:$cb),
-          (LOADCAP ZERO_64, (i64 0), CheriOpnd:$cb)>;
+          (LOADCAP ZERO_64, 0, CheriOpnd:$cb)>;
+def : Pat<(load (ptradd capimm11lsl4:$memcap, GPR64Opnd:$rt)),
+          (LOADCAP GPR64Opnd:$rt, capimm11lsl4:$memcap)>;
 
 // Load via a capability register
 let canFoldAsLoad = 1, DecoderNamespace="CHERI" in
-multiclass LoadViaCapScaled<bits<2> t, bit sExt, string instr_asm, RegisterOperand RC, PatFrag loadType, Operand simm, PatFrag immfrag> {
+multiclass LoadViaCapScaled<bits<2> t, bit sExt, string instr_asm, RegisterOperand RC, PatFrag loadType, DAGOperand MCO, ComplexPattern CapAddr> {
   def #NAME# : CheriFmtCLX<t, sExt,
                              (outs RC:$rd),
-                             (ins GPR64Opnd:$rt, simm:$offset, CheriOpnd:$cb),
-                             !strconcat(instr_asm, "\t$rd, ${rt}, ${offset}(${cb})"),
-                           [(set RC:$rd, (loadType (iFATPTR (ptradd CheriOpnd:$cb, (add GPR64Opnd: $rt, (i64 immfrag:$offset))))))]>;
+                             (ins GPR64Opnd:$rt, MCO:$memcap),
+                             !strconcat(instr_asm, "\t$rd, ${rt}, ${memcap}"),
+                           [(set RC:$rd, (loadType (ptradd CapAddr:$memcap, GPR64Opnd:$rt)))]>;
 }
 multiclass LoadViaCap<bits<2> t, bit e, string instr_asm, RegisterOperand RC, PatFrag storeType> :
-  LoadViaCapScaled<t, e, instr_asm, RC, storeType, simm8, immSExt8>;
+  LoadViaCapScaled<t, e, instr_asm, RC, storeType, memcap_simm8, capimm8>;
 
-multiclass LoadViaCap0<Instruction Op, PatFrag loadType> {
+multiclass LoadViaCap0<Instruction Op, PatFrag loadType, ComplexPattern CapAddr = capimm8> {
+  def : Pat<(loadType GPR64Opnd:$rt),
+            (Op GPR64Opnd:$rt, 0, C0)>;
+  def : Pat<(loadType CapAddr:$memcap),
+            (Op ZERO_64, CapAddr:$memcap)>;
   def : Pat<(loadType CheriOpnd:$cb),
-            (Op ZERO_64, (i64 0), CheriOpnd:$cb)>;
+            (Op ZERO_64, 0, CheriOpnd:$cb)>;
+  def : Pat<(loadType (ptradd CapAddr:$memcap, GPR64Opnd:$rt)),
+            (Op GPR64Opnd:$rt, CapAddr:$memcap)>;
 }
 
 // Store via a capability register
 let DecoderNamespace="CHERI" in
-multiclass StoreViaCapScaled<bits<2> t, bit e, string instr_asm, RegisterOperand RC, PatFrag storeType, Operand simm, PatFrag immfrag> {
+multiclass StoreViaCapScaled<bits<2> t, bit e, string instr_asm, RegisterOperand RC, PatFrag storeType, DAGOperand MCO, ComplexPattern CapAddr> {
   def #NAME# : CheriFmtCSX<t, e,
                              (outs),
-                             (ins RC:$rs, GPR64Opnd:$rt, simm:$offset, CheriOpnd:$cb),
-                             !strconcat(instr_asm, "\t$rs, ${rt}, ${offset}(${cb})"),
-                           [(storeType (iFATPTR (ptradd CheriOpnd:$cb, (add GPR64Opnd: $rt, (i64 immfrag:$offset)))), RC:$rs)]>;
+                             (ins RC:$rs, GPR64Opnd:$rt, MCO:$memcap),
+                             !strconcat(instr_asm, "\t$rs, ${rt}, ${memcap}"),
+                           [(storeType RC:$rs, (ptradd CapAddr:$memcap, GPR64Opnd:$rt))]>;
 }
 multiclass StoreViaCap<bits<2> t, bit e, string instr_asm, RegisterOperand RC, PatFrag storeType> :
-  StoreViaCapScaled<t, e, instr_asm, RC, storeType, simm8, immSExt8>;
+  StoreViaCapScaled<t, e, instr_asm, RC, storeType, memcap_simm8, capimm8>;
  
-multiclass StoreViaCap0<Instruction Op, RegisterOperand RC, PatFrag storeType> {
+multiclass StoreViaCap0<Instruction Op, RegisterOperand RC, PatFrag storeType, ComplexPattern CapAddr = capimm8> {
+  def : Pat<(storeType RC:$rd, GPR64Opnd:$rt),
+            (Op RC:$rd, GPR64Opnd:$rt, 0, C0)>;
+  def : Pat<(storeType RC:$rd, CapAddr:$memcap),
+            (Op RC:$rd, ZERO_64, CapAddr:$memcap)>;
   def : Pat<(storeType RC:$rd, CheriOpnd:$cb),
-            (Op RC:$rd, ZERO_64, (i64 0), CheriOpnd:$cb)>;
-  def : Pat<(storeType RC:$rd, (add (ptrtoint CheriOpnd:$cb), GPR64Opnd:$rt)),
-            (Op RC:$rd, GPR64Opnd:$rt, (i64 0), CheriOpnd:$cb)>;
+            (Op RC:$rd, ZERO_64, 0, CheriOpnd:$cb)>;
+  def : Pat<(storeType RC:$rd, (ptradd CapAddr:$memcap, GPR64Opnd:$rt)),
+            (Op RC:$rd, GPR64Opnd:$rt, CapAddr:$memcap)>;
 }
 
 let isCodeGenOnly = 1 in {
 defm CAPLOAD832    : LoadViaCap<0, 1, "clb", GPR32Opnd, sextloadi8>;
 defm CAPLOADU832   : LoadViaCap<0, 0, "clbu", GPR32Opnd, extloadi8>;
-defm CAPLOAD1632   : LoadViaCapScaled<1, 1, "clh", GPR32Opnd, sextloadi16, simm8s1, simm8s1Pattern>;
-defm CAPLOADU1632  : LoadViaCapScaled<1, 0, "clhu", GPR32Opnd, extloadi16, simm8s1, simm8s1Pattern>;
+defm CAPLOAD1632   : LoadViaCapScaled<1, 1, "clh", GPR32Opnd, sextloadi16, memcap_simm8_lsl1, capimm8lsl1>;
+defm CAPLOADU1632  : LoadViaCapScaled<1, 0, "clhu", GPR32Opnd, extloadi16, memcap_simm8_lsl1, capimm8lsl1>;
 }
 defm : LoadViaCap0<CAPLOAD832, sextloadi8>;
 defm : LoadViaCap0<CAPLOAD832, extloadi8>;
 defm : LoadViaCap0<CAPLOADU832, zextloadi8>;
-defm : LoadViaCap0<CAPLOAD1632, extloadi16>;
-defm : LoadViaCap0<CAPLOAD1632, sextloadi16>;
-defm : LoadViaCap0<CAPLOADU1632, zextloadi16>;
+defm : LoadViaCap0<CAPLOAD1632, extloadi16, capimm8lsl1>;
+defm : LoadViaCap0<CAPLOAD1632, sextloadi16, capimm8lsl1>;
+defm : LoadViaCap0<CAPLOADU1632, zextloadi16, capimm8lsl1>;
 
 defm CAPLOAD8      : LoadViaCap<0, 1, "clb", GPR64Opnd, sextloadi8>;
-defm CAPLOAD16     : LoadViaCapScaled<1, 1, "clh", GPR64Opnd, sextloadi16, simm8s1, simm8s1Pattern>;
-defm CAPLOAD32     : LoadViaCapScaled<2, 1, "clw", GPR32Opnd, load, simm8s2, simm8s2Pattern>;
-defm CAPLOAD64     : LoadViaCapScaled<3, 0, "cld", GPR64Opnd, load, simm8s3, simm8s3Pattern>;
+defm CAPLOAD16     : LoadViaCapScaled<1, 1, "clh", GPR64Opnd, sextloadi16, memcap_simm8_lsl1, capimm8lsl1>;
+defm CAPLOAD32     : LoadViaCapScaled<2, 1, "clw", GPR32Opnd, load, memcap_simm8_lsl2, capimm8lsl2>;
+defm CAPLOAD64     : LoadViaCapScaled<3, 0, "cld", GPR64Opnd, load, memcap_simm8_lsl3, capimm8lsl3>;
 
 defm CAPLOADU8     : LoadViaCap<0, 0, "clbu", GPR64Opnd, extloadi8>;
-defm CAPLOADU16    : LoadViaCapScaled<1, 0, "clhu", GPR64Opnd, extloadi16, simm8s1, simm8s1Pattern>;
-defm CAPLOADU32    : LoadViaCapScaled<2, 0, "clwu", GPR64Opnd, zextloadi32, simm8s2, simm8s2Pattern>;
+defm CAPLOADU16    : LoadViaCapScaled<1, 0, "clhu", GPR64Opnd, extloadi16, memcap_simm8_lsl1, capimm8lsl1>;
+defm CAPLOADU32    : LoadViaCapScaled<2, 0, "clwu", GPR64Opnd, zextloadi32, memcap_simm8_lsl2, capimm8lsl2>;
 
 let isCodeGenOnly=1 in {
-defm CAPLOAD3264   : LoadViaCapScaled<2, 1, "clw", GPR64Opnd, extloadi32, simm8s2, simm8s2Pattern>;
+defm CAPLOAD3264   : LoadViaCapScaled<2, 1, "clw", GPR64Opnd, extloadi32, memcap_simm8_lsl2, capimm8lsl2>;
 }
-defm : LoadViaCap0<CAPLOAD3264, extloadi32>;
+defm : LoadViaCap0<CAPLOAD3264, extloadi32, capimm8lsl2>;
 
 defm CAP0LOADA8     : LoadViaCap0<CAPLOAD8, extloadi8>;
-defm CAP0LOADA16    : LoadViaCap0<CAPLOAD16, extloadi16>;
-defm CAP0LOADA32    : LoadViaCap0<CAPLOAD32, extloadi32>;
+defm CAP0LOADA16    : LoadViaCap0<CAPLOAD16, extloadi16, capimm8lsl1>;
+defm CAP0LOADA32    : LoadViaCap0<CAPLOAD32, extloadi32, capimm8lsl2>;
 
 defm CAP0LOADU8     : LoadViaCap0<CAPLOADU8, zextloadi8>;
-defm CAP0LOADU16    : LoadViaCap0<CAPLOADU16, zextloadi16>;
-defm CAP0LOADU32    : LoadViaCap0<CAPLOADU32, zextloadi32>;
+defm CAP0LOADU16    : LoadViaCap0<CAPLOADU16, zextloadi16, capimm8lsl1>;
+defm CAP0LOADU32    : LoadViaCap0<CAPLOADU32, zextloadi32, capimm8lsl2>;
 
 defm CAP0LOAD8     : LoadViaCap0<CAPLOAD8, sextloadi8>;
-defm CAP0LOAD16    : LoadViaCap0<CAPLOAD16, sextloadi16>;
-defm CAP0LOAD3264  : LoadViaCap0<CAPLOAD3264, sextloadi32>;
-defm CAP0LOAD32    : LoadViaCap0<CAPLOAD32, load>;
-defm CAP0LOAD64    : LoadViaCap0<CAPLOAD64, load>;
+defm CAP0LOAD16    : LoadViaCap0<CAPLOAD16, sextloadi16, capimm8lsl1>;
+defm CAP0LOAD3264  : LoadViaCap0<CAPLOAD3264, sextloadi32, capimm8lsl2>;
+defm CAP0LOAD32    : LoadViaCap0<CAPLOAD32, load, capimm8lsl2>;
+defm CAP0LOAD64    : LoadViaCap0<CAPLOAD64, load, capimm8lsl3>;
 
 defm CAPSTORE8      : StoreViaCap<0, 0, "csb", GPR64Opnd, truncstorei8>;
-defm CAPSTORE16     : StoreViaCapScaled<1, 0, "csh", GPR64Opnd, truncstorei16, simm8s1, simm8s1Pattern>;
-defm CAPSTORE32     : StoreViaCapScaled<2, 0, "csw", GPR32Opnd, store, simm8s2, simm8s2Pattern>;
+defm CAPSTORE16     : StoreViaCapScaled<1, 0, "csh", GPR64Opnd, truncstorei16, memcap_simm8_lsl1, capimm8lsl1>;
+defm CAPSTORE32     : StoreViaCapScaled<2, 0, "csw", GPR32Opnd, store, memcap_simm8_lsl2, capimm8lsl2>;
 let isCodeGenOnly=1 in {
   defm CAPSTORE832      : StoreViaCap<0, 0, "csb", GPR32Opnd, truncstorei8>;
-  defm CAPSTORE1632     : StoreViaCapScaled<1, 0, "csh", GPR32Opnd, truncstorei16, simm8s1, simm8s1Pattern>;
-  defm CAPSTORE3264     : StoreViaCapScaled<2, 0, "csw", GPR64Opnd, truncstorei32, simm8s2, simm8s2Pattern>;
+  defm CAPSTORE1632     : StoreViaCapScaled<1, 0, "csh", GPR32Opnd, truncstorei16, memcap_simm8_lsl1, capimm8lsl1>;
+  defm CAPSTORE3264     : StoreViaCapScaled<2, 0, "csw", GPR64Opnd, truncstorei32, memcap_simm8_lsl2, capimm8lsl2>;
 }
-defm CAPSTORE64     : StoreViaCapScaled<3, 0, "csd", GPR64Opnd, store, simm8s3, simm8s3Pattern>;
+defm CAPSTORE64     : StoreViaCapScaled<3, 0, "csd", GPR64Opnd, store, memcap_simm8_lsl3, capimm8lsl3>;
           
 def : Pat<(int_cheri_ddc_get), (CIncOffset C0, ZERO_64)>;
 def : Pat<(int_mips_idc_get), (CIncOffset C26, ZERO_64)>;
@@ -435,36 +547,36 @@ def : Pat<(int_mips_stack_to_cap GPR64Opnd:$addr), (CSetOffset C11, $addr)>;
 def : Pat<(MipsSTC i64:$addr), (CIncOffset C11, $addr)>;
 
 defm CAP0STORE8     : StoreViaCap0<CAPSTORE8, GPR64Opnd, truncstorei8>;
-defm CAP0STORE16    : StoreViaCap0<CAPSTORE16, GPR64Opnd, truncstorei16>;
-defm CAP0STORE32    : StoreViaCap0<CAPSTORE32, GPR32Opnd, store>;
-defm CAP0STORE3264  : StoreViaCap0<CAPSTORE3264, GPR64Opnd, truncstorei32>;
-defm CAP0STORE64    : StoreViaCap0<CAPSTORE64, GPR64Opnd, store>;
+defm CAP0STORE16    : StoreViaCap0<CAPSTORE16, GPR64Opnd, truncstorei16, capimm8lsl1>;
+defm CAP0STORE32    : StoreViaCap0<CAPSTORE32, GPR32Opnd, store, capimm8lsl2>;
+defm CAP0STORE3264  : StoreViaCap0<CAPSTORE3264, GPR64Opnd, truncstorei32, capimm8lsl2>;
+defm CAP0STORE64    : StoreViaCap0<CAPSTORE64, GPR64Opnd, store, capimm8lsl3>;
 
 def CLDC1 : CheriPseudo<(outs FGR64Opnd: $rd),
-  (ins GPR64Opnd:$rt, simm8s3:$offset, CheriOpnd:$cb),
-  "cldc1\t$rd,  ${rt}, ${offset}(${cb})",
-  [(set FGR64Opnd:$rd, (load (add (add (ptrtoint CheriOpnd:$cb), GPR64Opnd:$rt), (i64 simm8s3Pattern:$offset))))]>;
+  (ins GPR64Opnd:$rt, memcap_simm8_lsl3:$memcap),
+  "cldc1\t$rd,  ${rt}, ${memcap}",
+  [(set FGR64Opnd:$rd, (load (ptradd capimm8lsl3:$memcap, GPR64Opnd:$rt)))]>;
 
 
 def CLWC1 : CheriPseudo<(outs FGR32Opnd: $rd),
-  (ins GPR64Opnd:$rt, simm8s2:$offset, CheriOpnd:$cb),
-  "clwc1\t$rd,  ${rt}, ${offset}(${cb})",
-  [(set FGR32Opnd:$rd, (load (add (add (ptrtoint CheriOpnd:$cb), GPR64Opnd:$rt), (i64 simm8s2Pattern:$offset))))]>;
+  (ins GPR64Opnd:$rt, memcap_simm8_lsl2:$memcap),
+  "clwc1\t$rd,  ${rt}, ${memcap}",
+  [(set FGR32Opnd:$rd, (load (ptradd capimm8lsl2:$memcap, GPR64Opnd:$rt)))]>;
 
 def CSDC1 : CheriPseudo<(outs),
-  (ins FGR64Opnd:$rs, GPR64Opnd:$rt, simm8s3:$offset, CheriOpnd:$cb),
-  "csdc1\t$rs,  ${rt}, ${offset}(${cb})",
-  [(store FGR64Opnd: $rs, (add (add (ptrtoint CheriOpnd:$cb), GPR64Opnd:$rt), (i64 simm8s3Pattern:$offset)))]>;
+  (ins FGR64Opnd:$rs, GPR64Opnd:$rt, memcap_simm8_lsl3:$memcap),
+  "csdc1\t$rs,  ${rt}, ${memcap}",
+  [(store FGR64Opnd:$rs, (ptradd capimm8lsl3:$memcap, GPR64Opnd:$rt))]>;
 
 def CSWC1 : CheriPseudo<(outs),
-  (ins FGR32Opnd:$rs, GPR64Opnd:$rt, simm8s2:$offset, CheriOpnd:$cb),
-  "cswc1\t$rs,  ${rt}, ${offset}(${cb})",
-  [(store FGR32Opnd: $rs, (add (add (ptrtoint CheriOpnd:$cb), GPR64Opnd:$rt), (i64 simm8s2Pattern:$offset)))]>;
+  (ins FGR32Opnd:$rs, GPR64Opnd:$rt, memcap_simm8_lsl2:$memcap),
+  "cswc1\t$rs,  ${rt}, ${memcap}",
+  [(store FGR32Opnd:$rs, (ptradd capimm8lsl2:$memcap, GPR64Opnd:$rt))]>;
 
-defm : LoadViaCap0<CLWC1, load>;
-defm : LoadViaCap0<CLDC1, load>;
-defm : StoreViaCap0<CSWC1, FGR32Opnd, store>;
-defm : StoreViaCap0<CSDC1, FGR64Opnd, store>;
+defm : LoadViaCap0<CLWC1, load, capimm8lsl2>;
+defm : LoadViaCap0<CLDC1, load, capimm8lsl3>;
+defm : StoreViaCap0<CSWC1, FGR32Opnd, store, capimm8lsl2>;
+defm : StoreViaCap0<CSDC1, FGR64Opnd, store, capimm8lsl3>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Accessor pseudos

@@ -286,6 +286,12 @@ static DecodeStatus DecodeMem(MCInst &Inst,
                               uint64_t Address,
                               const void *Decoder);
 
+template <unsigned OffsetLength, unsigned OffsetShift = 0>
+static unsigned DecodeMemCap(MCInst &Inst,
+                             unsigned Encoded,
+                             uint64_t Address,
+                             const void *Decoder);
+
 static DecodeStatus DecodeMemEVA(MCInst &Inst,
                                  unsigned Insn,
                                  uint64_t Address,
@@ -1477,6 +1483,28 @@ static DecodeStatus DecodeFGRCCRegisterClass(MCInst &Inst, unsigned RegNo,
 
   unsigned Reg = getReg(Decoder, Mips::FGRCCRegClassID, RegNo);
   Inst.addOperand(MCOperand::createReg(Reg));
+  return MCDisassembler::Success;
+}
+
+template <unsigned OffsetLength, unsigned OffsetShift>
+static unsigned DecodeMemCap(MCInst &Inst,
+                             unsigned Encoded,
+                             uint64_t Address,
+                             const void *Decoder) {
+  // Offset is in bits [0, OffsetLength)
+  // Base register is in bits [OffsetLength, OffsetLength+5)
+
+  unsigned BaseNo = Encoded >> OffsetLength;
+  int Offset = SignExtend32<OffsetLength>(Encoded) << OffsetShift;
+
+  if (BaseNo > 31)
+    return MCDisassembler::Fail;
+
+  unsigned Base = getReg(Decoder, Mips::CheriRegsRegClassID, BaseNo);
+
+  Inst.addOperand(MCOperand::createImm(Offset));
+  Inst.addOperand(MCOperand::createReg(Base));
+
   return MCDisassembler::Success;
 }
 

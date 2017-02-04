@@ -807,6 +807,23 @@ unsigned MipsMCCodeEmitter::getMemEncoding(const MCInst &MI, unsigned OpNo,
   return (OffBits & 0xFFFF) | RegBits;
 }
 
+template <unsigned OffsetLength, unsigned OffsetShift>
+unsigned MipsMCCodeEmitter::getMemCapEncoding(const MCInst &MI, unsigned OpNo,
+                                              SmallVectorImpl<MCFixup> &Fixups,
+                                              const MCSubtargetInfo &STI) const {
+  // Offset is in bits [0, OffsetLength)
+  // Base register is in bits [OffsetLength, OffsetLength+5)
+  // Offset comes *before* capability register
+  assert(MI.getOperand(OpNo+1).isReg());
+  unsigned OffBits = getMachineOpValue(MI, MI.getOperand(OpNo), Fixups, STI);
+  unsigned RegBits = getMachineOpValue(MI, MI.getOperand(OpNo+1), Fixups, STI) << OffsetLength;
+
+  // Apply the scale factor if there is one.
+  OffBits >>= OffsetShift;
+
+  return (OffBits & ((1 << OffsetLength) - 1)) | RegBits;
+}
+
 unsigned MipsMCCodeEmitter::
 getMemEncodingMMImm4(const MCInst &MI, unsigned OpNo,
                      SmallVectorImpl<MCFixup> &Fixups,

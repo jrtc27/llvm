@@ -177,6 +177,7 @@ class MipsAsmParser : public MCTargetAsmParser {
   bool ParseDirective(AsmToken DirectiveID) override;
 
   OperandMatchResultTy parseMemOperand(OperandVector &Operands);
+  OperandMatchResultTy parseMemCapOperand(OperandVector &Operands);
   OperandMatchResultTy
   matchAnyRegisterNameWithoutDollar(OperandVector &Operands,
                                     StringRef Identifier, SMLoc S);
@@ -1166,6 +1167,20 @@ public:
     addExpr(Inst, Expr);
   }
 
+  void addMemCapOperands(MCInst &Inst, unsigned N) const {
+    assert(N == 2 && "Invalid number of operands!");
+
+    // NOTE: offset comes *before* capability register, unlike normal MIPS
+    // memory operands, since the offset needs to be after the GP register for
+    // frame index bits to work (it treats it like a normal MIPS memory
+    // instruction)
+
+    const MCExpr *Expr = getMemOff(); // TODO: separate getMemCapOff with k_MemCap?
+    addExpr(Inst, Expr);
+
+    Inst.addOperand(MCOperand::createReg(getMemBase()->getCheriReg()));
+  }
+
   void addMicroMipsMemOperands(MCInst &Inst, unsigned N) const {
     assert(N == 2 && "Invalid number of operands!");
 
@@ -1265,6 +1280,8 @@ public:
 
   bool isMem() const override { return Kind == k_Memory; }
 
+  bool isMemCap() const { return isMem(); } // TODO: Separate k_MemCap?
+
   bool isConstantMemOff() const {
     return isMem() && isa<MCConstantExpr>(getMemOff());
   }
@@ -1277,6 +1294,22 @@ public:
     if (!isMem())
       return false;
     if (!getMemBase()->isGPRAsmReg())
+      return false;
+    if (isa<MCTargetExpr>(getMemOff()) ||
+        (isConstantMemOff() &&
+         isShiftedInt<Bits, ShiftAmount>(getConstantMemOff())))
+      return true;
+    MCValue Res;
+    bool IsReloc = getMemOff()->evaluateAsRelocatable(Res, nullptr, nullptr);
+    return IsReloc && isShiftedInt<Bits, ShiftAmount>(Res.getConstant());
+  }
+
+
+  template <unsigned Bits, unsigned ShiftAmount = 0>
+  bool isMemCapWithSimmOffset() const {
+    if (!isMem())
+      return false;
+    if (!getMemBase()->isCheriAsmReg())
       return false;
     if (isa<MCTargetExpr>(getMemOff()) ||
         (isConstantMemOff() &&
@@ -5357,6 +5390,12 @@ MipsAsmParser::parseMemOperand(OperandVector &Operands) {
   return MatchOperand_Success;
 }
 
+OperandMatchResultTy
+MipsAsmParser::parseMemCapOperand(OperandVector &Operands) {
+  // TODO: Separate k_MemCap?
+  return parseMemOperand(Operands);
+}
+
 bool MipsAsmParser::searchSymbolAlias(OperandVector &Operands) {
   MCAsmParser &Parser = getParser();
   MCSymbol *Sym = getContext().lookupSymbol(Parser.getTok().getIdentifier());
@@ -5768,70 +5807,10 @@ bool MipsAsmParser::ParseInstruction(ParseInstructionInfo &Info, StringRef Name,
     }
     if (getLexer().is(AsmToken::LBrac) && parseBracketSuffix(Name, Operands))
       return true;
-    if (getLexer().is(AsmToken::LParen) && parseParenSuffix(Name, Operands))
-      return true;
+    // AFAIK, parenthesis suffixes are never on the first operand
 
-    // If this is a capability load / store, then we parse operands in the
-    // following form:
-    // $rt + offset($cb)
-    // We have already parsed the $rt
-    if (StringSwitch<bool>(Name).Case("clb", true).Case("clh", true)
-          .Case("clbu", true).Case("clhu", true).Case("clwu", true)
-          .Case("clw", true).Case("cld", true).Case("clc", true)
-          .Case("csb", true).Case("csh", true)
-          .Case("csw", true).Case("csd", true).Case("csc", true)
-          .Case("cldc1", true).Case("clwc1", true).Case("csdc1", true)
-          .Case("cswc1", true).Default(false)) {
-      if (getLexer().isNot(AsmToken::Comma)) {
-        SMLoc Loc = getLexer().getLoc();
-        Parser.eatToEndOfStatement();
-        return Error(Loc,
-            "expecting comma when parsing capability-relative address");
-      }
-      Parser.Lex();  // Eat the comma.
-      if (parseOperand(Operands, Name)) {
-        SMLoc Loc = getLexer().getLoc();
-        Parser.eatToEndOfStatement();
-        return Error(Loc, "unexpected token in argument list");
-      }
-      if (getLexer().isNot(AsmToken::Comma)) {
-        SMLoc Loc = getLexer().getLoc();
-        Parser.eatToEndOfStatement();
-        return Error(Loc,
-            "expecting offset when parsing capability-relative address");
-      }
-      Parser.Lex();  // Eat the comma.
-      if (parseOperand(Operands, Name)) {
-        SMLoc Loc = getLexer().getLoc();
-        Parser.eatToEndOfStatement();
-        return Error(Loc, "unexpected token in argument list");
-      }
-      if (getLexer().isNot(AsmToken::LParen)) {
-        SMLoc Loc = getLexer().getLoc();
-        Parser.eatToEndOfStatement();
-        return Error(Loc,
-            "expecting capability register when parsing capability-relative address");
-      }
-      Operands.push_back(MipsOperand::CreateToken("(", getLexer().getLoc(),
-            *this));
-      Parser.Lex();  // Eat the left paren.
-      if (parseOperand(Operands, Name)) {
-        SMLoc Loc = getLexer().getLoc();
-        Parser.eatToEndOfStatement();
-        return Error(Loc, "unexpected token in argument list");
-      }
-      if (getLexer().isNot(AsmToken::RParen)) {
-        SMLoc Loc = getLexer().getLoc();
-        Parser.eatToEndOfStatement();
-        return Error(Loc,
-            "expecting right parenthesis when parsing capability-relative address");
-      }
-      Operands.push_back(MipsOperand::CreateToken(")", getLexer().getLoc(), *this));
-      Parser.Lex();  // Eat the right paren.
-    }
-    else while (getLexer().is(AsmToken::Comma)) {
-      Parser.Lex();  // Eat the comma.
-
+    while (getLexer().is(AsmToken::Comma)) {
+      Parser.Lex(); // Eat the comma.
       // Parse and remember the operand.
       if (parseOperand(Operands, Name)) {
         SMLoc Loc = getLexer().getLoc();
