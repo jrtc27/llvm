@@ -552,11 +552,11 @@ bool MipsSEDAGToDAGISel::selectCapOffset(
     SDValue Cap, SDValue &Offset, SDValue &Base, unsigned OffsetBits,
     unsigned ShiftAmount = 0) const {
   if (CurDAG->isBaseWithConstantOffset(Cap)) {
-    ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Cap.getOperand(0));
+    ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Cap.getOperand(1));
     if (isIntN(OffsetBits + ShiftAmount, CN->getSExtValue())) {
       EVT BaseTy = MVT::getIntegerVT(64); // TODO: Don't hard-code 64-bit
 
-      Base = Cap.getOperand(1);
+      Base = Cap.getOperand(0);
       if (OffsetToAlignment(CN->getZExtValue(), 1ull << ShiftAmount) != 0)
         return false;
 

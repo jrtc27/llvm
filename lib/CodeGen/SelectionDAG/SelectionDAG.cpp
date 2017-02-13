@@ -3169,9 +3169,16 @@ unsigned SelectionDAG::ComputeNumSignBits(SDValue Op, unsigned Depth) const {
 }
 
 bool SelectionDAG::isBaseWithConstantOffset(SDValue Op) const {
-  if ((Op.getOpcode() != ISD::ADD && Op.getOpcode() != ISD::OR) ||
-      !isa<ConstantSDNode>(Op.getOperand(1)))
+  switch (Op.getOpcode()) {
+  case ISD::ADD:
+  case ISD::OR:
+  case ISD::PTRADD:
+    if (isa<ConstantSDNode>(Op.getOperand(1)))
+      break;
+    /* fall through */
+  default:
     return false;
+  }
 
   if (Op.getOpcode() == ISD::OR &&
       !MaskedValueIsZero(Op.getOperand(0),
