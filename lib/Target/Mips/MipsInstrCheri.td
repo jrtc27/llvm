@@ -422,6 +422,7 @@ def : Pat<(store CheriOpnd:$cs, (ptradd capimm11lsl4:$memcap, GPR64Opnd:$rt)),
           (STORECAP CheriOpnd:$cs, GPR64Opnd:$rt, capimm11lsl4:$memcap)>;
 
 // Load a capability
+let Predicates = [IsCHERI] in {
 def LOADCAP : CheriFmtCLS<0x36, (outs CheriOpnd:$cs), (ins GPR64Opnd:$rt, memcap_simm11_lsl4:$memcap),
                         "clc\t$cs, ${rt}, ${memcap}",
                         [(set CheriOpnd:$cs, (load (ptradd capimm11lsl4:$memcap, GPR64Opnd:$rt)))]> {
