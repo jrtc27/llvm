@@ -213,6 +213,11 @@ namespace Mips {
     fixup_Mips_SUB,
     fixup_MICROMIPS_SUB,
 
+    // resulting in - R_CHERI_MCTDATA11, R_CHERI_MCTDATA_HI16/LO16
+    fixup_CHERI_MCTDATA11,
+    fixup_CHERI_MCTDATA_HI16,
+    fixup_CHERI_MCTDATA_LO16,
+
     // Marker
     LastTargetFixupKind,
     NumTargetFixupKinds = LastTargetFixupKind - FirstTargetFixupKind

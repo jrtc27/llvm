@@ -605,6 +605,9 @@ void MipsAsmPrinter::printOperand(const MachineInstr *MI, int opNum,
   case MipsII::MO_GOT_DISP: O << "%got_disp("; break;
   case MipsII::MO_GOT_PAGE: O << "%got_page("; break;
   case MipsII::MO_GOT_OFST: O << "%got_ofst("; break;
+  case MipsII::MO_MCTDATA11:    O << "%mctdata(";    break;
+  case MipsII::MO_MCTDATA_HI16: O << "%mctdata_hi("; break;
+  case MipsII::MO_MCTDATA_LO16: O << "%mctdata_lo("; break;
   }
 
   switch (MO.getType()) {

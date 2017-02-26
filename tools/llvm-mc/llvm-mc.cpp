@@ -382,6 +382,15 @@ static int AsLexInput(SourceMgr &SrcMgr, MCAsmInfo &MAI,
     case AsmToken::PercentTprel_Lo:
       OS << "PercentTprel_Lo";
       break;
+    case AsmToken::PercentMctdata:
+      OS << "PercentMctdata";
+      break;
+    case AsmToken::PercentMctdata_Hi:
+      OS << "PercentMctdata_Hi";
+      break;
+    case AsmToken::PercentMctdata_Lo:
+      OS << "PercentMctdata_Lo";
+      break;
     }
 
     // Print the token string.

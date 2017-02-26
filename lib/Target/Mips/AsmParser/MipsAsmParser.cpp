@@ -692,6 +692,12 @@ public:
       return MipsMCExpr::create(MipsMCExpr::MEK_TPREL_HI, E, Ctx);
     case AsmToken::PercentTprel_Lo:
       return MipsMCExpr::create(MipsMCExpr::MEK_TPREL_LO, E, Ctx);
+    case AsmToken::PercentMctdata:
+      return MipsMCExpr::create(MipsMCExpr::MEK_MCTDATA11, E, Ctx);
+    case AsmToken::PercentMctdata_Hi:
+      return MipsMCExpr::create(MipsMCExpr::MEK_MCTDATA_HI16, E, Ctx);
+    case AsmToken::PercentMctdata_Lo:
+      return MipsMCExpr::create(MipsMCExpr::MEK_MCTDATA_LO16, E, Ctx);
     }
   }
 };

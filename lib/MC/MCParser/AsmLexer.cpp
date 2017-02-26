@@ -682,6 +682,9 @@ AsmToken AsmLexer::LexToken() {
               .StartsWith("tlsldm", {AsmToken::PercentTlsldm, 7})
               .StartsWith("tprel_hi", {AsmToken::PercentTprel_Hi, 9})
               .StartsWith("tprel_lo", {AsmToken::PercentTprel_Lo, 9})
+              .StartsWith("mctdata_hi", {AsmToken::PercentMctdata_Hi, 11})
+              .StartsWith("mctdata_lo", {AsmToken::PercentMctdata_Lo, 11})
+              .StartsWith("mctdata", {AsmToken::PercentMctdata, 8})
               .Default({AsmToken::Percent, 1});
 
       if (Operator != AsmToken::Percent) {

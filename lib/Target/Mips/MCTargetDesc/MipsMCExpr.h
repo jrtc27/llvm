@@ -44,6 +44,9 @@ public:
     MEK_TLSLDM,
     MEK_TPREL_HI,
     MEK_TPREL_LO,
+    MEK_MCTDATA11,
+    MEK_MCTDATA_HI16,
+    MEK_MCTDATA_LO16,
     MEK_Special,
   };
 
