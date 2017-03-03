@@ -649,26 +649,26 @@ let usesCustomInserter = 1 in {
 
 // Atomic load patterns.  These (and the store patterns) expand to simple loads
 // because an IR pass adds the required barriers.
-def : MipsPat<(atomic_load_8 CheriRegs:$a), (CAPLOAD832 ZERO_64, (i64 0), CheriOpnd:$a)>;
-def : MipsPat<(atomic_load_16 CheriRegs:$a), (CAPLOAD1632 ZERO_64, (i64 0), CheriOpnd:$a)>;
-def : MipsPat<(atomic_load_32 CheriRegs:$a), (CAPLOAD32 ZERO_64, (i64 0), CheriOpnd:$a)>;
-def : MipsPat<(atomic_load_64 CheriRegs:$a), (CAPLOAD64 ZERO_64, (i64 0), CheriOpnd:$a)>;
+def : MipsPat<(atomic_load_8 CheriRegs:$a), (CAPLOAD832 ZERO_64, 0, CheriOpnd:$a)>;
+def : MipsPat<(atomic_load_16 CheriRegs:$a), (CAPLOAD1632 ZERO_64, 0, CheriOpnd:$a)>;
+def : MipsPat<(atomic_load_32 CheriRegs:$a), (CAPLOAD32 ZERO_64, 0, CheriOpnd:$a)>;
+def : MipsPat<(atomic_load_64 CheriRegs:$a), (CAPLOAD64 ZERO_64, 0, CheriOpnd:$a)>;
 
 // Atomic store patterns.
 def : MipsPat<(atomic_store_8 CheriRegs:$a, GPR64:$v),
-              (CAPSTORE8 $v, ZERO_64, (i64 0), $a)>;
+              (CAPSTORE8 $v, ZERO_64, 0, $a)>;
 def : MipsPat<(atomic_store_8 CheriRegs:$a, GPR32:$v),
-              (CAPSTORE832 $v, ZERO_64, (i64 0), $a)>;
+              (CAPSTORE832 $v, ZERO_64, 0, $a)>;
 def : MipsPat<(atomic_store_16 CheriRegs:$a, GPR64:$v),
-              (CAPSTORE16 $v, ZERO_64, (i64 0), $a)>;
+              (CAPSTORE16 $v, ZERO_64, 0, $a)>;
 def : MipsPat<(atomic_store_16 CheriRegs:$a, GPR32:$v),
-              (CAPSTORE1632 $v, ZERO_64, (i64 0), $a)>;
+              (CAPSTORE1632 $v, ZERO_64, 0, $a)>;
 def : MipsPat<(atomic_store_32 CheriRegs:$a, GPR64:$v),
-              (CAPSTORE3264 $v, ZERO_64, (i64 0), $a)>;
+              (CAPSTORE3264 $v, ZERO_64, 0, $a)>;
 def : MipsPat<(atomic_store_32 CheriRegs:$a, GPR32:$v),
-              (CAPSTORE32 $v, ZERO_64, (i64 0), $a)>;
+              (CAPSTORE32 $v, ZERO_64, 0, $a)>;
 def : MipsPat<(atomic_store_64 CheriRegs:$a, GPR64:$v),
-              (CAPSTORE64 $v, ZERO_64, (i64 0), $a)>;
+              (CAPSTORE64 $v, ZERO_64, 0, $a)>;
 
 
 }
