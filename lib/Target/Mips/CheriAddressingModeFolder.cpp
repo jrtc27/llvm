@@ -151,14 +151,14 @@ struct CheriAddressingModeFolder : public MachineFunctionPass {
               Op == Mips::LOADCAP || Op == Mips::STORECAP ||
               Op == Mips::CAPSTORE32 || Op == Mips::CAPSTORE64))
           continue;
-        // Don't try to fold in things that have relocations yet
-        if (!I.getOperand(2).isImm())
-          return false;
-        int64_t offset = I.getOperand(2).getImm();
         // If the load is not currently at register-zero offset, we can't fix
         // it up to use relative addressing, but we may be able to modify it so
         // that it is...
         if (I.getOperand(1).getReg() != Mips::ZERO_64) {
+          // Don't try to fold in things that have relocations yet
+          if (!I.getOperand(2).isImm())
+            continue;
+          int64_t offset = I.getOperand(2).getImm();
           MachineInstr *AddInst;
           // If the register offset is a simple constant, then try to move it
           // into the memory operation
@@ -197,16 +197,22 @@ struct CheriAddressingModeFolder : public MachineFunctionPass {
         MachineInstr *AddInst;
         // If the CIncOffset is of a daddi[u] then we can potentially replace
         // both by just folding the register and immediate offsets into the
-        // load / store.
-        if (tryToFoldAdd(Op, Offset.getReg(), RI, AddInst, offset)) {
-          // If we managed to pull the offset calculation entirely away, then
-          // just use the computed immediate
-          Adds.insert(AddInst);
-          I.getOperand(1).setReg(Mips::ZERO_64);
-          I.getOperand(2).setImm(offset);
+        // load / store. Don't try to fold in things that have relocations yet.
+        if (I.getOperand(2).isImm()) {
+          int64_t offset = I.getOperand(2).getImm();
+          if (tryToFoldAdd(Op, Offset.getReg(), RI, AddInst, offset)) {
+            // If we managed to pull the offset calculation entirely away, then
+            // just use the computed immediate
+            Adds.insert(AddInst);
+            I.getOperand(1).setReg(Mips::ZERO_64);
+            I.getOperand(2).setImm(offset);
+          } else
+            // If we didn't, then use the CIncOffset's register value as our
+            // offset
+            I.getOperand(1).setReg(Offset.getReg());
         } else
-          // If we didn't, then use the CIncOffset's register value as our
-          // offset
+          // If it has a relocation, then use the CIncOffset's register value
+          // as our offset
           I.getOperand(1).setReg(Offset.getReg());
         I.getOperand(3).setReg(Cap.getReg());
         IncOffsets.insert(IncOffset);
