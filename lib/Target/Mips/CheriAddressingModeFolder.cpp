@@ -151,6 +151,9 @@ struct CheriAddressingModeFolder : public MachineFunctionPass {
               Op == Mips::LOADCAP || Op == Mips::STORECAP ||
               Op == Mips::CAPSTORE32 || Op == Mips::CAPSTORE64))
           continue;
+        // Don't try to fold in things that have relocations yet
+        if (!I.getOperand(2).isImm())
+          return false;
         int64_t offset = I.getOperand(2).getImm();
         // If the load is not currently at register-zero offset, we can't fix
         // it up to use relative addressing, but we may be able to modify it so

@@ -117,6 +117,15 @@ MCOperand MipsMCInstLower::LowerSymbolOperand(const MachineOperand &MO,
   case MipsII::MO_CALL_LO16:
     TargetKind = MipsMCExpr::MEK_CALL_LO16;
     break;
+  case MipsII::MO_MCTDATA11:
+    TargetKind = MipsMCExpr::MEK_MCTDATA11;
+    break;
+  case MipsII::MO_MCTDATA_HI16:
+    TargetKind = MipsMCExpr::MEK_MCTDATA_HI16;
+    break;
+  case MipsII::MO_MCTDATA_LO16:
+    TargetKind = MipsMCExpr::MEK_MCTDATA_LO16;
+    break;
   }
 
   switch (MOTy) {

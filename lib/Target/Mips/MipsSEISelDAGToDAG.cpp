@@ -236,8 +236,34 @@ void MipsSEDAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
     .addReg(Mips::V0).addReg(Mips::T9);
 }
 
+void MipsSEDAGToDAGISel::initCapGlobalBaseReg(MachineFunction &MF) {
+  MipsFunctionInfo *MipsFI = MF.getInfo<MipsFunctionInfo>();
+
+  if (!MipsFI->capGlobalBaseRegSet())
+    return;
+
+  MachineBasicBlock &MBB = MF.front();
+  MachineBasicBlock::iterator I = MBB.begin();
+  const TargetInstrInfo &TII = *Subtarget->getInstrInfo();
+  DebugLoc DL;
+  unsigned CapGlobalBaseReg = MipsFI->getCapGlobalBaseReg();
+  const MipsABIInfo &ABI = static_cast<const MipsTargetMachine &>(TM).getABI();
+
+  assert(ABI.IsCheriSandbox());
+
+  // For the Sandbox ABI, $c14 is required to point to the DSO's MemCap Table
+  // on function entry, so emit a single cmove (which may be optimised away):
+  //
+  // cmove $capglobalbasereg, $c14
+  MF.getRegInfo().addLiveIn(Mips::C14);
+  MBB.addLiveIn(Mips::C14);
+  BuildMI(MBB, I, DL, TII.get(Mips::CMove), CapGlobalBaseReg)
+    .addReg(Mips::C14);
+}
+
 void MipsSEDAGToDAGISel::processFunctionAfterISel(MachineFunction &MF) {
   initGlobalBaseReg(MF);
+  initCapGlobalBaseReg(MF);
 
   MachineRegisterInfo *MRI = &MF.getRegInfo();
 
@@ -551,6 +577,13 @@ bool MipsSEDAGToDAGISel::selectCapDefault(SDValue Cap, SDValue &Offset,
 bool MipsSEDAGToDAGISel::selectCapOffset(
     SDValue Cap, SDValue &Offset, SDValue &Base, unsigned OffsetBits,
     unsigned ShiftAmount = 0) const {
+
+  if (Cap.getOpcode() == MipsISD::Wrapper) {
+    Base   = Cap.getOperand(0);
+    Offset = Cap.getOperand(1);
+    return true;
+  }
+
   if (CurDAG->isBaseWithConstantOffset(Cap)) {
     ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Cap.getOperand(1));
     if (isIntN(OffsetBits + ShiftAmount, CN->getSExtValue())) {

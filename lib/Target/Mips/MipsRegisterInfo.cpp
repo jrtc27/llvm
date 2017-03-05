@@ -232,8 +232,12 @@ getReservedRegs(const MachineFunction &MF) const {
   if (Subtarget.isCheri()) {
     for (unsigned I = 0; I < array_lengthof(ReservedCheriRegs); ++I)
       Reserved.set(ReservedCheriRegs[I]);
-    if (Subtarget.isABI_CheriSandbox())
+    if (Subtarget.isABI_CheriSandbox()) {
+      // Reserve C11 for the stack capability
       Reserved.set(Mips::C11);
+      // Reserve C14 as the Capability Pointer
+      Reserved.set(Mips::C14);
+    }
     if (Cheri8)
       for (unsigned I = 0; I < array_lengthof(ReservedCheri8Regs); ++I)
         Reserved.set(ReservedCheri8Regs[I]);

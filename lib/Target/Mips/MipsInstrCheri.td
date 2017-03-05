@@ -158,7 +158,6 @@ def uimm32_pat:  PatLeaf<(imm), [{ return isInt<32>(N->getZExtValue()); }]>;
 def uimm11: Operand<i32>;
 def uimm11_pat:  PatLeaf<(imm), [{ return isUInt<11>(N->getZExtValue()); }]>;
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // Flow control
 ////////////////////////////////////////////////////////////////////////////////
@@ -578,6 +577,16 @@ defm : LoadViaCap0<CLWC1, load, capimm8lsl2>;
 defm : LoadViaCap0<CLDC1, load, capimm8lsl3>;
 defm : StoreViaCap0<CSWC1, FGR32Opnd, store, capimm8lsl2>;
 defm : StoreViaCap0<CSDC1, FGR64Opnd, store, capimm8lsl3>;
+
+////////////////////////////////////////////////////////////////////////////////
+// Wrappers for relocations
+////////////////////////////////////////////////////////////////////////////////
+def : WrapperPat<tglobaladdr, CIncOffset, CheriRegs>;
+def : WrapperPat<tconstpool, CIncOffset, CheriRegs>;
+def : WrapperPat<texternalsym, CIncOffset, CheriRegs>;
+def : WrapperPat<tblockaddress, CIncOffset, CheriRegs>;
+def : WrapperPat<tjumptable, CIncOffset, CheriRegs>;
+def : WrapperPat<tglobaltlsaddr, CIncOffset, CheriRegs>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Accessor pseudos

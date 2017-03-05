@@ -132,7 +132,7 @@ def MipsDivRemU16 : SDNode<"MipsISD::DivRemU16", SDT_MipsDivRem16,
 //  movn  %got(d)($gp), %got(c)($gp), $4
 // This instruction is illegal since movn can take only register operands.
 
-def MipsWrapper    : SDNode<"MipsISD::Wrapper", SDTIntBinOp>;
+def MipsWrapper    : SDNode<"MipsISD::Wrapper", SDTFatPtrAddOp>;
 
 def MipsSync : SDNode<"MipsISD::Sync", SDT_Sync, [SDNPHasChain,SDNPSideEffect]>;
 
