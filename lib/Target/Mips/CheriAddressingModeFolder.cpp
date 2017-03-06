@@ -199,6 +199,10 @@ struct CheriAddressingModeFolder : public MachineFunctionPass {
         // We are going to use the CIncOffset's source capability at the
         // load/store instruction, so first we need to check it has not been
         // killed.
+        // TODO: Check across basic blocks too... want to ensure that every
+        // path from IncOffset to I leaves Cap unaltered.
+        if (&MBB != IncOffset->getParent())
+          continue;
         bool CapKilled = false;
         for (auto J = std::prev(I), JE = MachineBasicBlock::iterator(IncOffset);
             J != JE; --J) {
