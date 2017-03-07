@@ -564,6 +564,17 @@ bool MipsELFObjectWriter::needsRelocateWithSymbol(const MCSymbol &Sym,
   case ELF::R_MIPS_SUB:
     return false;
 
+  // CHERI MemCap Table relocations need to preserve the symbol in order to be
+  // able to get tight bounds on the resulting capability.
+  case ELF::R_CHERI_MCTDATA11:
+  case ELF::R_CHERI_MCTDATA_HI16:
+  case ELF::R_CHERI_MCTDATA_LO16:
+    return true;
+
+  // Dummy relocation; symbol is irrelevant
+  case ELF::R_CHERI_MEMCAP:
+    return false;
+
   // FIXME: Many of these relocations should probably return false but this
   //        hasn't been confirmed to be safe yet.
   case ELF::R_MIPS_REL32:
