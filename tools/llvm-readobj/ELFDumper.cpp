@@ -1529,6 +1529,8 @@ static const char *getTypeString(unsigned Arch, uint64_t Type) {
     LLVM_READOBJ_TYPE_CASE(MIPS_RLD_MAP);
     LLVM_READOBJ_TYPE_CASE(MIPS_PLTGOT);
     LLVM_READOBJ_TYPE_CASE(MIPS_OPTIONS);
+    LLVM_READOBJ_TYPE_CASE(CHERI_MCT);
+    LLVM_READOBJ_TYPE_CASE(CHERI_MCTSZ);
     }
   }
   switch (Type) {
@@ -1707,6 +1709,7 @@ void ELFDumper<ELFT>::printValue(uint64_t Type, uint64_t Value) {
   case DT_MIPS_RLD_MAP_REL:
   case DT_MIPS_PLTGOT:
   case DT_MIPS_OPTIONS:
+  case DT_CHERI_MCT:
     OS << format(ConvChar, Value);
     break;
   case DT_RELACOUNT:
@@ -1729,6 +1732,7 @@ void ELFDumper<ELFT>::printValue(uint64_t Type, uint64_t Value) {
   case DT_INIT_ARRAYSZ:
   case DT_FINI_ARRAYSZ:
   case DT_PREINIT_ARRAYSZ:
+  case DT_CHERI_MCTSZ:
     OS << Value << " (bytes)";
     break;
   case DT_NEEDED:

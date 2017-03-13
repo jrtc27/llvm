@@ -1231,6 +1231,9 @@ enum {
   DT_MIPS_RLD_MAP_REL = 0x70000035,  // Relative offset of run time loader
                                      // map, used for debugging.
 
+  DT_CHERI_MCT = 0x70000100,
+  DT_CHERI_MCTSZ = 0x70000101,
+
   // Sun machine-independent extensions.
   DT_AUXILIARY = 0x7FFFFFFD, // Shared object to load before self
   DT_FILTER = 0x7FFFFFFF     // Shared object to get values from
