@@ -69,6 +69,10 @@ SkipGlobalBounds("cheri-no-global-bounds",
   cl::desc("Skip bounds checks on globals"),
   cl::init(false));
 
+static cl::opt<bool>
+CheriNoMct("cheri-no-mct", cl::Hidden,
+           cl::desc("Don't use MCT for global accesses"), cl::init(false));
+
 static const MCPhysReg Mips64DPRegs[8] = {
   Mips::D12_64, Mips::D13_64, Mips::D14_64, Mips::D15_64,
   Mips::D16_64, Mips::D17_64, Mips::D18_64, Mips::D19_64
@@ -1930,7 +1934,7 @@ SDValue MipsTargetLowering::lowerGlobalAddress(SDValue Op,
   GlobalAddressSDNode *N = cast<GlobalAddressSDNode>(Op);
   const GlobalValue *GV = N->getGlobal();
 
-  if (GV->getType()->getAddressSpace() == 200) {
+  if (!CheriNoMct && GV->getType()->getAddressSpace() == 200) {
     // TODO: Should these be separate flags?
     if (LargeGOT || HugeGOT)
       return getMemCapLargeMCT(N, SDLoc(N), Ty, DAG,
@@ -1943,83 +1947,88 @@ SDValue MipsTargetLowering::lowerGlobalAddress(SDValue Op,
           MachinePointerInfo::getMCT(DAG.getMachineFunction()));
   }
 
+  EVT AddrTy = Ty;
+  if (GV->getType()->getAddressSpace() == 200)
+    Ty = MVT::i64;
+  SDValue Global;
+
   if (!isPositionIndependent()) {
     const MipsTargetObjectFile *TLOF =
         static_cast<const MipsTargetObjectFile *>(
             getTargetMachine().getObjFileLowering());
     const GlobalObject *GO = GV->getBaseObject();
-    if (GO && TLOF->IsGlobalInSmallSection(GO, getTargetMachine()))
+    if (GO && TLOF->IsGlobalInSmallSection(GO, getTargetMachine())) {
       // %gp_rel relocation
-      return getAddrGPRel(N, SDLoc(N), Ty, DAG);
+      Global = getAddrGPRel(N, SDLoc(N), Ty, DAG);
+    } else {
+                                   // %hi/%lo relocation
+      Global = Subtarget.hasSym32() ? getAddrNonPIC(N, SDLoc(N), Ty, DAG)
+                                   // %highest/%higher/%hi/%lo relocation
+                                   : getAddrNonPICSym64(N, SDLoc(N), Ty, DAG);
+    }
+  } else {
 
-                                 // %hi/%lo relocation
-    return Subtarget.hasSym32() ? getAddrNonPIC(N, SDLoc(N), Ty, DAG)
-                                 // %highest/%higher/%hi/%lo relocation
-                                 : getAddrNonPICSym64(N, SDLoc(N), Ty, DAG);
+    // Every other architecture would use shouldAssumeDSOLocal in here, but
+    // mips is special.
+    // * In PIC code mips requires got loads even for local statics!
+    // * To save on got entries, for local statics the got entry contains the
+    //   page and an additional add instruction takes care of the low bits.
+    // * It is legal to access a hidden symbol with a non hidden undefined,
+    //   so one cannot guarantee that all access to a hidden symbol will know
+    //   it is hidden.
+    // * Mips linkers don't support creating a page and a full got entry for
+    //   the same symbol.
+    // * Given all that, we have to use a full got entry for hidden symbols :-(
+    if (GV->hasLocalLinkage() && !HugeGOT)
+      Global = getAddrLocal(N, SDLoc(N), Ty, DAG, ABI.IsN32() || ABI.IsN64());
+    else if (LargeGOT || HugeGOT)
+      Global = getAddrGlobalLargeGOT(
+          N, SDLoc(N), Ty, DAG, MipsII::MO_GOT_HI16, MipsII::MO_GOT_LO16,
+          DAG.getEntryNode(),
+          MachinePointerInfo::getGOT(DAG.getMachineFunction()));
+    else if (GV->hasInternalLinkage() || (GV->hasLocalLinkage() && !isa<Function>(GV)))
+      Global = getAddrLocal(N, SDLoc(N), Ty, DAG, ABI.IsN32() || ABI.IsN64());
+    else 
+      Global = getAddrGlobal(
+          N, SDLoc(N), Ty, DAG,
+          (ABI.IsN32() || ABI.IsN64()) ? MipsII::MO_GOT_DISP : MipsII::MO_GOT,
+          DAG.getEntryNode(), MachinePointerInfo::getGOT(DAG.getMachineFunction()));
   }
 
-  // Every other architecture would use shouldAssumeDSOLocal in here, but
-  // mips is special.
-  // * In PIC code mips requires got loads even for local statics!
-  // * To save on got entries, for local statics the got entry contains the
-  //   page and an additional add instruction takes care of the low bits.
-  // * It is legal to access a hidden symbol with a non hidden undefined,
-  //   so one cannot guarantee that all access to a hidden symbol will know
-  //   it is hidden.
-  // * Mips linkers don't support creating a page and a full got entry for
-  //   the same symbol.
-  // * Given all that, we have to use a full got entry for hidden symbols :-(
-  if (GV->hasLocalLinkage() && !HugeGOT)
-    return getAddrLocal(N, SDLoc(N), Ty, DAG, ABI.IsN32() || ABI.IsN64());
-
-  if (LargeGOT || HugeGOT)
-    return getAddrGlobalLargeGOT(
-        N, SDLoc(N), Ty, DAG, MipsII::MO_GOT_HI16, MipsII::MO_GOT_LO16,
-        DAG.getEntryNode(),
-        MachinePointerInfo::getGOT(DAG.getMachineFunction()));
-
-  if (GV->hasInternalLinkage() || (GV->hasLocalLinkage() && !isa<Function>(GV)))
-    return getAddrLocal(N, SDLoc(N), Ty, DAG, ABI.IsN32() || ABI.IsN64());
-
-  return getAddrGlobal(
-      N, SDLoc(N), Ty, DAG,
-      (ABI.IsN32() || ABI.IsN64()) ? MipsII::MO_GOT_DISP : MipsII::MO_GOT,
-      DAG.getEntryNode(), MachinePointerInfo::getGOT(DAG.getMachineFunction()));
-
-  //if (GV->getType()->getAddressSpace() == 200) {
-  //  Global = DAG.getNode(ISD::INTTOPTR, SDLoc(N), AddrTy, Global);
-  //  StringRef Name = GV->getName();
-  //  if (!SkipGlobalBounds &&
-  //      !isa<Function>(GV) &&
-  //      !GV->hasWeakLinkage() &&
-  //      !GV->hasWeakAnyLinkage() &&
-  //      !GV->hasExternalWeakLinkage() &&
-  //      !GV->hasSection() &&
-  //      !Name.startswith("__start_") &&
-  //      !Name.startswith("__stop_")) {
-  //    if (GV->hasInternalLinkage() || GV->hasLocalLinkage()) {
-  //      uint64_t SizeBytes = DAG.getDataLayout().getTypeAllocSize(GV->getValueType());
-  //      Global = setBounds(DAG, Global, SizeBytes);
-  //    } else {
-  //      const Module &M = *GV->getParent();
-  //      std::string Name = (Twine(".size.")+GV->getName()).str();
-  //      GlobalVariable *SizeGV = M.getGlobalVariable(Name);
-  //      Type *I64 = Type::getInt64Ty(M.getContext());
-  //      if (!SizeGV) {
-  //        SizeGV = new GlobalVariable(const_cast<Module&>(M),
-  //            I64, /*isConstant*/true,
-  //            GlobalValue::LinkOnceAnyLinkage, ConstantInt::get(I64, 0),
-  //            Twine(".size.")+GV->getName());
-  //        SizeGV->setSection(".global_sizes");
-  //      }
-  //      SDValue Size = DAG.getGlobalAddress(SizeGV, SDLoc(Global), MVT::i64);
-  //      Size = DAG.getLoad(MVT::i64, SDLoc(Global), DAG.getEntryNode(), Size,
-  //          MachinePointerInfo(SizeGV));
-  //      Global = setBounds(DAG, Global, Size);
-  //    }
-  //  }
-  //}
-  //return Global;
+  if (GV->getType()->getAddressSpace() == 200) {
+    Global = DAG.getNode(ISD::INTTOPTR, SDLoc(N), AddrTy, Global);
+    StringRef Name = GV->getName();
+    if (!SkipGlobalBounds &&
+        !isa<Function>(GV) &&
+        !GV->hasWeakLinkage() &&
+        !GV->hasWeakAnyLinkage() &&
+        !GV->hasExternalWeakLinkage() &&
+        !GV->hasSection() &&
+        !Name.startswith("__start_") &&
+        !Name.startswith("__stop_")) {
+      if (GV->hasInternalLinkage() || GV->hasLocalLinkage()) {
+        uint64_t SizeBytes = DAG.getDataLayout().getTypeAllocSize(GV->getValueType());
+        Global = setBounds(DAG, Global, SizeBytes);
+      } else {
+        const Module &M = *GV->getParent();
+        std::string Name = (Twine(".size.")+GV->getName()).str();
+        GlobalVariable *SizeGV = M.getGlobalVariable(Name);
+        Type *I64 = Type::getInt64Ty(M.getContext());
+        if (!SizeGV) {
+          SizeGV = new GlobalVariable(const_cast<Module&>(M),
+              I64, /*isConstant*/true,
+              GlobalValue::LinkOnceAnyLinkage, ConstantInt::get(I64, 0),
+              Twine(".size.")+GV->getName());
+          SizeGV->setSection(".global_sizes");
+        }
+        SDValue Size = DAG.getGlobalAddress(SizeGV, SDLoc(Global), MVT::i64);
+        Size = DAG.getLoad(MVT::i64, SDLoc(Global), DAG.getEntryNode(), Size,
+            MachinePointerInfo(SizeGV));
+        Global = setBounds(DAG, Global, Size);
+      }
+    }
+  }
+  return Global;
 }
 
 SDValue MipsTargetLowering::lowerBlockAddress(SDValue Op,
