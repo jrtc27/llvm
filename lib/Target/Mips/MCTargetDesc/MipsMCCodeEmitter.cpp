@@ -756,6 +756,15 @@ getExprOpValue(const MCExpr *Expr, SmallVectorImpl<MCFixup> &Fixups,
     case MipsMCExpr::MEK_MCTDATA_LO16:
       FixupKind = Mips::fixup_CHERI_MCTDATA_LO16;
       break;
+    case MipsMCExpr::MEK_BASE64:
+      FixupKind = Mips::fixup_CHERI_BASE64;
+      break;
+    case MipsMCExpr::MEK_OFFSET64:
+      FixupKind = Mips::fixup_CHERI_OFFSET64;
+      break;
+    case MipsMCExpr::MEK_SIZE64:
+      FixupKind = Mips::fixup_CHERI_SIZE64;
+      break;
     }
     Fixups.push_back(MCFixup::create(0, MipsExpr, MCFixupKind(FixupKind)));
     return 0;

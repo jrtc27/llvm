@@ -386,6 +386,14 @@ unsigned MipsELFObjectWriter::getRelocType(MCContext &Ctx,
     return ELF::R_CHERI_MCTDATA_HI16;
   case Mips::fixup_CHERI_MCTDATA_LO16:
     return ELF::R_CHERI_MCTDATA_LO16;
+  case Mips::fixup_CHERI_MEMCAP:
+    return ELF::R_CHERI_MEMCAP;
+  case Mips::fixup_CHERI_BASE64:
+    return ELF::R_CHERI_BASE64;
+  case Mips::fixup_CHERI_OFFSET64:
+    return ELF::R_CHERI_OFFSET64;
+  case Mips::fixup_CHERI_SIZE64:
+    return ELF::R_CHERI_SIZE64;
   }
 
   llvm_unreachable("invalid fixup kind!");

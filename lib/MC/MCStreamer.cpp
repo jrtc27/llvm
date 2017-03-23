@@ -891,6 +891,10 @@ void MCStreamer::EmitBundleAlignMode(unsigned AlignPow2) {}
 void MCStreamer::EmitBundleLock(bool AlignToEnd) {}
 void MCStreamer::FinishImpl() {}
 void MCStreamer::EmitBundleUnlock() {}
+void MCStreamer::EmitMemcap(const MCSymbol *Symbol, int64_t Offset, SMLoc Loc) {}
+void MCStreamer::EmitMemcapImpl(const MCSymbol *Symbol, int64_t Offset, SMLoc Loc) {
+  visitUsedSymbol(*Symbol);
+}
 
 void MCStreamer::SwitchSection(MCSection *Section, const MCExpr *Subsection) {
   assert(Section && "Cannot switch to a null section!");

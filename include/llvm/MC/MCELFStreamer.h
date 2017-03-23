@@ -72,6 +72,11 @@ public:
   void EmitBundleLock(bool AlignToEnd) override;
   void EmitBundleUnlock() override;
 
+  void EmitMemcap(const MCSymbol *Symbol, int64_t Offset,
+                  SMLoc Loc = SMLoc()) override;
+  void EmitMemcapImpl(const MCSymbol *Symbol, int64_t Offset,
+                      SMLoc Loc = SMLoc()) override;
+
 private:
   bool isBundleLocked() const;
   void EmitInstToFragment(const MCInst &Inst, const MCSubtargetInfo &) override;

@@ -354,6 +354,7 @@ class MipsAsmParser : public MCTargetAsmParser {
   bool parseDirectiveTpRelDWord();
   bool parseDirectiveModule();
   bool parseDirectiveModuleFP();
+  bool parseDirectiveMemcap();
   bool parseFpABIValue(MipsABIFlagsSection::FpABIKind &FpABI,
                        StringRef Directive);
 
@@ -628,6 +629,10 @@ public:
 
   bool useSoftFloat() const {
     return getSTI().getFeatureBits()[Mips::FeatureSoftFloat];
+  }
+
+  bool isCheri() const {
+    return getSTI().getFeatureBits()[Mips::FeatureMipsCheri];
   }
 
   /// Warn if RegIndex is the same as the current AT.
@@ -7064,6 +7069,66 @@ bool MipsAsmParser::parseFpABIValue(MipsABIFlagsSection::FpABIKind &FpABI,
   return false;
 }
 
+/// parseDirectiveMemcap
+///  ::= .memcap sym[+off]
+bool MipsAsmParser::parseDirectiveMemcap() {
+  MCAsmParser &Parser = getParser();
+  const MCExpr *SymExpr;
+
+  if (!isCheri()) {
+    reportParseError("'.memcap' requires CHERI");
+    return false;
+  }
+
+  if (getParser().parseExpression(SymExpr))
+    return true;
+
+  const MCSymbolRefExpr *SRE;
+  int64_t Offset;
+  if (const MCBinaryExpr *BE = dyn_cast<MCBinaryExpr>(SymExpr)) {
+    SRE = dyn_cast<MCSymbolRefExpr>(BE->getLHS());
+    const MCConstantExpr *CE;
+    bool Neg = false;
+
+    switch (BE->getOpcode()) {
+      case MCBinaryExpr::Sub:
+        Neg = true;
+        // fall through
+      case MCBinaryExpr::Add:
+        CE = dyn_cast<MCConstantExpr>(BE->getRHS());
+        break;
+      default:
+        CE = nullptr;
+        break;
+    }
+
+    if (!SRE || !CE) {
+      reportParseError("must be sym[+const]");
+      return false;
+    }
+
+    Offset = CE->getValue();
+    if (Neg)
+      Offset = -Offset;
+  } else {
+    SRE = dyn_cast<MCSymbolRefExpr>(SymExpr);
+    if (!SRE) {
+      reportParseError("must be sym[+const]");
+      return false;
+    }
+    Offset = 0;
+  }
+
+  const MCSymbol &Symbol = SRE->getSymbol();
+  getParser().getStreamer().EmitMemcap(&Symbol, Offset);
+
+  if (getLexer().isNot(AsmToken::EndOfStatement))
+    return Error(getLexer().getLoc(),
+                "unexpected token, expected end of statement");
+  Parser.Lex(); // Eat EndOfStatement token.
+  return false;
+}
+
 bool MipsAsmParser::ParseDirective(AsmToken DirectiveID) {
   // This returns false if this function recognizes the directive
   // regardless of whether it is successfully handles or reports an
@@ -7382,6 +7447,11 @@ bool MipsAsmParser::ParseDirective(AsmToken DirectiveID) {
   }
   if (IDVal == ".sdata") {
     parseSSectionDirective(IDVal, ELF::SHT_PROGBITS);
+    return false;
+  }
+
+  if (IDVal == ".memcap") {
+    parseDirectiveMemcap();
     return false;
   }
 

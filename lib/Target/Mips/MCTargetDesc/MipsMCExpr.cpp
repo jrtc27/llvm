@@ -124,6 +124,15 @@ void MipsMCExpr::printImpl(raw_ostream &OS, const MCAsmInfo *MAI) const {
   case MEK_MCTDATA_LO16:
     OS << "%mctdata_lo";
     break;
+  case MEK_BASE64:
+    OS << "%base";
+    break;
+  case MEK_OFFSET64:
+    OS << "%offset";
+    break;
+  case MEK_SIZE64:
+    OS << "%size";
+    break;
   }
 
   OS << '(';
@@ -186,6 +195,9 @@ MipsMCExpr::evaluateAsRelocatableImpl(MCValue &Res,
     case MEK_MCTDATA11:
     case MEK_MCTDATA_HI16:
     case MEK_MCTDATA_LO16:
+    case MEK_BASE64:
+    case MEK_OFFSET64:
+    case MEK_SIZE64:
       return false;
     case MEK_LO:
     case MEK_CALL_LO16:
@@ -279,6 +291,9 @@ void MipsMCExpr::fixELFSymbolsInTLSFixups(MCAssembler &Asm) const {
   case MEK_MCTDATA11:
   case MEK_MCTDATA_HI16:
   case MEK_MCTDATA_LO16:
+  case MEK_BASE64:
+  case MEK_OFFSET64:
+  case MEK_SIZE64:
     // If we do have nested target-specific expressions, they will be in
     // a consecutive chain.
     if (const MipsMCExpr *E = dyn_cast<const MipsMCExpr>(getSubExpr()))

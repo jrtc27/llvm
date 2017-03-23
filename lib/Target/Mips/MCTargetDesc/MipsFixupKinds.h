@@ -218,6 +218,18 @@ namespace Mips {
     fixup_CHERI_MCTDATA_HI16,
     fixup_CHERI_MCTDATA_LO16,
 
+    // resulting in - R_CHERI_MEMCAP
+    fixup_CHERI_MEMCAP,
+
+    // resulting in - R_CHERI_BASE64
+    fixup_CHERI_BASE64,
+
+    // resulting in - R_CHERI_OFFSET64
+    fixup_CHERI_OFFSET64,
+
+    // resulting in - R_CHERI_SIZE64
+    fixup_CHERI_SIZE64,
+
     // Marker
     LastTargetFixupKind,
     NumTargetFixupKinds = LastTargetFixupKind - FirstTargetFixupKind

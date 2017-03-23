@@ -856,6 +856,11 @@ public:
   /// \brief Ends a bundle-locked group.
   virtual void EmitBundleUnlock();
 
+  virtual void EmitMemcap(const MCSymbol *Symbol, int64_t Offset,
+                          SMLoc Loc = SMLoc());
+  virtual void EmitMemcapImpl(const MCSymbol *Symbol, int64_t Offset,
+                              SMLoc Loc = SMLoc());
+
   /// \brief If this file is backed by a assembly streamer, this dumps the
   /// specified string in the output .s file.  This capability is indicated by
   /// the hasRawTextSupport() predicate.  By default this aborts.

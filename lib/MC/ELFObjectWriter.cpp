@@ -221,7 +221,9 @@ public:
                           SectionOffsetsTy &SectionOffsets);
 
   MCSectionELF *createRelocationSection(MCContext &Ctx,
-                                        const MCSectionELF &Sec);
+                                        const MCSectionELF &Sec,
+                                        const MCAssembler &Asm,
+                                        const MCAsmLayout &Layout);
 
   const MCSectionELF *createStringTable(MCContext &Ctx);
 
@@ -957,7 +959,21 @@ void ELFObjectWriter::computeSymbolTable(
 
 MCSectionELF *
 ELFObjectWriter::createRelocationSection(MCContext &Ctx,
-                                         const MCSectionELF &Sec) {
+                                         const MCSectionELF &Sec,
+                                         const MCAssembler &Asm,
+                                         const MCAsmLayout &Layout) {
+  for (const MCFragment &F : Sec) {
+    if (F.hasContainerFixup()) {
+      const MCFixup &Fixup = F.getContainerFixup();
+      uint64_t FixupOffset = Layout.getFragmentOffset(&F) + Fixup.getOffset();
+      bool IsPCRel = Asm.getBackend().getFixupKindInfo(Fixup.getKind()).Flags &
+                     MCFixupKindInfo::FKF_IsPCRel;
+      unsigned Type = getRelocType(Ctx, MCValue::get(int64_t(0)), Fixup, IsPCRel);
+      ELFRelocationEntry Rec(FixupOffset, nullptr, Type, 0, nullptr, 0);
+      Relocations[&Sec].push_back(Rec);
+    }
+  }
+
   if (Relocations[&Sec].empty())
     return nullptr;
 
@@ -1253,7 +1269,7 @@ void ELFObjectWriter::writeObject(MCAssembler &Asm,
     uint64_t SecEnd = getStream().tell();
     SectionOffsets[&Section] = std::make_pair(SecStart, SecEnd);
 
-    MCSectionELF *RelSection = createRelocationSection(Ctx, Section);
+    MCSectionELF *RelSection = createRelocationSection(Ctx, Section, Asm, Layout);
 
     if (SignatureSymbol) {
       Asm.registerSymbol(*SignatureSymbol);

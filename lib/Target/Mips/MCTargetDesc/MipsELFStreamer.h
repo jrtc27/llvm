@@ -61,6 +61,9 @@ public:
   /// candidates for marking as microMIPS when .word directive is emitted.
   void EmitValueImpl(const MCExpr *Value, unsigned Size, SMLoc Loc) override;
 
+  void EmitMemcap(const MCSymbol *Symbol, int64_t Offset, SMLoc Loc = SMLoc()) override;
+  void EmitMemcapImpl(const MCSymbol *Symbol, int64_t Offset, SMLoc Loc = SMLoc()) override;
+
   /// Emits all the option records stored up until the point it's called.
   void EmitMipsOptionRecords();
 

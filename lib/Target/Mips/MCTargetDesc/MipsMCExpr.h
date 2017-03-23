@@ -47,6 +47,9 @@ public:
     MEK_MCTDATA11,
     MEK_MCTDATA_HI16,
     MEK_MCTDATA_LO16,
+    MEK_BASE64,
+    MEK_OFFSET64,
+    MEK_SIZE64,
     MEK_Special,
   };
 

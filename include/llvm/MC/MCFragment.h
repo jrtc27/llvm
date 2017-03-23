@@ -78,6 +78,10 @@ private:
   /// initialized.
   uint64_t Offset;
 
+  bool HasContainerFixup;
+
+  MCFixup ContainerFixup;
+
   /// @}
 
 protected:
@@ -129,6 +133,19 @@ public:
 
   /// \brief Return true if given frgment has FT_Dummy type.
   bool isDummy() const { return Kind == FT_Dummy; }
+
+  bool hasContainerFixup() const { return HasContainerFixup; }
+
+  const MCFixup &getContainerFixup() const {
+    assert(HasContainerFixup && "Does not have a container fixup");
+    return ContainerFixup;
+  }
+
+  void setContainerFixup(MCFixup &Fixup) {
+    assert(!HasContainerFixup && "Already has a container fixup");
+    HasContainerFixup = true;
+    ContainerFixup = Fixup;
+  }
 
   void dump();
 };

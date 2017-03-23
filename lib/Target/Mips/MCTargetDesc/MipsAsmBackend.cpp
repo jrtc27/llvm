@@ -69,6 +69,9 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
   case FK_Data_8:
   case Mips::fixup_Mips_SUB:
   case Mips::fixup_MICROMIPS_SUB:
+  case Mips::fixup_CHERI_BASE64:
+  case Mips::fixup_CHERI_OFFSET64:
+  case Mips::fixup_CHERI_SIZE64:
     break;
   case Mips::fixup_Mips_PC16:
     // The displacement is then divided by 4 to give us an 18 bit
@@ -270,6 +273,9 @@ void MipsAsmBackend::applyFixup(const MCFixup &Fixup, char *Data,
     break;
   case FK_Data_8:
   case Mips::fixup_Mips_64:
+  case Mips::fixup_CHERI_BASE64:
+  case Mips::fixup_CHERI_OFFSET64:
+  case Mips::fixup_CHERI_SIZE64:
     FullSize = 8;
     break;
   case FK_Data_4:
@@ -383,7 +389,11 @@ getFixupKindInfo(MCFixupKind Kind) const {
     { "fixup_MICROMIPS_SUB",             0,     64,   0 },
     { "fixup_CHERI_MCTDATA11",    0,     11,   0 },
     { "fixup_CHERI_MCTDATA_HI16", 0,     16,   0 },
-    { "fixup_CHERI_MCTDATA_LO16", 0,     16,   0 }
+    { "fixup_CHERI_MCTDATA_LO16", 0,     16,   0 },
+    { "fixup_CHERI_MEMCAP",       0,    256,   0 },
+    { "fixup_CHERI_BASE64",       0,     64,   0 },
+    { "fixup_CHERI_OFFSET64",     0,     64,   0 },
+    { "fixup_CHERI_SIZE64",       0,     64,   0 }
   };
 
   const static MCFixupKindInfo BigEndianInfos[Mips::NumTargetFixupKinds] = {
@@ -457,7 +467,11 @@ getFixupKindInfo(MCFixupKind Kind) const {
     { "fixup_MICROMIPS_SUB",              0,     64,   0 },
     { "fixup_CHERI_MCTDATA11",    21,    11,   0 },
     { "fixup_CHERI_MCTDATA_HI16", 16,    16,   0 },
-    { "fixup_CHERI_MCTDATA_LO16", 16,    16,   0 }
+    { "fixup_CHERI_MCTDATA_LO16", 16,    16,   0 },
+    { "fixup_CHERI_MEMCAP",        0,   256,   0 },
+    { "fixup_CHERI_BASE64",        0,    64,   0 },
+    { "fixup_CHERI_OFFSET64",      0,    64,   0 },
+    { "fixup_CHERI_SIZE64",        0,    64,   0 }
   };
 
   if (Kind < FirstTargetFixupKind)

@@ -45,6 +45,10 @@ bool MCELFStreamer::isBundleLocked() const {
 
 void MCELFStreamer::mergeFragment(MCDataFragment *DF,
                                   MCDataFragment *EF) {
+  // DF is OK, since EF gets appended to it
+  if (EF->hasContainerFixup())
+    report_fatal_error("Cannot append fragment with container fixup");
+
   MCAssembler &Assembler = getAssembler();
 
   if (Assembler.isBundlingEnabled() && Assembler.getRelaxAll()) {
@@ -626,6 +630,15 @@ void MCELFStreamer::EmitZerofill(MCSection *Section, MCSymbol *Symbol,
 void MCELFStreamer::EmitTBSSSymbol(MCSection *Section, MCSymbol *Symbol,
                                    uint64_t Size, unsigned ByteAlignment) {
   llvm_unreachable("ELF doesn't support this directive");
+}
+
+void MCELFStreamer::EmitMemcap(const MCSymbol *Symbol, int64_t Offset, SMLoc Loc) {
+  llvm_unreachable("ELF doesn't support this directive");
+}
+
+void MCELFStreamer::EmitMemcapImpl(const MCSymbol *Symbol, int64_t Offset, SMLoc Loc) {
+  // TODO: Will we need TLS fixup symbol references for this?
+  MCStreamer::EmitMemcapImpl(Symbol, Offset, Loc);
 }
 
 MCStreamer *llvm::createELFStreamer(MCContext &Context, MCAsmBackend &MAB,

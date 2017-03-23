@@ -284,6 +284,11 @@ public:
   void EmitBundleLock(bool AlignToEnd) override;
   void EmitBundleUnlock() override;
 
+  void EmitMemcap(const MCSymbol *Symbol, int64_t Offset,
+                  SMLoc Loc = SMLoc()) override;
+  void EmitMemcapImpl(const MCSymbol *Symbol, int64_t Offset,
+                      SMLoc Loc = SMLoc()) override;
+
   bool EmitRelocDirective(const MCExpr &Offset, StringRef Name,
                           const MCExpr *Expr, SMLoc Loc) override;
 
@@ -1624,6 +1629,18 @@ void MCAsmStreamer::EmitBundleLock(bool AlignToEnd) {
 
 void MCAsmStreamer::EmitBundleUnlock() {
   OS << "\t.bundle_unlock";
+  EmitEOL();
+}
+
+void MCAsmStreamer::EmitMemcap(const MCSymbol *Symbol, int64_t Offset, SMLoc Loc) {
+  EmitMemcapImpl(Symbol, Offset, Loc);
+}
+
+void MCAsmStreamer::EmitMemcapImpl(const MCSymbol *Symbol, int64_t Offset, SMLoc Loc) {
+  OS << "\t.memcap\t";
+  Symbol->print(OS, MAI);
+  if (Offset != 0)
+    OS << "+" << Offset;
   EmitEOL();
 }
 
