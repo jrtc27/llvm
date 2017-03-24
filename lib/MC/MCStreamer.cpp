@@ -28,6 +28,7 @@
 #include "llvm/MC/MCWinEH.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/COFF.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/ELF.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/LEB128.h"
@@ -39,6 +40,10 @@
 #include <utility>
 
 using namespace llvm;
+
+static cl::opt<bool>
+CheriCapRelocs("cheri-cap-relocs", cl::Hidden,
+               cl::desc("Use the old __cap_relocs method instead of .memcap"), cl::init(false));
 
 MCTargetStreamer::MCTargetStreamer(MCStreamer &S) : Streamer(S) {
   S.setTargetStreamer(this);
@@ -127,6 +132,8 @@ void MCStreamer::EmitValue(const MCExpr *Value, unsigned Size, SMLoc Loc) {
   // This is a massive hack, but it needs rewriting once we have proper linker
   // support.
   if (Size > 8) {
+    if (!CheriCapRelocs)
+      llvm_unreachable("Emitting capability value via old __cap_relocs path");
     if (const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(Value)) {
       assert(Size == 32 || Size == 16);
       EmitIntValue(0, 8);
@@ -894,6 +901,9 @@ void MCStreamer::EmitBundleUnlock() {}
 void MCStreamer::EmitMemcap(const MCSymbol *Symbol, int64_t Offset, SMLoc Loc) {}
 void MCStreamer::EmitMemcapImpl(const MCSymbol *Symbol, int64_t Offset, SMLoc Loc) {
   visitUsedSymbol(*Symbol);
+}
+bool MCStreamer::useCheriCapRelocs() {
+  return CheriCapRelocs;
 }
 
 void MCStreamer::SwitchSection(MCSection *Section, const MCExpr *Subsection) {

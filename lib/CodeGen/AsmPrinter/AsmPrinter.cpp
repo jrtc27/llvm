@@ -2345,6 +2345,63 @@ static void handleIndirectSymViaGOTPCRel(AsmPrinter &AP, const MCExpr **ME,
     AP.GlobalGOTEquivs[GOTEquivSym] = std::make_pair(GV, NumUses);
 }
 
+/// If this constant is a constant offset from a global, return the global and
+/// the constant. Because of constantexprs, this function is recursive.
+//
+/// TODO: This is copied from Analysis/ConstantFolding.cpp and modified to also
+/// look through AddrSpaceCast instructions, since that's needed to allow
+/// &function expressions. Can this also be allowed in the original function?
+bool isConstantOffsetFromGlobal(Constant *C, GlobalValue *&GV,
+                                      APInt &Offset, const DataLayout &DL) {
+  // Trivial case, constant is the global.
+  if ((GV = dyn_cast<GlobalValue>(C))) {
+    unsigned BitWidth =
+      DL.getPointerBaseSizeInBits(GV->getType()->getPointerAddressSpace());
+    Offset = APInt(BitWidth, 0);
+    return true;
+  }
+
+  // Otherwise, if this isn't a constant expr, bail out.
+  auto *CE = dyn_cast<ConstantExpr>(C);
+  if (!CE) return false;
+
+  // Look through ptr->int and ptr->ptr casts.
+  if (CE->getOpcode() == Instruction::PtrToInt ||
+      CE->getOpcode() == Instruction::BitCast ||
+      CE->getOpcode() == Instruction::AddrSpaceCast)
+    return isConstantOffsetFromGlobal(CE->getOperand(0), GV, Offset, DL);
+
+  // i32* getelementptr ([5 x i32]* @a, i32 0, i32 5)
+  auto *GEP = dyn_cast<GEPOperator>(CE);
+  if (!GEP)
+    return false;
+
+  unsigned BitWidth =
+    DL.getPointerBaseSizeInBits(GEP->getType()->getPointerAddressSpace());
+  APInt TmpOffset(BitWidth, 0);
+
+  // If the base isn't a global+constant, we aren't either.
+  if (!isConstantOffsetFromGlobal(CE->getOperand(0), GV, TmpOffset, DL))
+    return false;
+
+  // Otherwise, add any offset that our operands provide.
+  if (!GEP->accumulateConstantOffset(DL, TmpOffset))
+    return false;
+
+  Offset = TmpOffset;
+  return true;
+}
+
+static void emitGlobalConstantMemcap(const DataLayout &DL, const Constant *CV,
+                                     AsmPrinter &AP) {
+  GlobalValue *GV;
+  APInt Addend;
+  if (!isConstantOffsetFromGlobal(const_cast<Constant *>(CV), GV, Addend, DL)) {
+    llvm_unreachable("Tried to emit a memcap which is not a global+offset");
+  }
+  AP.OutStreamer->EmitMemcap(AP.getSymbol(GV), Addend.getSExtValue());
+}
+
 static void emitGlobalConstantImpl(const DataLayout &DL, const Constant *CV,
                                    AsmPrinter &AP, const Constant *BaseCV,
                                    uint64_t Offset) {
@@ -2414,6 +2471,9 @@ static void emitGlobalConstantImpl(const DataLayout &DL, const Constant *CV,
 
   if (const ConstantVector *V = dyn_cast<ConstantVector>(CV))
     return emitGlobalConstantVector(DL, V, AP);
+
+  if (DL.isFatPointer(CV->getType()) && !AP.OutStreamer->useCheriCapRelocs())
+    return emitGlobalConstantMemcap(DL, CV, AP);
 
   // Otherwise, it must be a ConstantExpr.  Lower it to an MCExpr, then emit it
   // thread the streamer with EmitValue.
