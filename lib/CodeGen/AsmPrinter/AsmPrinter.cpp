@@ -2472,7 +2472,7 @@ static void emitGlobalConstantImpl(const DataLayout &DL, const Constant *CV,
   if (const ConstantVector *V = dyn_cast<ConstantVector>(CV))
     return emitGlobalConstantVector(DL, V, AP);
 
-  if (DL.isFatPointer(CV->getType()) && !AP.OutStreamer->useCheriCapRelocs())
+  if (DL.isFatPointer(CV->getType()) && !AP.OutStreamer->getTargetStreamer()->useCheriCapRelocs())
     return emitGlobalConstantMemcap(DL, CV, AP);
 
   // Otherwise, it must be a ConstantExpr.  Lower it to an MCExpr, then emit it

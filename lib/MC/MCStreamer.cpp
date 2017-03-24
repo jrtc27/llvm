@@ -41,10 +41,6 @@
 
 using namespace llvm;
 
-static cl::opt<bool>
-CheriCapRelocs("cheri-cap-relocs", cl::Hidden,
-               cl::desc("Use the old __cap_relocs method instead of .memcap"), cl::init(false));
-
 MCTargetStreamer::MCTargetStreamer(MCStreamer &S) : Streamer(S) {
   S.setTargetStreamer(this);
 }
@@ -57,6 +53,8 @@ void MCTargetStreamer::emitLabel(MCSymbol *Symbol) {}
 void MCTargetStreamer::finish() {}
 
 void MCTargetStreamer::emitAssignment(MCSymbol *Symbol, const MCExpr *Value) {}
+
+bool MCTargetStreamer::useCheriCapRelocs() { return true; }
 
 MCStreamer::MCStreamer(MCContext &Ctx)
     : Context(Ctx), CurrentWinFrameInfo(nullptr) {
@@ -132,7 +130,7 @@ void MCStreamer::EmitValue(const MCExpr *Value, unsigned Size, SMLoc Loc) {
   // This is a massive hack, but it needs rewriting once we have proper linker
   // support.
   if (Size > 8) {
-    if (!CheriCapRelocs)
+    if (!getTargetStreamer()->useCheriCapRelocs())
       llvm_unreachable("Emitting capability value via old __cap_relocs path");
     if (const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(Value)) {
       assert(Size == 32 || Size == 16);
@@ -901,9 +899,6 @@ void MCStreamer::EmitBundleUnlock() {}
 void MCStreamer::EmitMemcap(const MCSymbol *Symbol, int64_t Offset, SMLoc Loc) {}
 void MCStreamer::EmitMemcapImpl(const MCSymbol *Symbol, int64_t Offset, SMLoc Loc) {
   visitUsedSymbol(*Symbol);
-}
-bool MCStreamer::useCheriCapRelocs() {
-  return CheriCapRelocs;
 }
 
 void MCStreamer::SwitchSection(MCSection *Section, const MCExpr *Subsection) {

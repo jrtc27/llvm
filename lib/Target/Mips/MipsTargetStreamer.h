@@ -26,6 +26,8 @@ class MipsTargetStreamer : public MCTargetStreamer {
 public:
   MipsTargetStreamer(MCStreamer &S);
 
+  virtual bool useCheriCapRelocs() override;
+
   virtual void setPic(bool Value) {}
 
   virtual void emitDirectiveSetMicroMips();

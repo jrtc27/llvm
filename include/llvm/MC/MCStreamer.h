@@ -95,6 +95,7 @@ public:
                               const MCInst &Inst, const MCSubtargetInfo &STI);
 
   virtual void finish();
+  virtual bool useCheriCapRelocs();
 };
 
 // FIXME: declared here because it is used from
@@ -860,7 +861,6 @@ public:
                           SMLoc Loc = SMLoc());
   virtual void EmitMemcapImpl(const MCSymbol *Symbol, int64_t Offset,
                               SMLoc Loc = SMLoc());
-  bool useCheriCapRelocs();
 
   /// \brief If this file is backed by a assembly streamer, this dumps the
   /// specified string in the output .s file.  This capability is indicated by
