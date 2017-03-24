@@ -230,6 +230,9 @@ namespace Mips {
     // resulting in - R_CHERI_SIZE64
     fixup_CHERI_SIZE64,
 
+    // resulting in - R_CHERI_PERMS64
+    fixup_CHERI_PERMS64,
+
     // Marker
     LastTargetFixupKind,
     NumTargetFixupKinds = LastTargetFixupKind - FirstTargetFixupKind

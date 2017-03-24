@@ -50,6 +50,7 @@ public:
     MEK_BASE64,
     MEK_OFFSET64,
     MEK_SIZE64,
+    MEK_PERMS64,
     MEK_Special,
   };
 

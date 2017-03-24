@@ -765,6 +765,9 @@ getExprOpValue(const MCExpr *Expr, SmallVectorImpl<MCFixup> &Fixups,
     case MipsMCExpr::MEK_SIZE64:
       FixupKind = Mips::fixup_CHERI_SIZE64;
       break;
+    case MipsMCExpr::MEK_PERMS64:
+      FixupKind = Mips::fixup_CHERI_PERMS64;
+      break;
     }
     Fixups.push_back(MCFixup::create(0, MipsExpr, MCFixupKind(FixupKind)));
     return 0;

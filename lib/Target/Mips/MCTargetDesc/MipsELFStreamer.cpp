@@ -94,6 +94,8 @@ void MipsELFStreamer::EmitMemcapImpl(const MCSymbol *Symbol, int64_t Offset, SML
       MCConstantExpr::create(Offset, Context), Context);
   const MipsMCExpr *SizeExpr = MipsMCExpr::create(
       MipsMCExpr::MEK_SIZE64, SRE, Context);
+  const MipsMCExpr *PermsExpr = MipsMCExpr::create(
+      MipsMCExpr::MEK_PERMS64, SRE, Context);
 
   unsigned ByteAlignment = 32;
   insert(new MCAlignFragment(ByteAlignment, 0, 1, ByteAlignment));
@@ -117,7 +119,7 @@ void MipsELFStreamer::EmitMemcapImpl(const MCSymbol *Symbol, int64_t Offset, SML
   EmitComponent(BaseExpr, Mips::fixup_CHERI_BASE64, 8);
   EmitComponent(OffsetExpr, Mips::fixup_CHERI_OFFSET64, 8);
   EmitComponent(SizeExpr, Mips::fixup_CHERI_SIZE64, 8);
-  emitFill(8, 0); // TODO: Perms
+  EmitComponent(PermsExpr, Mips::fixup_CHERI_PERMS64, 8);
 }
 
 void MipsELFStreamer::EmitMipsOptionRecords() {

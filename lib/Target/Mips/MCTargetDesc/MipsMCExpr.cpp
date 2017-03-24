@@ -133,6 +133,9 @@ void MipsMCExpr::printImpl(raw_ostream &OS, const MCAsmInfo *MAI) const {
   case MEK_SIZE64:
     OS << "%size";
     break;
+  case MEK_PERMS64:
+    OS << "%perms";
+    break;
   }
 
   OS << '(';
@@ -198,6 +201,7 @@ MipsMCExpr::evaluateAsRelocatableImpl(MCValue &Res,
     case MEK_BASE64:
     case MEK_OFFSET64:
     case MEK_SIZE64:
+    case MEK_PERMS64:
       return false;
     case MEK_LO:
     case MEK_CALL_LO16:
@@ -294,6 +298,7 @@ void MipsMCExpr::fixELFSymbolsInTLSFixups(MCAssembler &Asm) const {
   case MEK_BASE64:
   case MEK_OFFSET64:
   case MEK_SIZE64:
+  case MEK_PERMS64:
     // If we do have nested target-specific expressions, they will be in
     // a consecutive chain.
     if (const MipsMCExpr *E = dyn_cast<const MipsMCExpr>(getSubExpr()))
