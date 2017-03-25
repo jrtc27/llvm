@@ -238,7 +238,7 @@ MCFragment::MCFragment(FragmentType Kind, bool HasInstructions,
                        uint8_t BundlePadding, MCSection *Parent)
     : Kind(Kind), HasInstructions(HasInstructions), AlignToBundleEnd(false),
       BundlePadding(BundlePadding), Parent(Parent), Atom(nullptr),
-      Offset(~UINT64_C(0)) {
+      Offset(~UINT64_C(0)), HasContainerFixup(false), ContainerFixup() {
   if (Parent && !isDummy())
     Parent->getFragmentList().push_back(this);
 }
