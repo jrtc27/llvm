@@ -2394,12 +2394,25 @@ bool isConstantOffsetFromGlobal(Constant *C, GlobalValue *&GV,
 
 static void emitGlobalConstantMemcap(const DataLayout &DL, const Constant *CV,
                                      AsmPrinter &AP) {
+  // Handle (void *)5 etc as an untagged capability with base/length/perms 0,
+  // and offset 5.
+  if (const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(AP.lowerConstant(CV))) {
+    // TODO: CHERI-128
+    AP.OutStreamer->EmitIntValue(0, 8);
+    AP.OutStreamer->EmitIntValue(CE->getValue(), 8);
+    AP.OutStreamer->EmitIntValue(0, 8);
+    AP.OutStreamer->EmitIntValue(0, 8);
+    return;
+  }
+
   GlobalValue *GV;
   APInt Addend;
-  if (!isConstantOffsetFromGlobal(const_cast<Constant *>(CV), GV, Addend, DL)) {
-    llvm_unreachable("Tried to emit a memcap which is not a global+offset");
+  if (isConstantOffsetFromGlobal(const_cast<Constant *>(CV), GV, Addend, DL)) {
+    AP.OutStreamer->EmitMemcap(AP.getSymbol(GV), Addend.getSExtValue());
+    return;
   }
-  AP.OutStreamer->EmitMemcap(AP.getSymbol(GV), Addend.getSExtValue());
+
+  llvm_unreachable("Tried to emit a memcap which is neither a constant nor a global+offset");
 }
 
 static void emitGlobalConstantImpl(const DataLayout &DL, const Constant *CV,
