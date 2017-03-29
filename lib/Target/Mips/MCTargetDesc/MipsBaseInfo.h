@@ -94,7 +94,12 @@ namespace MipsII {
     /// MO_MCTDATA11, MO_MCTDATA_HI16/LO16 - Relocations used for MemCap Table
     MO_MCTDATA11,
     MO_MCTDATA_HI16,
-    MO_MCTDATA_LO16
+    MO_MCTDATA_LO16,
+
+    /// MO_MCTCALL11, MO_MCTCALL_HI16/LO16 - Relocations used for MemCap Table
+    MO_MCTCALL11,
+    MO_MCTCALL_HI16,
+    MO_MCTCALL_LO16
   };
 
   enum {

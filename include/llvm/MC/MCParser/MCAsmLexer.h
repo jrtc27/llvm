@@ -65,7 +65,8 @@ public:
     PercentGot_Ofst, PercentGot_Page, PercentGottprel, PercentGp_Rel, PercentHi,
     PercentHigher, PercentHighest, PercentLo, PercentNeg, PercentPcrel_Hi,
     PercentPcrel_Lo, PercentTlsgd, PercentTlsldm, PercentTprel_Hi,
-    PercentTprel_Lo, PercentMctdata, PercentMctdata_Hi, PercentMctdata_Lo
+    PercentTprel_Lo, PercentMctdata, PercentMctdata_Hi, PercentMctdata_Lo,
+    PercentMctcall, PercentMctcall_Hi, PercentMctcall_Lo
   };
 
 private:

@@ -124,6 +124,15 @@ void MipsMCExpr::printImpl(raw_ostream &OS, const MCAsmInfo *MAI) const {
   case MEK_MCTDATA_LO16:
     OS << "%mctdata_lo";
     break;
+  case MEK_MCTCALL11:
+    OS << "%mctcall";
+    break;
+  case MEK_MCTCALL_HI16:
+    OS << "%mctcall_hi";
+    break;
+  case MEK_MCTCALL_LO16:
+    OS << "%mctcall_lo";
+    break;
   case MEK_BASE64:
     OS << "%base";
     break;
@@ -198,6 +207,9 @@ MipsMCExpr::evaluateAsRelocatableImpl(MCValue &Res,
     case MEK_MCTDATA11:
     case MEK_MCTDATA_HI16:
     case MEK_MCTDATA_LO16:
+    case MEK_MCTCALL11:
+    case MEK_MCTCALL_HI16:
+    case MEK_MCTCALL_LO16:
     case MEK_BASE64:
     case MEK_OFFSET64:
     case MEK_SIZE64:
@@ -295,6 +307,9 @@ void MipsMCExpr::fixELFSymbolsInTLSFixups(MCAssembler &Asm) const {
   case MEK_MCTDATA11:
   case MEK_MCTDATA_HI16:
   case MEK_MCTDATA_LO16:
+  case MEK_MCTCALL11:
+  case MEK_MCTCALL_HI16:
+  case MEK_MCTCALL_LO16:
   case MEK_BASE64:
   case MEK_OFFSET64:
   case MEK_SIZE64:

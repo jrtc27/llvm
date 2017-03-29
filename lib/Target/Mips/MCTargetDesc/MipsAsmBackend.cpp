@@ -58,6 +58,7 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
   case Mips::fixup_MICROMIPS_GOT_DISP:
   case Mips::fixup_MIPS_PCLO16:
   case Mips::fixup_CHERI_MCTDATA_LO16:
+  case Mips::fixup_CHERI_MCTCALL_LO16:
     Value &= 0xffff;
     break;
   case FK_DTPRel_4:
@@ -108,6 +109,7 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
   case Mips::fixup_MICROMIPS_HI16:
   case Mips::fixup_MIPS_PCHI16:
   case Mips::fixup_CHERI_MCTDATA_HI16:
+  case Mips::fixup_CHERI_MCTCALL_HI16:
     // Get the 2nd 16-bits. Also add 1 if bit 15 is 1.
     Value = ((Value + 0x8000) >> 16) & 0xffff;
     break;
@@ -216,6 +218,15 @@ static unsigned adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
     // We now check if Value can be encoded as a 11-bit signed immediate.
     if (!isInt<11>(Value) && Ctx) {
       Ctx->reportError(Fixup.getLoc(), "out of range MCTDATA11 fixup");
+      return 0;
+    }
+    break;
+  case Mips::fixup_CHERI_MCTCALL11:
+    // Forcing a signed division because Value can be negative.
+    Value = (int64_t)Value / 16;
+    // We now check if Value can be encoded as a 11-bit signed immediate.
+    if (!isInt<11>(Value) && Ctx) {
+      Ctx->reportError(Fixup.getLoc(), "out of range MCTCALL11 fixup");
       return 0;
     }
     break;
@@ -392,6 +403,9 @@ getFixupKindInfo(MCFixupKind Kind) const {
     { "fixup_CHERI_MCTDATA11",    0,     11,   0 },
     { "fixup_CHERI_MCTDATA_HI16", 0,     16,   0 },
     { "fixup_CHERI_MCTDATA_LO16", 0,     16,   0 },
+    { "fixup_CHERI_MCTCALL11",    0,     11,   0 },
+    { "fixup_CHERI_MCTCALL_HI16", 0,     16,   0 },
+    { "fixup_CHERI_MCTCALL_LO16", 0,     16,   0 },
     { "fixup_CHERI_MEMCAP",       0,    256,   0 },
     { "fixup_CHERI_BASE64",       0,     64,   0 },
     { "fixup_CHERI_OFFSET64",     0,     64,   0 },
@@ -471,6 +485,9 @@ getFixupKindInfo(MCFixupKind Kind) const {
     { "fixup_CHERI_MCTDATA11",    21,    11,   0 },
     { "fixup_CHERI_MCTDATA_HI16", 16,    16,   0 },
     { "fixup_CHERI_MCTDATA_LO16", 16,    16,   0 },
+    { "fixup_CHERI_MCTCALL11",    21,    11,   0 },
+    { "fixup_CHERI_MCTCALL_HI16", 16,    16,   0 },
+    { "fixup_CHERI_MCTCALL_LO16", 16,    16,   0 },
     { "fixup_CHERI_MEMCAP",        0,   256,   0 },
     { "fixup_CHERI_BASE64",        0,    64,   0 },
     { "fixup_CHERI_OFFSET64",      0,    64,   0 },

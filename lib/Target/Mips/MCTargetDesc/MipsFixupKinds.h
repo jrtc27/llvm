@@ -218,6 +218,11 @@ namespace Mips {
     fixup_CHERI_MCTDATA_HI16,
     fixup_CHERI_MCTDATA_LO16,
 
+    // resulting in - R_CHERI_MCTCALL11, R_CHERI_MCTCALL_HI16/LO16
+    fixup_CHERI_MCTCALL11,
+    fixup_CHERI_MCTCALL_HI16,
+    fixup_CHERI_MCTCALL_LO16,
+
     // resulting in - R_CHERI_MEMCAP
     fixup_CHERI_MEMCAP,
 

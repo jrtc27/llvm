@@ -1120,6 +1120,9 @@ bool AsmParser::parsePrimaryExpr(const MCExpr *&Res, SMLoc &EndLoc) {
   case AsmToken::PercentMctdata:
   case AsmToken::PercentMctdata_Hi:
   case AsmToken::PercentMctdata_Lo:
+  case AsmToken::PercentMctcall:
+  case AsmToken::PercentMctcall_Hi:
+  case AsmToken::PercentMctcall_Lo:
     Lex(); // Eat the operator.
     if (Lexer.isNot(AsmToken::LParen))
       return TokError("expected '(' after operator");

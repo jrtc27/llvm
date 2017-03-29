@@ -386,6 +386,12 @@ unsigned MipsELFObjectWriter::getRelocType(MCContext &Ctx,
     return ELF::R_CHERI_MCTDATA_HI16;
   case Mips::fixup_CHERI_MCTDATA_LO16:
     return ELF::R_CHERI_MCTDATA_LO16;
+  case Mips::fixup_CHERI_MCTCALL11:
+    return ELF::R_CHERI_MCTCALL11;
+  case Mips::fixup_CHERI_MCTCALL_HI16:
+    return ELF::R_CHERI_MCTCALL_HI16;
+  case Mips::fixup_CHERI_MCTCALL_LO16:
+    return ELF::R_CHERI_MCTCALL_LO16;
   case Mips::fixup_CHERI_MEMCAP:
     return ELF::R_CHERI_MEMCAP;
   case Mips::fixup_CHERI_BASE64:
@@ -579,6 +585,9 @@ bool MipsELFObjectWriter::needsRelocateWithSymbol(const MCSymbol &Sym,
   case ELF::R_CHERI_MCTDATA11:
   case ELF::R_CHERI_MCTDATA_HI16:
   case ELF::R_CHERI_MCTDATA_LO16:
+  case ELF::R_CHERI_MCTCALL11:
+  case ELF::R_CHERI_MCTCALL_HI16:
+  case ELF::R_CHERI_MCTCALL_LO16:
   case ELF::R_CHERI_BASE64:
   case ELF::R_CHERI_OFFSET64:
   case ELF::R_CHERI_SIZE64:

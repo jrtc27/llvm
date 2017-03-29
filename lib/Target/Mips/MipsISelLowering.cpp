@@ -3194,9 +3194,25 @@ MipsTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   EVT Ty = Callee.getValueType();
   bool GlobalOrExternal = false, IsCallReloc = false;
 
+  bool UsingMct = ABI.IsCheriSandbox();
+
   if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee)) {
-    if (IsPIC) {
-      const GlobalValue *Val = G->getGlobal();
+    const GlobalValue *Val = G->getGlobal();
+    if (UsingMct) {
+      InternalLinkage = Val->hasInternalLinkage();
+
+      if (LargeGOT || !InternalLinkage) {
+        Callee = getMemCapLargeMCT(G, DL, MVT::iFATPTR, DAG,
+                                   MipsII::MO_MCTCALL_HI16,
+                                   MipsII::MO_MCTCALL_LO16,
+                                   Chain, FuncInfo->callPtrInfo(Val));
+      } else {
+        Callee = getMemCap(G, DL, MVT::iFATPTR, DAG, MipsII::MO_MCTCALL11,
+                           Chain, FuncInfo->callPtrInfo(Val));
+      }
+
+      IsCallReloc = true;
+    } else if (IsPIC) {
       InternalLinkage = Val->hasInternalLinkage();
 
       if (LargeGOT) {
@@ -3212,7 +3228,7 @@ MipsTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
         IsCallReloc = true;
       }
     } else
-      Callee = DAG.getTargetGlobalAddress(G->getGlobal(), DL,
+      Callee = DAG.getTargetGlobalAddress(Val, DL,
                                           getPointerTy(DAG.getDataLayout()), 0,
                                           MipsII::MO_NO_FLAG);
     GlobalOrExternal = true;
@@ -3220,7 +3236,19 @@ MipsTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   else if (ExternalSymbolSDNode *S = dyn_cast<ExternalSymbolSDNode>(Callee)) {
     const char *Sym = S->getSymbol();
 
-    if (!IsPIC) // static
+    if (UsingMct) {
+      if (LargeGOT) {
+        Callee = getMemCapLargeMCT(S, DL, MVT::iFATPTR, DAG,
+                                   MipsII::MO_MCTCALL_HI16,
+                                   MipsII::MO_MCTCALL_LO16,
+                                   Chain, FuncInfo->callPtrInfo(Sym));
+      } else {
+        Callee = getMemCap(S, DL, MVT::iFATPTR, DAG, MipsII::MO_MCTCALL11,
+                           Chain, FuncInfo->callPtrInfo(Sym));
+      }
+
+      IsCallReloc = true;
+    } else if (!IsPIC) // static
       Callee = DAG.getTargetExternalSymbol(
           Sym, getPointerTy(DAG.getDataLayout()), MipsII::MO_NO_FLAG);
     else if (LargeGOT) {
@@ -3236,9 +3264,15 @@ MipsTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
     GlobalOrExternal = true;
   }
+  if (UsingMct && !GlobalOrExternal) {
+    Callee.dump();
+    llvm_unreachable("Saw indirect function call");
+  }
   // If we're in the sandbox ABI, then we need to turn the address into a
   // PCC-derived capability.
   if (ABI.IsCheriSandbox() && (Callee.getValueType() != MVT::iFATPTR)) {
+    if (UsingMct)
+      llvm_unreachable("Using MCT but trying to derive capability from PCC at runtime");
     auto GetPCC = DAG.getConstant(Intrinsic::cheri_pcc_get, DL, MVT::i64);
     auto SetOffset = DAG.getConstant(Intrinsic::cheri_cap_offset_set, DL, MVT::i64);
     auto PCC = DAG.getNode(ISD::INTRINSIC_WO_CHAIN, DL, MVT::iFATPTR, GetPCC);
@@ -3246,12 +3280,17 @@ MipsTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
         SetOffset, PCC, Callee);
   }
 
-
   SmallVector<SDValue, 8> Ops(1, Chain);
   SDVTList NodeTys = DAG.getVTList(MVT::Other, MVT::Glue);
 
   getOpndList(Ops, RegsToPass, IsPIC, GlobalOrExternal, InternalLinkage,
               IsCallReloc, CLI, Callee, Chain);
+
+  // TODO: CCall interaction?
+  if (UsingMct && !GlobalOrExternal) {
+    // Indirect call; Callee is actually a function descriptor
+    llvm_unreachable("NOT YET IMPLEMENTED");
+  }
 
   // If we're doing a CCall then any unused arg registers should be zero.
   if (UseClearRegs && (CallConv == CallingConv::CHERI_CCall)) {

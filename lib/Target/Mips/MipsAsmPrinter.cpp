@@ -343,6 +343,38 @@ const char *MipsAsmPrinter::getCurrentABIString() const {
 void MipsAsmPrinter::EmitFunctionEntryLabel() {
   MipsTargetStreamer &TS = getTargetStreamer();
 
+  // TODO: Switch on/off with flag
+  //       Can some functions be in a different address space?
+  if (static_cast<MipsTargetMachine &>(TM).getABI().IsCheriSandbox()) {
+    // Emit a function descriptor
+    MCSymbol *RealFnSym = OutContext.getOrCreateSymbol(
+        "." + Twine(CurrentFnSym->getName()));
+    MCSymbol *CpSym = OutContext.getOrCreateSymbol(StringRef("_cp"));
+
+    MCSectionSubPair Current = OutStreamer->getCurrentSection();
+    MCSectionELF *Section = OutStreamer->getContext().getELFSection(
+        ".opd", ELF::SHT_PROGBITS, ELF::SHF_WRITE | ELF::SHF_ALLOC);
+    OutStreamer->SwitchSection(Section);
+    OutStreamer->EmitLabel(CurrentFnSym);
+
+    OutStreamer->EmitMemcap(RealFnSym, 0);
+    OutStreamer->EmitMemcap(CpSym, 0);
+    if (MAI->hasDotTypeDotSizeDirective()) {
+      MCSymbol *DescEnd = createTempSymbol("desc_end");
+      OutStreamer->EmitLabel(DescEnd);
+      const MCExpr *SizeExp = MCBinaryExpr::createSub(
+          MCSymbolRefExpr::create(DescEnd, OutContext),
+          MCSymbolRefExpr::create(CurrentFnSym, OutContext), OutContext);
+      OutStreamer->emitELFSize(CurrentFnSym, SizeExp);
+    }
+
+    OutStreamer->SwitchSection(Current.first, Current.second);
+
+    if (CurrentFnSymForSize == CurrentFnSym)
+      CurrentFnSymForSize = RealFnSym;
+    CurrentFnSym = RealFnSym;
+  }
+
   // NaCl sandboxing requires that indirect call instructions are masked.
   // This means that function entry points should be bundle-aligned.
   if (Subtarget->isTargetNaCl())
@@ -359,6 +391,12 @@ void MipsAsmPrinter::EmitFunctionEntryLabel() {
   else
     TS.emitDirectiveSetNoMips16();
 
+  // TODO: This will cause the function entry point to be given type @function,
+  //       which is also currently given to the function descriptor symbol. Is
+  //       this a problem?
+  //       Using the function descriptor symbol will instead cause it to be
+  //       given the wrong size, since the corresponding .end implies a .size
+  //       directive based on the difference between the .ent and the .end.
   TS.emitDirectiveEnt(*CurrentFnSym);
   OutStreamer->EmitLabel(CurrentFnSym);
 }
@@ -608,6 +646,9 @@ void MipsAsmPrinter::printOperand(const MachineInstr *MI, int opNum,
   case MipsII::MO_MCTDATA11:    O << "%mctdata(";    break;
   case MipsII::MO_MCTDATA_HI16: O << "%mctdata_hi("; break;
   case MipsII::MO_MCTDATA_LO16: O << "%mctdata_lo("; break;
+  case MipsII::MO_MCTCALL11:    O << "%mctcall(";    break;
+  case MipsII::MO_MCTCALL_HI16: O << "%mctcall_hi("; break;
+  case MipsII::MO_MCTCALL_LO16: O << "%mctcall_lo("; break;
   }
 
   switch (MO.getType()) {
