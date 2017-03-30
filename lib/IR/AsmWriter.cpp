@@ -2688,6 +2688,8 @@ void AssemblyWriter::printFunction(const Function *F) {
   StringRef UA = getUnnamedAddrEncoding(F->getUnnamedAddr());
   if (!UA.empty())
     Out << ' ' << UA;
+  if (unsigned AddressSpace = F->getType()->getAddressSpace())
+    Out << " addrspace(" << AddressSpace << ")";
   if (Attrs.hasAttributes(AttributeSet::FunctionIndex))
     Out << " #" << Machine.getAttributeGroupSlot(Attrs.getFnAttributes());
   if (F->hasSection()) {
@@ -3050,6 +3052,10 @@ void AssemblyWriter::printInstruction(const Instruction &I) {
       Out << ", ...";
 
     Out << ')';
+
+    if (unsigned AddressSpace = Operand->getType()->getPointerAddressSpace())
+      Out << " addrspace(" << AddressSpace << ")";
+
     if (PAL.hasAttributes(AttributeSet::FunctionIndex))
       Out << " #" << Machine.getAttributeGroupSlot(PAL.getFnAttributes());
 
@@ -3086,6 +3092,10 @@ void AssemblyWriter::printInstruction(const Instruction &I) {
     }
 
     Out << ')';
+
+    if (unsigned AddressSpace = Operand->getType()->getPointerAddressSpace())
+      Out << " addrspace(" << AddressSpace << ")";
+
     if (PAL.hasAttributes(AttributeSet::FunctionIndex))
       Out << " #" << Machine.getAttributeGroupSlot(PAL.getFnAttributes());
 

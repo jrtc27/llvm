@@ -992,7 +992,8 @@ void LowerTypeTestsModule::replaceWeakDeclarationWithJumpTablePtr(
   // placeholder first.
   Function *PlaceholderFn =
       Function::Create(cast<FunctionType>(F->getValueType()),
-                       GlobalValue::ExternalWeakLinkage, "", &M);
+                       GlobalValue::ExternalWeakLinkage, "", &M,
+                       F->getType()->getPointerAddressSpace());
   F->replaceAllUsesWith(PlaceholderFn);
 
   Constant *Target = ConstantExpr::getSelect(

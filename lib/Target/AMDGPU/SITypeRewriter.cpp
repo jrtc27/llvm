@@ -130,7 +130,9 @@ void SITypeRewriter::visitCallInst(CallInst &I) {
   }
   Function *NewF = Mod->getFunction(Name);
   if (!NewF) {
-    NewF = Function::Create(FunctionType::get(F->getReturnType(), Types, false), GlobalValue::ExternalLinkage, Name, Mod);
+    NewF = Function::Create(FunctionType::get(F->getReturnType(), Types, false),
+                            GlobalValue::ExternalLinkage, Name, Mod,
+                            F->getType()->getPointerAddressSpace());
     NewF->setAttributes(F->getAttributes());
   }
   I.replaceAllUsesWith(Builder.CreateCall(NewF, Args));

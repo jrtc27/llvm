@@ -137,12 +137,15 @@ namespace {
           llvm::Value *Declaration;
           if (FunctionType *FTy = dyn_cast<FunctionType>(Ty)) {
             Declaration = Function::Create(FTy, GlobalValue::ExternalLinkage,
-                                           CurI->getName(), &M);
+                                           CurI->getName(), &M,
+                                           CurI->getType()->getPointerAddressSpace());
 
           } else {
             Declaration =
               new GlobalVariable(M, Ty, false, GlobalValue::ExternalLinkage,
-                                 nullptr, CurI->getName());
+                                 nullptr, CurI->getName(), nullptr,
+                                 GlobalVariable::NotThreadLocal,
+                                 CurI->getType()->getPointerAddressSpace());
 
           }
           CurI->replaceAllUsesWith(Declaration);

@@ -400,7 +400,8 @@ Function *WinEHStatePass::generateLSDAInEAXThunk(Function *ParentFunc) {
       Function::Create(TrampolineTy, GlobalValue::InternalLinkage,
                        Twine("__ehhandler$") + GlobalValue::getRealLinkageName(
                                                    ParentFunc->getName()),
-                       TheModule);
+                       TheModule,
+                       ParentFunc->getType()->getPointerAddressSpace());
   BasicBlock *EntryBB = BasicBlock::Create(Context, "entry", Trampoline);
   IRBuilder<> Builder(EntryBB);
   Value *LSDA = emitEHLSDA(Builder, ParentFunc);

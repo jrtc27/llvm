@@ -272,7 +272,8 @@ static void assureFPCallStub(Function &F, Module *M,
   Function *FStub = M->getFunction(StubName);
   if (FStub && !FStub->isDeclaration()) return;
   FStub = Function::Create(F.getFunctionType(),
-                           Function::InternalLinkage, StubName, M);
+                           Function::InternalLinkage, StubName, M,
+                           F.getType()->getPointerAddressSpace());
   FStub->addFnAttr("mips16_fp_stub");
   FStub->addFnAttr(llvm::Attribute::Naked);
   FStub->addFnAttr(llvm::Attribute::NoInline);
@@ -460,7 +461,8 @@ static void createFPFnStub(Function *F, Module *M, FPParamVariant PV,
   std::string LocalName = "$$__fn_local_" + Name;
   Function *FStub = Function::Create
     (F->getFunctionType(),
-     Function::InternalLinkage, StubName, M);
+     Function::InternalLinkage, StubName, M,
+     F->getType()->getPointerAddressSpace());
   FStub->addFnAttr("mips16_fp_stub");
   FStub->addFnAttr(llvm::Attribute::Naked);
   FStub->addFnAttr(llvm::Attribute::NoUnwind);

@@ -180,7 +180,8 @@ void simplifyExternals(Module &M) {
       continue;
 
     Function *NewF =
-        Function::Create(EmptyFT, GlobalValue::ExternalLinkage, "", &M);
+        Function::Create(EmptyFT, GlobalValue::ExternalLinkage, "", &M,
+                         F.getType()->getPointerAddressSpace());
     NewF->setVisibility(F.getVisibility());
     NewF->takeName(&F);
     F.replaceAllUsesWith(ConstantExpr::getBitCast(NewF, F.getType()));
@@ -226,7 +227,8 @@ void filterModule(
     GlobalObject *GO;
     if (I->getValueType()->isFunctionTy())
       GO = Function::Create(cast<FunctionType>(GA->getValueType()),
-                            GlobalValue::ExternalLinkage, "", M);
+                            GlobalValue::ExternalLinkage, "", M,
+                            GA->getType()->getAddressSpace());
     else
       GO = new GlobalVariable(
           *M, GA->getValueType(), false, GlobalValue::ExternalLinkage,

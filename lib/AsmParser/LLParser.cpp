@@ -1155,7 +1155,8 @@ bool LLParser::ParseFnAttributeValuePairs(AttrBuilder &B,
 static inline GlobalValue *createGlobalFwdRef(Module *M, PointerType *PTy,
                                               const std::string &Name) {
   if (auto *FT = dyn_cast<FunctionType>(PTy->getElementType()))
-    return Function::Create(FT, GlobalValue::ExternalWeakLinkage, Name, M);
+    return Function::Create(FT, GlobalValue::ExternalWeakLinkage, Name, M,
+                            PTy->getAddressSpace());
   else
     return new GlobalVariable(*M, PTy->getElementType(), false,
                               GlobalValue::ExternalWeakLinkage, nullptr, Name,
@@ -4641,8 +4642,9 @@ bool LLParser::ParseTypeAndBasicBlock(BasicBlock *&BB, LocTy &Loc,
 
 /// FunctionHeader
 ///   ::= OptionalLinkage OptionalVisibility OptionalCallingConv OptRetAttrs
-///       OptUnnamedAddr Type GlobalName '(' ArgList ')' OptFuncAttrs OptSection
-///       OptionalAlign OptGC OptionalPrefix OptionalPrologue OptPersonalityFn
+///       Type GlobalName '(' ArgList ')' OptUnnamedAddr OptAddrSpace
+///       OptFuncAttrs OptSection OptionalAlign OptGC OptionalPrefix
+///       OptionalPrologue OptPersonalityFn
 bool LLParser::ParseFunctionHeader(Function *&Fn, bool isDefine) {
   // Parse the linkage.
   LocTy LinkageLoc = Lex.getLoc();
@@ -4724,9 +4726,11 @@ bool LLParser::ParseFunctionHeader(Function *&Fn, bool isDefine) {
   Constant *Prologue = nullptr;
   Constant *PersonalityFn = nullptr;
   Comdat *C;
+  unsigned AddrSpace;
 
   if (ParseArgumentList(ArgList, isVarArg) ||
       ParseOptionalUnnamedAddr(UnnamedAddr) ||
+      ParseOptionalAddrSpace(AddrSpace) ||
       ParseFnAttributeValuePairs(FuncAttrs, FwdRefAttrGrps, false,
                                  BuiltinLoc) ||
       (EatIfPresent(lltok::kw_section) &&
@@ -4782,7 +4786,7 @@ bool LLParser::ParseFunctionHeader(Function *&Fn, bool isDefine) {
 
   FunctionType *FT =
     FunctionType::get(RetType, ParamTypeList, isVarArg);
-  PointerType *PFT = PointerType::getUnqual(FT);
+  PointerType *PFT = PointerType::get(FT, AddrSpace);
 
   Fn = nullptr;
   if (!FunctionName.empty()) {
@@ -4821,7 +4825,8 @@ bool LLParser::ParseFunctionHeader(Function *&Fn, bool isDefine) {
   }
 
   if (!Fn)
-    Fn = Function::Create(FT, GlobalValue::ExternalLinkage, FunctionName, M);
+    Fn = Function::Create(FT, GlobalValue::ExternalLinkage, FunctionName, M,
+                          PFT->getAddressSpace());
   else // Move the forward-reference to the correct spot in the module.
     M->getFunctionList().splice(M->end(), M->getFunctionList(), Fn);
 
@@ -5335,7 +5340,7 @@ bool LLParser::ParseIndirectBr(Instruction *&Inst, PerFunctionState &PFS) {
 
 /// ParseInvoke
 ///   ::= 'invoke' OptionalCallingConv OptionalAttrs Type Value ParamList
-///       OptionalAttrs 'to' TypeAndValue 'unwind' TypeAndValue
+///       OptAddrSpace OptionalAttrs 'to' TypeAndValue 'unwind' TypeAndValue
 bool LLParser::ParseInvoke(Instruction *&Inst, PerFunctionState &PFS) {
   LocTy CallLoc = Lex.getLoc();
   AttrBuilder RetAttrs, FnAttrs;
@@ -5347,11 +5352,13 @@ bool LLParser::ParseInvoke(Instruction *&Inst, PerFunctionState &PFS) {
   ValID CalleeID;
   SmallVector<ParamInfo, 16> ArgList;
   SmallVector<OperandBundleDef, 2> BundleList;
+  unsigned AddrSpace;
 
   BasicBlock *NormalBB, *UnwindBB;
   if (ParseOptionalCallingConv(CC) || ParseOptionalReturnAttrs(RetAttrs) ||
       ParseType(RetType, RetTypeLoc, true /*void allowed*/) ||
       ParseValID(CalleeID) || ParseParameterList(ArgList, PFS) ||
+      ParseOptionalAddrSpace(AddrSpace) ||
       ParseFnAttributeValuePairs(FnAttrs, FwdRefAttrGrps, false,
                                  NoBuiltinLoc) ||
       ParseOptionalOperandBundles(BundleList, PFS) ||
@@ -5381,7 +5388,7 @@ bool LLParser::ParseInvoke(Instruction *&Inst, PerFunctionState &PFS) {
 
   // Look up the callee.
   Value *Callee;
-  if (ConvertValIDToValue(PointerType::getUnqual(Ty), CalleeID, Callee, &PFS))
+  if (ConvertValIDToValue(PointerType::get(Ty, AddrSpace), CalleeID, Callee, &PFS))
     return true;
 
   // Set up the Attribute for the function.
@@ -5925,13 +5932,13 @@ bool LLParser::ParseLandingPad(Instruction *&Inst, PerFunctionState &PFS) {
 
 /// ParseCall
 ///   ::= 'call' OptionalFastMathFlags OptionalCallingConv
-///           OptionalAttrs Type Value ParameterList OptionalAttrs
+///           OptionalAttrs Type Value ParameterList OptionalAddrSpace OptionalAttrs
 ///   ::= 'tail' 'call' OptionalFastMathFlags OptionalCallingConv
-///           OptionalAttrs Type Value ParameterList OptionalAttrs
+///           OptionalAttrs Type Value ParameterList OptionalAddrSpace OptionalAttrs
 ///   ::= 'musttail' 'call' OptionalFastMathFlags OptionalCallingConv
-///           OptionalAttrs Type Value ParameterList OptionalAttrs
+///           OptionalAttrs Type Value ParameterList OptionalAddrSpace OptionalAttrs
 ///   ::= 'notail' 'call'  OptionalFastMathFlags OptionalCallingConv
-///           OptionalAttrs Type Value ParameterList OptionalAttrs
+///           OptionalAttrs Type Value ParameterList OptionalAddrSpace OptionalAttrs
 bool LLParser::ParseCall(Instruction *&Inst, PerFunctionState &PFS,
                          CallInst::TailCallKind TCK) {
   AttrBuilder RetAttrs, FnAttrs;
@@ -5944,6 +5951,7 @@ bool LLParser::ParseCall(Instruction *&Inst, PerFunctionState &PFS,
   SmallVector<ParamInfo, 16> ArgList;
   SmallVector<OperandBundleDef, 2> BundleList;
   LocTy CallLoc = Lex.getLoc();
+  unsigned AddrSpace;
 
   if (TCK != CallInst::TCK_None &&
       ParseToken(lltok::kw_call,
@@ -5957,6 +5965,7 @@ bool LLParser::ParseCall(Instruction *&Inst, PerFunctionState &PFS,
       ParseValID(CalleeID) ||
       ParseParameterList(ArgList, PFS, TCK == CallInst::TCK_MustTail,
                          PFS.getFunction().isVarArg()) ||
+      ParseOptionalAddrSpace(AddrSpace) ||
       ParseFnAttributeValuePairs(FnAttrs, FwdRefAttrGrps, false, BuiltinLoc) ||
       ParseOptionalOperandBundles(BundleList, PFS))
     return true;
@@ -5985,7 +5994,7 @@ bool LLParser::ParseCall(Instruction *&Inst, PerFunctionState &PFS,
 
   // Look up the callee.
   Value *Callee;
-  if (ConvertValIDToValue(PointerType::getUnqual(Ty), CalleeID, Callee, &PFS))
+  if (ConvertValIDToValue(PointerType::get(Ty, AddrSpace), CalleeID, Callee, &PFS))
     return true;
 
   // Set up the Attribute for the function.

@@ -611,7 +611,8 @@ Function *IRLinker::copyFunctionProto(const Function *SF) {
   // If there is no linkage to be performed or we are linking from the source,
   // bring SF over.
   return Function::Create(TypeMap.get(SF->getFunctionType()),
-                          GlobalValue::ExternalLinkage, SF->getName(), &DstM);
+                          GlobalValue::ExternalLinkage, SF->getName(), &DstM,
+                          SF->getType()->getPointerAddressSpace());
 }
 
 /// Set up prototypes for any aliases that come over from the source module.

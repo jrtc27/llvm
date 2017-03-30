@@ -347,7 +347,8 @@ Function *CodeExtractor::constructFunction(const ValueSet &inputs,
   Function *newFunction = Function::Create(funcType,
                                            GlobalValue::InternalLinkage,
                                            oldFunction->getName() + "_" +
-                                           header->getName(), M);
+                                           header->getName(), M,
+                                           oldFunction->getType()->getPointerAddressSpace());
   // If the old function is no-throw, so is the new one.
   if (oldFunction->doesNotThrow())
     newFunction->setDoesNotThrow();

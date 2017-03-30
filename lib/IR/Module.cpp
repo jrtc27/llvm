@@ -136,8 +136,10 @@ Constant *Module::getOrInsertFunction(StringRef Name,
 
   // If the function exists but has the wrong type, return a bitcast to the
   // right type.
-  if (F->getType() != PointerType::getUnqual(Ty))
-    return ConstantExpr::getBitCast(F, PointerType::getUnqual(Ty));
+  Type *FTy = F->getType();
+  PointerType *PTy = PointerType::get(Ty, FTy->getPointerAddressSpace());
+  if (FTy != PTy)
+    return ConstantExpr::getBitCast(F, PTy);
 
   // Otherwise, we just found the existing function or a prototype.
   return F;

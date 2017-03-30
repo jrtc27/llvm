@@ -680,7 +680,8 @@ void MergeFunctions::writeThunk(Function *F, Function *G) {
     BB = GEntryBlock;
   } else {
     NewG = Function::Create(G->getFunctionType(), G->getLinkage(), "",
-                            G->getParent());
+                            G->getParent(),
+                            G->getType()->getPointerAddressSpace());
     BB = BasicBlock::Create(F->getContext(), "", NewG);
   }
 
@@ -753,7 +754,8 @@ void MergeFunctions::mergeTwoFunctions(Function *F, Function *G) {
 
     // Make them both thunks to the same internal function.
     Function *H = Function::Create(F->getFunctionType(), F->getLinkage(), "",
-                                   F->getParent());
+                                   F->getParent(),
+                                   F->getType()->getPointerAddressSpace());
     H->copyAttributesFrom(F);
     H->takeName(F);
     removeUsers(F);

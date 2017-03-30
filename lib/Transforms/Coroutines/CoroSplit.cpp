@@ -215,7 +215,8 @@ static Function *createClone(Function &F, Twine Suffix, coro::Shape &Shape,
 
   Function *NewF =
       Function::Create(FnTy, GlobalValue::LinkageTypes::InternalLinkage,
-                       F.getName() + Suffix, M);
+                       F.getName() + Suffix, M,
+                       F.getType()->getPointerAddressSpace());
   NewF->addAttribute(1, Attribute::NonNull);
   NewF->addAttribute(1, Attribute::NoAlias);
 

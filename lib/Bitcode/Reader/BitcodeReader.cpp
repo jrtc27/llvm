@@ -2928,8 +2928,12 @@ Error BitcodeReader::parseModule(uint64_t ResumeBit,
       Type *Ty = getTypeByID(Record[0]);
       if (!Ty)
         return error("Invalid record");
-      if (auto *PTy = dyn_cast<PointerType>(Ty))
+      // TODO: What if Ty is not a PointerType?
+      unsigned AddressSpace = 0;
+      if (auto *PTy = dyn_cast<PointerType>(Ty)) {
+        AddressSpace = PTy->getAddressSpace();
         Ty = PTy->getElementType();
+      }
       auto *FTy = dyn_cast<FunctionType>(Ty);
       if (!FTy)
         return error("Invalid type for value");
@@ -2938,7 +2942,7 @@ Error BitcodeReader::parseModule(uint64_t ResumeBit,
         return error("Invalid calling convention ID");
 
       Function *Func = Function::Create(FTy, GlobalValue::ExternalLinkage,
-                                        "", TheModule);
+                                        "", TheModule, AddressSpace);
 
       Func->setCallingConv(CC);
       bool isProto = Record[2];

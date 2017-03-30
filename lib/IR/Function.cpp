@@ -224,9 +224,10 @@ void Function::eraseFromParent() {
 //===----------------------------------------------------------------------===//
 
 Function::Function(FunctionType *Ty, LinkageTypes Linkage, const Twine &name,
-                   Module *ParentModule)
+                   Module *ParentModule, unsigned AddressSpace)
     : GlobalObject(Ty, Value::FunctionVal,
-                   OperandTraits<Function>::op_begin(this), 0, Linkage, name) {
+                   OperandTraits<Function>::op_begin(this), 0, Linkage, name,
+                   AddressSpace) {
   assert(FunctionType::isValidReturnType(getReturnType()) &&
          "invalid return type");
   setGlobalObjectSubClassData(0);

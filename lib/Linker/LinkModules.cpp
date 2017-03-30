@@ -431,12 +431,16 @@ void ModuleLinker::dropReplacedComdat(
     PointerType &Ty = *cast<PointerType>(Alias.getType());
     GlobalValue *Declaration;
     if (auto *FTy = dyn_cast<FunctionType>(Alias.getValueType())) {
-      Declaration = Function::Create(FTy, GlobalValue::ExternalLinkage, "", &M);
+      Declaration = Function::Create(FTy, GlobalValue::ExternalLinkage, "", &M,
+                                     Ty.getAddressSpace());
     } else {
       Declaration =
           new GlobalVariable(M, Ty.getElementType(), /*isConstant*/ false,
                              GlobalValue::ExternalLinkage,
-                             /*Initializer*/ nullptr);
+                             /*Initializer*/ nullptr, /*Name*/ "",
+                             /*InsertBefore*/ nullptr,
+                             GlobalValue::NotThreadLocal,
+                             Ty.getAddressSpace());
     }
     Declaration->takeName(&Alias);
     Alias.replaceAllUsesWith(Declaration);

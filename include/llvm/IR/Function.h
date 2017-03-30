@@ -108,7 +108,8 @@ private:
   /// the module.
   ///
   Function(FunctionType *Ty, LinkageTypes Linkage,
-           const Twine &N = "", Module *M = nullptr);
+           const Twine &N = "", Module *M = nullptr,
+           unsigned AddressSpace = 0);
 
 public:
   Function(const Function&) = delete;
@@ -116,8 +117,9 @@ public:
   ~Function() override;
 
   static Function *Create(FunctionType *Ty, LinkageTypes Linkage,
-                          const Twine &N = "", Module *M = nullptr) {
-    return new Function(Ty, Linkage, N, M);
+                          const Twine &N = "", Module *M = nullptr,
+                          unsigned AddressSpace = 0) {
+    return new Function(Ty, Linkage, N, M, AddressSpace);
   }
 
   // Provide fast operand accessors.

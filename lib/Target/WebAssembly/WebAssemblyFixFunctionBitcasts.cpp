@@ -91,7 +91,8 @@ static Function *CreateWrapper(Function *F, FunctionType *Ty) {
   Module *M = F->getParent();
 
   Function *Wrapper =
-      Function::Create(Ty, Function::PrivateLinkage, "bitcast", M);
+      Function::Create(Ty, Function::PrivateLinkage, "bitcast", M,
+                       F->getType()->getPointerAddressSpace());
   BasicBlock *BB = BasicBlock::Create(M->getContext(), "body", Wrapper);
 
   // Determine what arguments to pass.

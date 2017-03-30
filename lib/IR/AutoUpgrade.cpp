@@ -348,7 +348,8 @@ static bool UpgradeIntrinsicFunction1(Function *F, Function *&NewFn) {
       //  llvm.ctlz.*
       FunctionType* fType = FunctionType::get(F->getReturnType(), args, false);
       NewFn = Function::Create(fType, F->getLinkage(),
-                               "llvm.ctlz." + Name.substr(14), F->getParent());
+                               "llvm.ctlz." + Name.substr(14), F->getParent(),
+                               F->getType()->getPointerAddressSpace());
       return true;
     }
     if (Name.startswith("arm.neon.vcnt")) {
@@ -364,7 +365,8 @@ static bool UpgradeIntrinsicFunction1(Function *F, Function *&NewFn) {
       // then only be structurally equal.
       FunctionType* fType = FunctionType::get(F->getReturnType(), Tys, false);
       NewFn = Function::Create(fType, F->getLinkage(),
-                               "llvm." + Name + ".p0i8", F->getParent());
+                               "llvm." + Name + ".p0i8", F->getParent(),
+                               F->getType()->getPointerAddressSpace());
       return true;
     }
     Regex vstRegex("^arm\\.neon\\.vst([1234]|[234]lane)\\.v[a-z0-9]*$");

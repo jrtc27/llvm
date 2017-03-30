@@ -483,14 +483,15 @@ Function *WebAssemblyLowerEmscriptenEHSjLj::getInvokeWrapper(CallOrInvoke *CI) {
     return InvokeWrappers[Sig];
 
   // Put the pointer to the callee as first argument
-  ArgTys.push_back(PointerType::getUnqual(CalleeFTy));
+  unsigned AS = Callee->getType()->getPointerAddressSpace();
+  ArgTys.push_back(PointerType::get(CalleeFTy, AS));
   // Add argument types
   ArgTys.append(CalleeFTy->param_begin(), CalleeFTy->param_end());
 
   FunctionType *FTy = FunctionType::get(CalleeFTy->getReturnType(), ArgTys,
                                         CalleeFTy->isVarArg());
   Function *F = Function::Create(FTy, GlobalValue::ExternalLinkage,
-                                 InvokePrefix + Sig, M);
+                                 InvokePrefix + Sig, M, AS);
   InvokeWrappers[Sig] = F;
   return F;
 }
