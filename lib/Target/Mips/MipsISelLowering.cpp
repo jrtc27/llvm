@@ -2992,6 +2992,7 @@ MipsTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   bool &IsTailCall                      = CLI.IsTailCall;
   CallingConv::ID CallConv              = CLI.CallConv;
   bool IsVarArg                         = CLI.IsVarArg;
+  ImmutableCallSite *CS                 = CLI.CS;
 
   MachineFunction &MF = DAG.getMachineFunction();
   MachineFrameInfo &MFI = MF.getFrameInfo();
@@ -3028,7 +3029,7 @@ MipsTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                      G->getGlobal()->hasProtectedVisibility());
      }
   }
-  if (!IsTailCall && CLI.CS && CLI.CS->isMustTailCall())
+  if (!IsTailCall && CS && CS->isMustTailCall())
     report_fatal_error("failed to perform tail call elimination on a call "
                        "site marked musttail");
 
@@ -3308,14 +3309,24 @@ MipsTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   SmallVector<SDValue, 8> Ops(1, Chain);
   SDVTList NodeTys = DAG.getVTList(MVT::Other, MVT::Glue);
 
-  getOpndList(Ops, RegsToPass, IsPIC, GlobalOrExternal, InternalLinkage,
-              IsCallReloc, CLI, Callee, Chain);
-
   // TODO: CCall interaction?
   if (UsingMct && !GlobalOrExternal) {
     // Indirect call; Callee is actually a function descriptor
-    llvm_unreachable("NOT YET IMPLEMENTED");
+    MachinePointerInfo MPI(CS ? CS->getCalledValue() : nullptr);
+
+    EVT ElemTy = MVT::iFATPTR;
+
+    unsigned Offset = ElemTy.getSizeInBits() / 8;
+    SDValue CpPtr = DAG.getPointerAdd(DL, Callee, Offset);
+    SDValue NewCp = DAG.getLoad(ElemTy, DL, Chain, CpPtr, MPI.getWithOffset(Offset));
+
+    RegsToPass.push_back(std::make_pair(Mips::C14, NewCp));
+
+    Callee = DAG.getLoad(ElemTy, DL, Chain, Callee, MPI);
   }
+
+  getOpndList(Ops, RegsToPass, IsPIC, GlobalOrExternal, InternalLinkage,
+              IsCallReloc, CLI, Callee, Chain);
 
   // If we're doing a CCall then any unused arg registers should be zero.
   if (UseClearRegs && (CallConv == CallingConv::CHERI_CCall)) {
