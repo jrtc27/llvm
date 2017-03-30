@@ -2921,10 +2921,22 @@ getOpndList(SmallVectorImpl<SDValue> &Ops,
   // lazy binding stub for a function only when R_MIPS_CALL* are the only relocs
   // used for the function (that is, Mips linker doesn't generate lazy binding
   // stub for a function whose address is taken in the program).
-  if (IsPICCall && !InternalLinkage && IsCallReloc) {
-    unsigned GPReg = ABI.IsN64() ? Mips::GP_64 : Mips::GP;
-    EVT Ty = ABI.IsN64() ? MVT::i64 : MVT::i32;
-    RegsToPass.push_back(std::make_pair(GPReg, getGlobalReg(CLI.DAG, Ty)));
+  //
+  // Similarly, when using the MCT, there must be copy for CP, but even in the
+  // non-PIC case. (TODO: is it definitely needed for non-PIC?)
+  bool UsingMct = Subtarget.useCheriMct();
+  if ((IsPICCall || UsingMct) && !InternalLinkage && IsCallReloc) {
+    SDValue SrcReg;
+    unsigned DstReg;
+    if (UsingMct) {
+      SrcReg = getCapGlobalReg(CLI.DAG, MVT::iFATPTR);
+      DstReg = Mips::C14;
+    } else {
+      EVT Ty = ABI.IsN64() ? MVT::i64 : MVT::i32;
+      SrcReg = getGlobalReg(CLI.DAG, Ty);
+      DstReg = ABI.IsN64() ? Mips::GP_64 : Mips::GP;
+    }
+    RegsToPass.push_back(std::make_pair(DstReg, SrcReg));
   }
 
   // Build a sequence of copy-to-reg nodes chained together with token
