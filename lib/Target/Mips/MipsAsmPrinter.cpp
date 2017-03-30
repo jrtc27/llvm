@@ -343,9 +343,7 @@ const char *MipsAsmPrinter::getCurrentABIString() const {
 void MipsAsmPrinter::EmitFunctionEntryLabel() {
   MipsTargetStreamer &TS = getTargetStreamer();
 
-  // TODO: Switch on/off with flag
-  //       Can some functions be in a different address space?
-  if (static_cast<MipsTargetMachine &>(TM).getABI().IsCheriSandbox()) {
+  if (Subtarget->useCheriMct()) {
     // Emit a function descriptor
     MCSymbol *RealFnSym = OutContext.getOrCreateSymbol(
         "." + Twine(CurrentFnSym->getName()));

@@ -57,6 +57,10 @@ static cl::opt<bool>
     GPOpt("mgpopt", cl::Hidden,
           cl::desc("Enable gp-relative addressing of mips small data items"));
 
+static cl::opt<bool>
+CheriNoMct("cheri-no-mct", cl::Hidden,
+           cl::desc("Don't use MCT for global accesses"), cl::init(false));
+
 void MipsSubtarget::anchor() { }
 
 MipsSubtarget::MipsSubtarget(const Triple &TT, const std::string &CPU,
@@ -173,6 +177,8 @@ bool MipsSubtarget::useConstantIslands() {
   DEBUG(dbgs() << "use constant islands " << Mips16ConstantIslands << "\n");
   return Mips16ConstantIslands;
 }
+
+bool MipsSubtarget::useCheriMct() const { return isABI_CheriSandbox() && !CheriNoMct; }
 
 Reloc::Model MipsSubtarget::getRelocationModel() const {
   return TM.getRelocationModel();

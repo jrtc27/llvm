@@ -305,6 +305,8 @@ public:
   // really use them if in addition we are in mips16 mode
   static bool useConstantIslands();
 
+  bool useCheriMct() const;
+
   unsigned stackAlignment() const {
     return isCheri() ? (isCheri128() ? 16 : 32)  : (isGP64bit() ? 16 : 8);
   }

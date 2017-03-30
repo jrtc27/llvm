@@ -69,10 +69,6 @@ SkipGlobalBounds("cheri-no-global-bounds",
   cl::desc("Skip bounds checks on globals"),
   cl::init(false));
 
-static cl::opt<bool>
-CheriNoMct("cheri-no-mct", cl::Hidden,
-           cl::desc("Don't use MCT for global accesses"), cl::init(false));
-
 static const MCPhysReg Mips64DPRegs[8] = {
   Mips::D12_64, Mips::D13_64, Mips::D14_64, Mips::D15_64,
   Mips::D16_64, Mips::D17_64, Mips::D18_64, Mips::D19_64
@@ -1934,7 +1930,7 @@ SDValue MipsTargetLowering::lowerGlobalAddress(SDValue Op,
   GlobalAddressSDNode *N = cast<GlobalAddressSDNode>(Op);
   const GlobalValue *GV = N->getGlobal();
 
-  if (!CheriNoMct && GV->getType()->getAddressSpace() == 200) {
+  if (Subtarget.useCheriMct() && GV->getType()->getAddressSpace() == 200) {
     // TODO: Should these be separate flags?
     if (LargeGOT || HugeGOT)
       return getMemCapLargeMCT(N, SDLoc(N), Ty, DAG,
@@ -3202,7 +3198,7 @@ MipsTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   EVT Ty = Callee.getValueType();
   bool GlobalOrExternal = false, IsCallReloc = false;
 
-  bool UsingMct = ABI.IsCheriSandbox() && !CheriNoMct;
+  bool UsingMct = Subtarget.useCheriMct();
 
   if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee)) {
     const GlobalValue *Val = G->getGlobal();
