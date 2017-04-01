@@ -3218,13 +3218,16 @@ MipsTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     if (UsingMct) {
       InternalLinkage = Val->hasInternalLinkage();
 
+      if (Ty != MVT::iFATPTR)
+        llvm_unreachable("Loading non-capability global address from MCT");
+
       if (LargeGOT || !InternalLinkage) {
         Callee = getMemCapLargeMCT(G, DL, Ty, DAG,
                                    MipsII::MO_MCTCALL_HI16,
                                    MipsII::MO_MCTCALL_LO16,
                                    Chain, FuncInfo->callPtrInfo(Val));
       } else {
-        Callee = getMemCap(G, DL, MVT::iFATPTR, DAG, MipsII::MO_MCTCALL11,
+        Callee = getMemCap(G, DL, Ty, DAG, MipsII::MO_MCTCALL11,
                            Chain, FuncInfo->callPtrInfo(Val));
       }
 
@@ -3261,6 +3264,9 @@ MipsTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     const char *Sym = S->getSymbol();
 
     if (UsingMct) {
+      if (Ty != MVT::iFATPTR)
+        llvm_unreachable("Loading non-capability external symbol from MCT");
+
       if (LargeGOT) {
         Callee = getMemCapLargeMCT(S, DL, Ty, DAG,
                                    MipsII::MO_MCTCALL_HI16,
@@ -3275,7 +3281,7 @@ MipsTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     } else {
       EVT AddrTy = Ty;
       if (ABI.IsCheriSandbox() && (Ty == MVT::iFATPTR))
-        AddrTy = MVT::iPTR;
+        AddrTy = getPointerTy(DAG.getDataLayout());
 
       if (!IsPIC) // static
         Callee = DAG.getTargetExternalSymbol(

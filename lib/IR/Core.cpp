@@ -1757,9 +1757,10 @@ LLVMValueRef LLVMAddAlias(LLVMModuleRef M, LLVMTypeRef Ty, LLVMValueRef Aliasee,
 
 LLVMValueRef LLVMAddFunction(LLVMModuleRef M, const char *Name,
                              LLVMTypeRef FunctionTy) {
-  // TODO: LLVMAddFunctionInAddressSpace?
+  Module *Mod = unwrap(M);
+  unsigned AS = Mod->getDataLayout().getFunctionAS();
   return wrap(Function::Create(unwrap<FunctionType>(FunctionTy),
-                               GlobalValue::ExternalLinkage, Name, unwrap(M)));
+                               GlobalValue::ExternalLinkage, Name, Mod, AS));
 }
 
 LLVMValueRef LLVMGetNamedFunction(LLVMModuleRef M, const char *Name) {

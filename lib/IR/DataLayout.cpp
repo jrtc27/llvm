@@ -183,6 +183,7 @@ void DataLayout::reset(StringRef Desc) {
   BigEndian = false;
   StackNaturalAlign = 0;
   AllocaAS = 0;
+  FunctionAS = 0;
   ManglingMode = MM_None;
   NonIntegralAddressSpaces.clear();
 
@@ -266,6 +267,9 @@ void DataLayout::parseSpecifier(StringRef Desc) {
       break;
     case 'A':
       AllocaAS = getInt(Tok);
+      break;
+    case 'F':
+      FunctionAS = getInt(Tok);
       break;
     case 'p': {
       bool isFat = false;
@@ -412,6 +416,7 @@ void DataLayout::init(const Module *M) { *this = M->getDataLayout(); }
 bool DataLayout::operator==(const DataLayout &Other) const {
   bool Ret = BigEndian == Other.BigEndian &&
              AllocaAS == Other.AllocaAS &&
+             FunctionAS == Other.FunctionAS &&
              StackNaturalAlign == Other.StackNaturalAlign &&
              ManglingMode == Other.ManglingMode &&
              LegalIntWidths == Other.LegalIntWidths &&

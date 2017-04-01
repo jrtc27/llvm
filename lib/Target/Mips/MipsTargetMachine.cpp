@@ -112,7 +112,7 @@ static std::string computeDataLayout(const Triple &TT, StringRef CPU,
     Ret += "-n32-S64";
 
   if (ABI.IsCheriSandbox())
-    Ret += "-A200";
+    Ret += "-A200-F200";
 
   return Ret;
 }

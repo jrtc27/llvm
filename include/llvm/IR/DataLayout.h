@@ -108,6 +108,7 @@ private:
 
   unsigned StackNaturalAlign;
   unsigned      AllocaAS;              ///< Address space for allocas
+  unsigned      FunctionAS;              ///< Address space for functions
 
   enum ManglingModeT {
     MM_None,
@@ -204,6 +205,7 @@ public:
     StringRepresentation = DL.StringRepresentation;
     BigEndian = DL.isBigEndian();
     AllocaAS = DL.AllocaAS;
+    FunctionAS = DL.FunctionAS;
     StackNaturalAlign = DL.StackNaturalAlign;
     ManglingMode = DL.ManglingMode;
     LegalIntWidths = DL.LegalIntWidths;
@@ -398,6 +400,11 @@ public:
   unsigned getAllocaAS() const { return AllocaAS; }
   /// Sets the address space used for allocas
   void setAllocaAS(unsigned AS) { AllocaAS = AS; }
+
+  /// Returns the address space used for functions.
+  unsigned getFunctionAS() const { return FunctionAS; }
+  /// Sets the address space used for functions.
+  void setFunctionAS(unsigned AS) { FunctionAS = AS; }
 
   /// Size examples:
   ///
