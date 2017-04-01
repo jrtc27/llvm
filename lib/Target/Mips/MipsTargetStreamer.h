@@ -26,8 +26,6 @@ class MipsTargetStreamer : public MCTargetStreamer {
 public:
   MipsTargetStreamer(MCStreamer &S);
 
-  virtual bool useCheriCapRelocs() override;
-
   virtual void setPic(bool Value) {}
 
   virtual void emitDirectiveSetMicroMips();
@@ -159,6 +157,7 @@ public:
   template <class PredicateLibrary>
   void updateABIInfo(const PredicateLibrary &P) {
     ABI = P.getABI();
+    NewCapRelocs = P.useNewCapRelocs();
     ABIFlagsSection.setAllFromPredicates(P);
   }
 
@@ -168,9 +167,15 @@ public:
     return *ABI;
   }
 
+  bool useNewCapRelocs() override {
+    assert(NewCapRelocs.hasValue() && "NewCapRelocs hasn't been set!");
+    return *NewCapRelocs;
+  }
+
 protected:
   llvm::Optional<MipsABIInfo> ABI;
   MipsABIFlagsSection ABIFlagsSection;
+  llvm::Optional<bool> NewCapRelocs;
 
   bool GPRInfoSet;
   unsigned GPRBitMask;

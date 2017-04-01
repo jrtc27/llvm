@@ -635,6 +635,10 @@ public:
     return getSTI().getFeatureBits()[Mips::FeatureMipsCheri];
   }
 
+  bool useNewCapRelocs() const {
+    return getSTI().getFeatureBits()[Mips::FeatureNewCapRelocs];
+  }
+
   /// Warn if RegIndex is the same as the current AT.
   void warnIfRegIndexIsAT(unsigned RegIndex, SMLoc Loc);
 

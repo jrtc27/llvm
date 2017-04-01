@@ -165,6 +165,12 @@ def FeatureMipsCheri   : SubtargetFeature<"cheri", "IsCheri", "true",
 def FeatureMipsCheri128 : SubtargetFeature<"cheri128", "IsCheri128", "true",
                                 "Capabilities are 128 bits",
                                 [FeatureMipsCheri]>;
+def FeatureUseMct      : SubtargetFeature<"memcap-table", "UseMct", "true",
+                                "Enable MemCap Table",
+                                [FeatureMipsCheri]>;
+def FeatureNewCapRelocs : SubtargetFeature<"new-cap-relocs", "NewCapRelocs", "true",
+                                "Enable new-style capability relocaions",
+                                [FeatureMipsCheri]>;
 def FeatureSym32       : SubtargetFeature<"sym32", "HasSym32", "true",
                                           "Symbols are 32 bit on Mips64">;
 
@@ -210,9 +216,9 @@ class Proc<string Name, list<SubtargetFeature> Features>
 def : ProcessorModel<"beri", BeriModel,
                      [FeatureMips4]>;
 def : ProcessorModel<"cheri", BeriModel,
-                     [FeatureMipsCheri, FeatureMips4]>;
+                     [FeatureUseMct, FeatureNewCapRelocs, FeatureMipsCheri, FeatureMips4]>;
 def : ProcessorModel<"cheri128", BeriModel,
-                     [FeatureMipsCheri128, FeatureMipsCheri, FeatureMips4]>;
+                     [FeatureUseMct, FeatureNewCapRelocs, FeatureMipsCheri128, FeatureMipsCheri, FeatureMips4]>;
 def : Proc<"mips1", [FeatureMips1]>;
 def : Proc<"mips2", [FeatureMips2]>;
 def : Proc<"mips32", [FeatureMips32]>;

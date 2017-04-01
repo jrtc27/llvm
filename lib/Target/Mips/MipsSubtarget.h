@@ -119,6 +119,12 @@ class MipsSubtarget : public MipsGenSubtargetInfo {
   /// IsCheri - Supports the CHERI capability extensions
   bool IsCheri;
 
+  // UseMct - Use MemCap Table
+  bool UseMct;
+
+  // NewCapRelocs - Use new capability relocations
+  bool NewCapRelocs;
+
   // InMips16 -- can process Mips16 instructions
   bool InMips16Mode;
 
@@ -269,6 +275,8 @@ public:
   bool useSmallSection() const { return UseSmallSection; }
   bool isCheri() const { return IsCheri; }
   bool isCheri128() const { return IsCheri128; }
+  bool useCheriMct() const { return isABI_CheriSandbox() && UseMct; }
+  bool useNewCapRelocs() const { return isABI_CheriSandbox() && NewCapRelocs; }
   /// This is a very ugly hack.  CodeGenPrepare can sink pointer arithmetic to
   /// appear closer to load and store operations (because SelectionDAG only
   /// looks at one basic block at a time).  Unfortunately, it defaults to using
@@ -304,8 +312,6 @@ public:
   // for now constant islands are on for the whole compilation unit but we only
   // really use them if in addition we are in mips16 mode
   static bool useConstantIslands();
-
-  bool useCheriMct() const;
 
   unsigned stackAlignment() const {
     return isCheri() ? (isCheri128() ? 16 : 32)  : (isGP64bit() ? 16 : 8);

@@ -57,10 +57,6 @@ static cl::opt<bool>
     GPOpt("mgpopt", cl::Hidden,
           cl::desc("Enable gp-relative addressing of mips small data items"));
 
-static cl::opt<bool>
-CheriNoMct("cheri-no-mct", cl::Hidden,
-           cl::desc("Don't use MCT for global accesses"), cl::init(false));
-
 void MipsSubtarget::anchor() { }
 
 MipsSubtarget::MipsSubtarget(const Triple &TT, const std::string &CPU,
@@ -72,7 +68,7 @@ MipsSubtarget::MipsSubtarget(const Triple &TT, const std::string &CPU,
       IsNaN2008bit(false), IsGP64bit(false), HasVFPU(false), HasCnMips(false),
       HasMips3_32(false), HasMips3_32r2(false), HasMips4_32(false),
       HasMips4_32r2(false), HasMips5_32r2(false),
-      IsCheri128(false), IsCheri(false), 
+      IsCheri128(false), IsCheri(false), UseMct(false), NewCapRelocs(false),
       InMips16Mode(false),
       InMips16HardFloat(Mips16HardFloat), InMicroMipsMode(false), HasDSP(false),
       HasDSPR2(false), HasDSPR3(false), AllowMixed16_32(Mixed16_32 | Mips_Os16),
@@ -177,8 +173,6 @@ bool MipsSubtarget::useConstantIslands() {
   DEBUG(dbgs() << "use constant islands " << Mips16ConstantIslands << "\n");
   return Mips16ConstantIslands;
 }
-
-bool MipsSubtarget::useCheriMct() const { return isABI_CheriSandbox() && !CheriNoMct; }
 
 Reloc::Model MipsSubtarget::getRelocationModel() const {
   return TM.getRelocationModel();

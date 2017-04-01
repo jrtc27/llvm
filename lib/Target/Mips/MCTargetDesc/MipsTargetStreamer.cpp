@@ -40,14 +40,6 @@ MipsTargetStreamer::MipsTargetStreamer(MCStreamer &S)
   GPRInfoSet = FPRInfoSet = FrameInfoSet = false;
 }
 
-static cl::opt<bool>
-CheriCapRelocs("cheri-cap-relocs", cl::Hidden,
-               cl::desc("Use the old __cap_relocs method instead of .memcap"), cl::init(false));
-
-bool MipsTargetStreamer::useCheriCapRelocs() {
-  return !getABI().IsCheriSandbox() || CheriCapRelocs;
-}
-
 void MipsTargetStreamer::emitDirectiveSetMicroMips() {}
 void MipsTargetStreamer::emitDirectiveSetNoMicroMips() {}
 void MipsTargetStreamer::setUsesMicroMips() {}

@@ -54,7 +54,7 @@ void MCTargetStreamer::finish() {}
 
 void MCTargetStreamer::emitAssignment(MCSymbol *Symbol, const MCExpr *Value) {}
 
-bool MCTargetStreamer::useCheriCapRelocs() { return true; }
+bool MCTargetStreamer::useNewCapRelocs() { return false; }
 
 MCStreamer::MCStreamer(MCContext &Ctx)
     : Context(Ctx), CurrentWinFrameInfo(nullptr) {
@@ -130,7 +130,7 @@ void MCStreamer::EmitValue(const MCExpr *Value, unsigned Size, SMLoc Loc) {
   // This is a massive hack, but it needs rewriting once we have proper linker
   // support.
   if (Size > 8) {
-    if (!getTargetStreamer()->useCheriCapRelocs())
+    if (getTargetStreamer()->useNewCapRelocs())
       llvm_unreachable("Emitting capability value via old __cap_relocs path");
     if (const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(Value)) {
       assert(Size == 32 || Size == 16);

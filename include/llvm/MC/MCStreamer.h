@@ -95,7 +95,7 @@ public:
                               const MCInst &Inst, const MCSubtargetInfo &STI);
 
   virtual void finish();
-  virtual bool useCheriCapRelocs();
+  virtual bool useNewCapRelocs();
 };
 
 // FIXME: declared here because it is used from
