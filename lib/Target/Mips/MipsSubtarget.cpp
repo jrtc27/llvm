@@ -171,7 +171,7 @@ MipsSubtarget::initializeSubtargetDependencies(StringRef CPU, StringRef FS,
 
 std::string MipsSubtarget::getEntryPointName(const Function &F) const {
   assert(useCheriMct());
-  return "." + F.getName().str();
+  return ".L." + F.getName().str();
 }
 
 bool MipsSubtarget::useConstantIslands() {
