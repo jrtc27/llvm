@@ -278,12 +278,12 @@ void MipsSEDAGToDAGISel::initCapGlobalBaseReg(MachineFunction &MF) {
   assert(ABI.IsCheriSandbox());
 
   // For the Sandbox ABI, $c14 is required to point to the DSO's MemCap Table
-  // on function entry, so emit a single cmove (which may be optimised away):
+  // on function entry, so emit a single COPY (which may be optimised away):
   //
-  // cmove $capglobalbasereg, $c14
+  // COPY $capglobalbasereg, $c14
   MF.getRegInfo().addLiveIn(Mips::C14);
   MBB.addLiveIn(Mips::C14);
-  BuildMI(MBB, I, DL, TII.get(Mips::CMove), CapGlobalBaseReg)
+  BuildMI(MBB, I, DL, TII.get(TargetOpcode::COPY), CapGlobalBaseReg)
     .addReg(Mips::C14);
 }
 
