@@ -353,6 +353,8 @@ public:
   const InstrItineraryData *getInstrItineraryData() const override {
     return &InstrItins;
   }
+
+  std::string getEntryPointName(const Function &F) const;
 };
 } // End llvm namespace
 

@@ -19,6 +19,7 @@
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
+#include "llvm/MC/MCContext.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/TargetRegistry.h"
@@ -881,13 +882,25 @@ void MipsSEInstrInfo::expandCPSETUP(MachineBasicBlock &MBB,
   assert(GP != Mips::T9_64);
   DebugLoc DL = I->getDebugLoc();
   const TargetInstrInfo *TII = Subtarget.getInstrInfo();
-  const GlobalValue *FName = MBB.getParent()->getFunction();
-  BuildMI(MBB, I, DL, TII->get(Mips::LUi64), GP)
-    .addGlobalAddress(FName, 0, MipsII::MO_GPOFF_HI);
-  BuildMI(MBB, I, DL, TII->get(Mips::DADDu), GP).addReg(GP)
-    .addReg(Mips::T9_64);
-  BuildMI(MBB, I, DL, TII->get(Mips::DADDiu), GP).addReg(GP)
-    .addGlobalAddress(FName, 0, MipsII::MO_GPOFF_LO);
+  const MachineFunction *MF = MBB.getParent();
+  const Function *FName = MF->getFunction();
+  if (Subtarget.useCheriMct()) {
+    const Twine EntryName = Subtarget.getEntryPointName(*FName);
+    MCSymbol *EntrySym = MF->getContext().getOrCreateSymbol(EntryName);
+    BuildMI(MBB, I, DL, TII->get(Mips::LUi64), GP)
+      .addSym(EntrySym, MipsII::MO_GPOFF_HI);
+    BuildMI(MBB, I, DL, TII->get(Mips::DADDu), GP).addReg(GP)
+      .addReg(Mips::T9_64);
+    BuildMI(MBB, I, DL, TII->get(Mips::DADDiu), GP).addReg(GP)
+      .addSym(EntrySym, MipsII::MO_GPOFF_LO);
+  } else {
+    BuildMI(MBB, I, DL, TII->get(Mips::LUi64), GP)
+      .addGlobalAddress(FName, 0, MipsII::MO_GPOFF_HI);
+    BuildMI(MBB, I, DL, TII->get(Mips::DADDu), GP).addReg(GP)
+      .addReg(Mips::T9_64);
+    BuildMI(MBB, I, DL, TII->get(Mips::DADDiu), GP).addReg(GP)
+      .addGlobalAddress(FName, 0, MipsII::MO_GPOFF_LO);
+  }
 }
 
 const MipsInstrInfo *llvm::createMipsSEInstrInfo(const MipsSubtarget &STI) {

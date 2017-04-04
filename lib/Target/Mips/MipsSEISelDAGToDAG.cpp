@@ -29,6 +29,7 @@
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Dominators.h"
+#include "llvm/MC/MCContext.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
@@ -173,13 +174,24 @@ void MipsSEDAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
     // lui $v0, %hi(%neg(%gp_rel(fname)))
     // daddu $v1, $v0, $t9
     // daddiu $globalbasereg, $v1, %lo(%neg(%gp_rel(fname)))
-    const GlobalValue *FName = MF.getFunction();
-    BuildMI(MBB, I, DL, TII.get(Mips::LUi64), V0)
-      .addGlobalAddress(FName, 0, MipsII::MO_GPOFF_HI);
-    BuildMI(MBB, I, DL, TII.get(Mips::DADDu), V1).addReg(V0)
-      .addReg(Mips::T9_64);
-    BuildMI(MBB, I, DL, TII.get(Mips::DADDiu), GlobalBaseReg).addReg(V1)
-      .addGlobalAddress(FName, 0, MipsII::MO_GPOFF_LO);
+    const Function *FName = MF.getFunction();
+    if (Subtarget->useCheriMct()) {
+      const Twine EntryName = Subtarget->getEntryPointName(*FName);
+      MCSymbol *EntrySym = MF.getContext().getOrCreateSymbol(EntryName);
+      BuildMI(MBB, I, DL, TII.get(Mips::LUi64), V0)
+        .addSym(EntrySym, MipsII::MO_GPOFF_HI);
+      BuildMI(MBB, I, DL, TII.get(Mips::DADDu), V1).addReg(V0)
+        .addReg(Mips::T9_64);
+      BuildMI(MBB, I, DL, TII.get(Mips::DADDiu), GlobalBaseReg).addReg(V1)
+        .addSym(EntrySym, MipsII::MO_GPOFF_LO);
+    } else {
+      BuildMI(MBB, I, DL, TII.get(Mips::LUi64), V0)
+        .addGlobalAddress(FName, 0, MipsII::MO_GPOFF_HI);
+      BuildMI(MBB, I, DL, TII.get(Mips::DADDu), V1).addReg(V0)
+        .addReg(Mips::T9_64);
+      BuildMI(MBB, I, DL, TII.get(Mips::DADDiu), GlobalBaseReg).addReg(V1)
+        .addGlobalAddress(FName, 0, MipsII::MO_GPOFF_LO);
+    }
     return;
   }
 

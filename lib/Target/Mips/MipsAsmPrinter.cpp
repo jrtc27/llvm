@@ -346,7 +346,7 @@ void MipsAsmPrinter::EmitFunctionEntryLabel() {
   if (Subtarget->useCheriMct()) {
     // Emit a function descriptor
     MCSymbol *RealFnSym = OutContext.getOrCreateSymbol(
-        "." + Twine(CurrentFnSym->getName()));
+        Subtarget->getEntryPointName(*MF->getFunction()));
     MCSymbol *CpSym = OutContext.getOrCreateSymbol(StringRef("_cp"));
 
     MCSectionSubPair Current = OutStreamer->getCurrentSection();
