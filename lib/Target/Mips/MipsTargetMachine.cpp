@@ -111,8 +111,11 @@ static std::string computeDataLayout(const Triple &TT, StringRef CPU,
   else
     Ret += "-n32-S64";
 
-  if (ABI.IsCheriSandbox())
-    Ret += "-A200-F200";
+  if (ABI.IsCheriSandbox()) {
+    Ret += "-A200";
+    if (FS.find("-memcap-table") == StringRef::npos)
+      Ret += "-F200";
+  }
 
   return Ret;
 }
