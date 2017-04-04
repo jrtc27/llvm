@@ -163,9 +163,23 @@ void MipsSEDAGToDAGISel::initGlobalBaseReg(MachineFunction &MF) {
     if (ABI.IsCheriSandbox()) {
       MF.getRegInfo().addLiveIn(Mips::C12);
       MBB.addLiveIn(Mips::C12);
-      BuildMI(MBB, I, DL, TII.get(Mips::CGetOffset))
-        .addReg(Mips::T9_64, RegState::Define)
-        .addReg(Mips::C12);
+      if (Subtarget->useCheriMct()) {
+        // PCC may have a non-zero base, so we need to include that when
+        // getting _gp
+        unsigned V2 = RegInfo.createVirtualRegister(RC);
+        unsigned VC = RegInfo.createVirtualRegister(&Mips::CheriRegsRegClass);
+        BuildMI(MBB, I, DL, TII.get(TargetOpcode::COPY), VC)
+          .addReg(Mips::C12);
+        BuildMI(MBB, I, DL, TII.get(Mips::CGetOffset), Mips::T9_64)
+          .addReg(VC);
+        BuildMI(MBB, I, DL, TII.get(Mips::CGetBase), V2)
+          .addReg(VC);
+        BuildMI(MBB, I, DL, TII.get(Mips::DADDu), Mips::T9_64)
+          .addReg(Mips::T9_64).addReg(V2);
+      } else {
+        BuildMI(MBB, I, DL, TII.get(Mips::CGetOffset), Mips::T9_64)
+          .addReg(Mips::C12);
+      }
     } else {
       MF.getRegInfo().addLiveIn(Mips::T9_64);
       MBB.addLiveIn(Mips::T9_64);

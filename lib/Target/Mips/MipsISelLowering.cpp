@@ -4270,6 +4270,28 @@ unsigned MipsTargetLowering::getJumpTableEncoding() const {
   return TargetLowering::getJumpTableEncoding();
 }
 
+SDValue MipsTargetLowering::getPICJumpTableRelocBase(SDValue Table,
+                                                     SelectionDAG &DAG) const {
+  SDValue NormalBase = TargetLowering::getPICJumpTableRelocBase(Table, DAG);
+
+  // PCC may have a non-zero base; jump tables currently use non-capability
+  // addresses and so merely change the offset of PCC with a JR. Therefore we
+  // need to subtract the base of PCC from the jump target, which we do by
+  // pretending they have a different base.
+  if (Subtarget.useCheriMct()) {
+    auto GetPCC = DAG.getConstant(Intrinsic::cheri_pcc_get, SDLoc(), MVT::i64);
+    auto GetBase = DAG.getConstant(Intrinsic::cheri_cap_base_get, SDLoc(), MVT::i64);
+    auto PCC = DAG.getNode(ISD::INTRINSIC_WO_CHAIN, SDLoc(), MVT::iFATPTR, GetPCC);
+    auto PCCBase = DAG.getNode(ISD::INTRINSIC_WO_CHAIN, SDLoc(), MVT::i64,
+          GetBase, PCC);
+    auto NegPCCBase = DAG.getNode(ISD::SUB, SDLoc(), MVT::i64,
+          DAG.getConstant(0, SDLoc(), MVT::i64), PCCBase);
+    return DAG.getNode(ISD::ADD, SDLoc(), MVT::i64, NormalBase, NegPCCBase);
+  }
+
+  return NormalBase;
+}
+
 bool MipsTargetLowering::useSoftFloat() const {
   return Subtarget.useSoftFloat();
 }
