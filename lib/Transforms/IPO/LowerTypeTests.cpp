@@ -1170,7 +1170,8 @@ void LowerTypeTestsModule::buildBitSetsFromFunctionsNative(
     } else {
       assert(F->getType()->getAddressSpace() == 0);
 
-      GlobalAlias *FAlias = GlobalAlias::create(F->getValueType(), 0,
+      GlobalAlias *FAlias = GlobalAlias::create(F->getValueType(),
+                                                F->getType()->getAddressSpace(),
                                                 F->getLinkage(), "",
                                                 CombinedGlobalElemPtr, &M);
       FAlias->setVisibility(F->getVisibility());

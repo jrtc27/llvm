@@ -132,8 +132,9 @@ TargetLowering::makeLibCall(SelectionDAG &DAG, RTLIB::Libcall LC, EVT RetVT,
 
   if (LC == RTLIB::UNKNOWN_LIBCALL)
     report_fatal_error("Unsupported library call operation!");
+  const DataLayout &DL = DAG.getDataLayout();
   SDValue Callee = DAG.getExternalSymbol(getLibcallName(LC),
-                                         getPointerTy(DAG.getDataLayout()));
+                                         getPointerTy(DL, DL.getFunctionAS()));
 
   Type *RetTy = RetVT.getTypeForEVT(*DAG.getContext());
   TargetLowering::CallLoweringInfo CLI(DAG);
