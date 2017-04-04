@@ -201,19 +201,21 @@ struct CheriAddressingModeFolder : public MachineFunctionPass {
         // killed.
         // TODO: Check across basic blocks too... want to ensure that every
         // path from IncOffset to I leaves Cap unaltered.
-        if (&MBB != IncOffset->getParent())
-          continue;
-        bool CapKilled = false;
-        for (auto J = std::prev(I), JE = MachineBasicBlock::iterator(IncOffset);
-            J != JE; --J) {
-          if (J->modifiesRegister(Cap.getReg(), RI.getTargetRegisterInfo()) ||
-              J->killsRegister(Cap.getReg(), RI.getTargetRegisterInfo())) {
-            CapKilled = true;
-            break;
+        if (!TargetRegisterInfo::isVirtualRegister(Cap.getReg())) {
+          if (&MBB != IncOffset->getParent())
+            continue;
+          bool CapKilled = false;
+          for (auto J = std::prev(I), JE = MachineBasicBlock::iterator(IncOffset);
+              J != JE; --J) {
+            if (J->modifiesRegister(Cap.getReg(), RI.getTargetRegisterInfo()) ||
+                J->killsRegister(Cap.getReg(), RI.getTargetRegisterInfo())) {
+              CapKilled = true;
+              break;
+            }
           }
+          if (CapKilled)
+            continue;
         }
-        if (CapKilled)
-          continue;
 
         MachineInstr *AddInst;
         // If the CIncOffset is of a daddi[u] then we can potentially replace
