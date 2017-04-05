@@ -287,6 +287,12 @@ public:
   /// Claiming that you use AA also enables the GEP-sinking mode, so we claim
   /// this for CHERI.
   bool useAA() const override { return IsCheri; }
+  /// In the pure-capability ABI, C11-C14 have special uses which cannot in
+  /// general be clobbered by function arguments, so force the standard
+  /// calling convention.
+  /// XXX: Can this be handled by GlobalOptPass instead to ensure the IR
+  ///      doesn't contain Fast CC functions?
+  bool enableFastCC() const { return !isABI_CheriSandbox(); }
 
   bool hasStandardEncoding() const { return !inMips16Mode(); }
 

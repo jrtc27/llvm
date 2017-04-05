@@ -1478,7 +1478,7 @@ bool MipsFastISel::fastLowerCall(CallLoweringInfo &CLI) {
   MCSymbol *Symbol = CLI.Symbol;
 
   // Do not handle FastCC.
-  if (CC == CallingConv::Fast)
+  if (CC == CallingConv::Fast && Subtarget->enableFastCC())
     return false;
 
   // Allow SelectionDAG isel to handle tail calls.
@@ -1662,7 +1662,7 @@ bool MipsFastISel::selectRet(const Instruction *I) {
     CallingConv::ID CC = F.getCallingConv();
 
     // Do not handle FastCC.
-    if (CC == CallingConv::Fast)
+    if (CC == CallingConv::Fast && Subtarget->enableFastCC())
       return false;
 
     SmallVector<ISD::OutputArg, 4> Outs;

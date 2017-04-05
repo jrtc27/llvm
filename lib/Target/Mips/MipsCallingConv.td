@@ -363,7 +363,8 @@ def CC_Mips_FixedArg : CallingConv<[
       CCIfSubtargetNot<"useSoftFloat()",
           CCIfOrigArgWasF128<CCBitConvertToType<f64>>>>,
 
-  CCIfCC<"CallingConv::Fast", CCDelegateTo<CC_Mips_FastCC>>,
+  CCIfCC<"CallingConv::Fast",
+      CCIfSubtarget<"enableFastCC()", CCDelegateTo<CC_Mips_FastCC>>>,
 
   CCIfSubtarget<"isABI_O32()", CCDelegateTo<CC_MipsO32_FP>>,
   CCDelegateTo<CC_MipsN>

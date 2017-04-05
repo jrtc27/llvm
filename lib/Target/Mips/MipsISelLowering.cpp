@@ -4500,7 +4500,7 @@ void MipsTargetLowering::HandleByVal(CCState *State, unsigned &Size,
   unsigned FirstReg = 0;
   unsigned NumRegs = 0;
 
-  if (State->getCallingConv() != CallingConv::Fast) {
+  if (State->getCallingConv() != CallingConv::Fast || !Subtarget.enableFastCC()) {
     unsigned RegSizeInBytes = Subtarget.getGPRSizeInBytes();
     ArrayRef<MCPhysReg> IntArgRegs = ABI.GetByValArgRegs();
     // FIXME: The O32 case actually describes no shadow registers.
