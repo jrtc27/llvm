@@ -2923,19 +2923,16 @@ getOpndList(SmallVectorImpl<SDValue> &Ops,
   // stub for a function whose address is taken in the program).
   //
   // Similarly, when using the MCT, there must be copy for CP, but even in the
-  // non-PIC case. (TODO: is it definitely needed for non-PIC?)
+  // non-PIC case, as well as for internal linkage.
   bool UsingMct = Subtarget.useCheriMct();
-  if ((IsPICCall || UsingMct) && !InternalLinkage && IsCallReloc) {
-    SDValue SrcReg;
-    unsigned DstReg;
-    if (UsingMct) {
-      SrcReg = getCapGlobalReg(CLI.DAG, MVT::iFATPTR);
-      DstReg = Mips::C14;
-    } else {
-      EVT Ty = ABI.IsN64() ? MVT::i64 : MVT::i32;
-      SrcReg = getGlobalReg(CLI.DAG, Ty);
-      DstReg = ABI.IsN64() ? Mips::GP_64 : Mips::GP;
-    }
+  if (UsingMct && IsCallReloc) {
+    SDValue SrcReg = getCapGlobalReg(CLI.DAG, MVT::iFATPTR);
+    unsigned DstReg = Mips::C14;
+    RegsToPass.push_back(std::make_pair(DstReg, SrcReg));
+  } else if (IsPICCall && !InternalLinkage && IsCallReloc) {
+    EVT Ty = ABI.IsN64() ? MVT::i64 : MVT::i32;
+    SDValue SrcReg = getGlobalReg(CLI.DAG, Ty);
+    unsigned DstReg = ABI.IsN64() ? Mips::GP_64 : Mips::GP;
     RegsToPass.push_back(std::make_pair(DstReg, SrcReg));
   }
 
