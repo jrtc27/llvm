@@ -2066,6 +2066,7 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &DAG) const
   SDLoc DL(GA);
   const GlobalValue *GV = GA->getGlobal();
   EVT PtrVT = getPointerTy(DAG.getDataLayout());
+  EVT FunPtrVT = getPointerTy(DAG.getDataLayout(), DAG.getDataLayout().getFunctionAS());
 
   TLSModel::Model model = getTargetMachine().getTLSModel(GV);
 
@@ -2080,7 +2081,7 @@ lowerGlobalTLSAddress(SDValue Op, SelectionDAG &DAG) const
     unsigned PtrSize = PtrVT.getSizeInBits();
     IntegerType *PtrTy = Type::getIntNTy(*DAG.getContext(), PtrSize);
 
-    SDValue TlsGetAddr = DAG.getExternalSymbol("__tls_get_addr", PtrVT);
+    SDValue TlsGetAddr = DAG.getExternalSymbol("__tls_get_addr", FunPtrVT);
 
     ArgListTy Args;
     ArgListEntry Entry;
