@@ -56,6 +56,11 @@ SinkInstsToAvoidSpills("sink-insts-to-avoid-spills",
                                 "loops to avoid register spills"),
                        cl::init(false), cl::Hidden);
 
+static cl::opt<bool>
+HoistGotLoads("hoist-got-loads",
+              cl::desc("MachineLICM should hoist GOT loads"),
+              cl::init(true), cl::Hidden);
+
 STATISTIC(NumHoisted,
           "Number of machine instructions hoisted out of loops");
 STATISTIC(NumLowRP,
@@ -868,6 +873,12 @@ bool MachineLICM::IsLICMCandidate(MachineInstr &I) {
   if (I.mayLoad() && !mayLoadFromGOTOrConstantPool(I) &&
       !IsGuaranteedToExecute(I.getParent()))
     return false;
+
+  if (!HoistGotLoads)
+    for (MachineMemOperand *MemOp : I.memoperands())
+      if (const PseudoSourceValue *PSV = MemOp->getPseudoValue())
+        if (PSV->isGOT() || PSV->isMCT())
+          return false;
 
   return true;
 }
