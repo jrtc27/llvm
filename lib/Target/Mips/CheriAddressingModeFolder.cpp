@@ -16,6 +16,11 @@ static cl::opt<bool> DisableAddressingModeFolder(
     "disable-cheri-addressing-mode-folder", cl::init(false),
     cl::desc("Allow redundant capability manipulations"), cl::Hidden);
 
+static cl::opt<bool>
+HoistGotOffsets("hoist-got-offsets",
+                cl::desc("CheriAddressingModeFolder should hoist GOT offset calculations"),
+                cl::init(true), cl::Hidden);
+
 namespace {
 struct CheriAddressingModeFolder : public MachineFunctionPass {
   static char ID;
@@ -265,7 +270,7 @@ struct CheriAddressingModeFolder : public MachineFunctionPass {
       MachineBasicBlock *InsertBlock = I.first->getParent();
       // If this is a load of a GOT offset and it's in a loop then we want to
       // try to hoist it out of the loop.
-      if (Offset.isGlobal()) {
+      if (Offset.isGlobal() && HoistGotOffsets) {
         auto Loop = MLI.getLoopFor(InsertBlock);
         if (Loop) {
           auto *Preheader = Loop->getLoopPreheader();
