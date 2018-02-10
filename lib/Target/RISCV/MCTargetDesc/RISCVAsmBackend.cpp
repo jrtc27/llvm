@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "MCTargetDesc/RISCVFixupKinds.h"
+#include "MCTargetDesc/RISCVMCExpr.h"
 #include "MCTargetDesc/RISCVMCTargetDesc.h"
 #include "llvm/ADT/APInt.h"
 #include "llvm/MC/MCAsmBackend.h"
@@ -55,6 +56,11 @@ public:
   // during relaxation.
   bool shouldForceRelocation(const MCAssembler &Asm, const MCFixup &Fixup,
                              const MCValue &Target) override {
+    if ((unsigned)Fixup.getKind() == RISCV::fixup_riscv_pcrel_lo12_i) {
+      const MCExpr *T = cast<RISCVMCExpr>(Fixup.getValue())->getPCRelHiExpr();
+      if (T->findAssociatedFragment() != Fixup.getValue()->findAssociatedFragment())
+        return true;
+    }
     return STI.getFeatureBits()[RISCV::FeatureRelax];
   }
 

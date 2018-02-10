@@ -44,25 +44,27 @@ sb t1, %lo(foo+4)(a2)
 # INSTR: sb t1, %lo(foo+4)(a2)
 # FIXUP: fixup A - offset: 0, value: %lo(foo+4), kind: fixup_riscv_lo12_s
 
+1:
 auipc t1, %pcrel_hi(foo)
 # RELOC: R_RISCV_PCREL_HI20 foo 0x0
 # INSTR: auipc t1, %pcrel_hi(foo)
 # FIXUP: fixup A - offset: 0, value: %pcrel_hi(foo), kind: fixup_riscv_pcrel_hi20
 
+2:
 auipc t1, %pcrel_hi(foo+4)
 # RELOC: R_RISCV_PCREL_HI20 foo 0x4
 # INSTR: auipc t1, %pcrel_hi(foo+4)
 # FIXUP: fixup A - offset: 0, value: %pcrel_hi(foo+4), kind: fixup_riscv_pcrel_hi20
 
-addi t1, t1, %pcrel_lo(foo)
-# RELOC: R_RISCV_PCREL_LO12_I foo 0x0
-# INSTR: addi t1, t1, %pcrel_lo(foo)
-# FIXUP: fixup A - offset: 0, value: %pcrel_lo(foo), kind: fixup_riscv_pcrel_lo12_i
+addi t1, t1, %pcrel_lo(1b)
+# RELOC: R_RISCV_PCREL_LO12_I .Ltmp0 0x0
+# INSTR: addi t1, t1, %pcrel_lo(.Ltmp0)
+# FIXUP: fixup A - offset: 0, value: %pcrel_lo(.Ltmp0), kind: fixup_riscv_pcrel_lo12_i
 
-addi t1, t1, %pcrel_lo(foo+4)
-# RELOC: R_RISCV_PCREL_LO12_I foo 0x4
-# INSTR: addi t1, t1, %pcrel_lo(foo+4)
-# FIXUP: fixup A - offset: 0, value: %pcrel_lo(foo+4), kind: fixup_riscv_pcrel_lo12_i
+addi t1, t1, %pcrel_lo(2b)
+# RELOC: R_RISCV_PCREL_LO12_I .Ltmp1 0x0
+# INSTR: addi t1, t1, %pcrel_lo(.Ltmp1)
+# FIXUP: fixup A - offset: 0, value: %pcrel_lo(.Ltmp1), kind: fixup_riscv_pcrel_lo12_i
 
 sb t1, %pcrel_lo(foo)(a2)
 # RELOC: R_RISCV_PCREL_LO12_S foo 0x0
