@@ -3836,8 +3836,8 @@ void MipsAsmParser::expandStoreConditionalInst(MCInst &Inst, SMLoc IDLoc,
       MipsMCExpr::create(MipsMCExpr::MEK_LO, ExprOffset, getContext()));
   MCOperand HiOperand = MCOperand::createExpr(
       MipsMCExpr::create(MipsMCExpr::MEK_HI, ExprOffset, getContext()));
-  TOut.emitStoreConditonalWithSymOffset(Inst.getOpcode(), SrcReg, BaseReg,
-                                        HiOperand, LoOperand, ATReg, IDLoc, STI);
+  TOut.emitStoreConditionalWithSymOffset(Inst.getOpcode(), SrcReg, BaseReg,
+                                         HiOperand, LoOperand, ATReg, IDLoc, STI);
 }
 
 bool MipsAsmParser::expandLoadStoreMultiple(MCInst &Inst, SMLoc IDLoc,
