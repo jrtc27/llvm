@@ -3704,19 +3704,6 @@ bool MipsAsmParser::expandBranchImm(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
 void MipsAsmParser::expandMemInst(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
                                   const MCSubtargetInfo *STI, bool IsLoad,
                                   bool IsImmOpnd) {
-  // The parser currently asserts when parsing scd with symbols
-  switch (Inst.getOpcode()) {
-    case Mips::SC:
-    case Mips::SC64:
-    case Mips::SC64_R6:
-    case Mips::SCD:
-    case Mips::SCD_R6:
-      getParser().Error(IDLoc,
-                        "cannot expand symbol reference in sc instruction yet.");
-      return;
-    default:
-      break;
-  }
   if (IsLoad) {
     expandLoadInst(Inst, IDLoc, Out, STI, IsImmOpnd);
     return;
