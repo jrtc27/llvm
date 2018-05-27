@@ -218,8 +218,9 @@ def SDR   : StoreLeftRight<"sdr", MipsSDR, GPR64Opnd, II_SDR>, LW_FM<0x2d>,
 let AdditionalPredicates = [NotInMicroMips] in {
   def LLD : LLBase<"lld", GPR64Opnd, mem_simm16>, LW_FM<0x34>,
             ISA_MIPS3_NOT_32R6_64R6;
+  def SCD : SCBase<"scd", GPR64Opnd, mem_simm16>, LW_FM<0x3c>,
+            ISA_MIPS3_NOT_32R6_64R6;
 }
-def SCD : SCBase<"scd", GPR64Opnd>, LW_FM<0x3c>, ISA_MIPS3_NOT_32R6_64R6;
 
 let AdditionalPredicates = [NotInMicroMips],
     DecoderNamespace = "Mips32_64_PTR64" in {

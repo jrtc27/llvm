@@ -1762,9 +1762,9 @@ class LLBase<string opstr, RegisterOperand RO, DAGOperand MO = mem> :
   let Uses = [C0];
 }
 
-class SCBase<string opstr, RegisterOperand RO> :
-  InstSE<(outs RO:$dst), (ins RO:$rt, mem:$addr),
-         !strconcat(opstr, "\t$rt, $addr"), [], II_SC, FrmI> {
+class SCBase<string opstr, RegisterOperand RO, DAGOperand MO = mem> :
+  InstSE<(outs RO:$dst), (ins RO:$rt, MO:$addr),
+         !strconcat(opstr, "\t$rt, $addr"), [], II_SC, FrmI, opstr> {
   let DecoderMethod = "DecodeMem";
   let mayStore = 1;
   let Uses = [C0];
