@@ -120,6 +120,10 @@ public:
                SMLoc IDLoc, const MCSubtargetInfo *STI);
   void emitRRI(unsigned Opcode, unsigned Reg0, unsigned Reg1, int16_t Imm,
                SMLoc IDLoc, const MCSubtargetInfo *STI);
+  void emitRRRX(unsigned Opcode, unsigned Reg0, unsigned Reg1, unsigned Reg2,
+                MCOperand Op3, SMLoc IDLoc, const MCSubtargetInfo *STI);
+  void emitRRRI(unsigned Opcode, unsigned Reg0, unsigned Reg1, unsigned Reg2,
+                int16_t Imm, SMLoc IDLoc, const MCSubtargetInfo *STI);
   void emitRRIII(unsigned Opcode, unsigned Reg0, unsigned Reg1, int16_t Imm0,
                  int16_t Imm1, int16_t Imm2, SMLoc IDLoc,
                  const MCSubtargetInfo *STI);
@@ -146,6 +150,16 @@ public:
                               unsigned BaseReg, MCOperand &HiOperand,
                               MCOperand &LoOperand, unsigned ATReg, SMLoc IDLoc,
                               const MCSubtargetInfo *STI);
+  void emitStoreConditionalWithImmOffset(unsigned Opcode, unsigned SrcReg,
+                                         unsigned BaseReg, int64_t Offset,
+                                         function_ref<unsigned()> GetATReg,
+                                         SMLoc IDLoc,
+                                         const MCSubtargetInfo *STI);
+  void emitStoreConditionalWithSymOffset(unsigned Opcode, unsigned SrcReg,
+                                         unsigned BaseReg, MCOperand &HiOperand,
+                                         MCOperand &LoOperand, unsigned ATReg,
+                                         SMLoc IDLoc,
+                                         const MCSubtargetInfo *STI);
   void emitLoadWithImmOffset(unsigned Opcode, unsigned DstReg, unsigned BaseReg,
                              int64_t Offset, unsigned TmpReg, SMLoc IDLoc,
                              const MCSubtargetInfo *STI);

@@ -250,6 +250,9 @@ class MipsAsmParser : public MCTargetAsmParser {
   void expandStoreInst(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
                        const MCSubtargetInfo *STI, bool IsImmOpnd);
 
+  void expandStoreConditionalInst(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
+                                  const MCSubtargetInfo *STI, bool IsImmOpnd);
+
   bool expandLoadStoreMultiple(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
                                const MCSubtargetInfo *STI);
 
@@ -3704,6 +3707,17 @@ bool MipsAsmParser::expandBranchImm(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
 void MipsAsmParser::expandMemInst(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
                                   const MCSubtargetInfo *STI, bool IsLoad,
                                   bool IsImmOpnd) {
+  switch (Inst.getOpcode()) {
+    case Mips::SC:
+    case Mips::SC64:
+    case Mips::SC64_R6:
+    case Mips::SCD:
+    case Mips::SCD_R6:
+      expandStoreConditionalInst(Inst, IDLoc, Out, STI, IsImmOpnd);
+      return;
+    default:
+      break;
+  }
   if (IsLoad) {
     expandLoadInst(Inst, IDLoc, Out, STI, IsImmOpnd);
     return;
@@ -3794,6 +3808,36 @@ void MipsAsmParser::expandStoreInst(MCInst &Inst, SMLoc IDLoc, MCStreamer &Out,
       MipsMCExpr::create(MipsMCExpr::MEK_HI, ExprOffset, getContext()));
   TOut.emitStoreWithSymOffset(Inst.getOpcode(), SrcReg, BaseReg, HiOperand,
                               LoOperand, ATReg, IDLoc, STI);
+}
+
+void MipsAsmParser::expandStoreConditionalInst(MCInst &Inst, SMLoc IDLoc,
+                                               MCStreamer &Out,
+                                               const MCSubtargetInfo *STI,
+                                               bool IsImmOpnd) {
+  MipsTargetStreamer &TOut = getTargetStreamer();
+
+  unsigned SrcReg = Inst.getOperand(0).getReg();
+  unsigned BaseReg = Inst.getOperand(2).getReg();
+
+  if (IsImmOpnd) {
+    TOut.emitStoreConditionalWithImmOffset(Inst.getOpcode(), SrcReg, BaseReg,
+                                           Inst.getOperand(3).getImm(),
+                                           [&]() { return getATReg(IDLoc); },
+                                           IDLoc, STI);
+    return;
+  }
+
+  unsigned ATReg = getATReg(IDLoc);
+  if (!ATReg)
+    return;
+
+  const MCExpr *ExprOffset = Inst.getOperand(3).getExpr();
+  MCOperand LoOperand = MCOperand::createExpr(
+      MipsMCExpr::create(MipsMCExpr::MEK_LO, ExprOffset, getContext()));
+  MCOperand HiOperand = MCOperand::createExpr(
+      MipsMCExpr::create(MipsMCExpr::MEK_HI, ExprOffset, getContext()));
+  TOut.emitStoreCondionalWithSymOffset(Inst.getOpcode(), SrcReg, BaseReg,
+                                       HiOperand, LoOperand, ATReg, IDLoc, STI);
 }
 
 bool MipsAsmParser::expandLoadStoreMultiple(MCInst &Inst, SMLoc IDLoc,

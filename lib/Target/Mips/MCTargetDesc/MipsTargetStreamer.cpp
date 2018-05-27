@@ -194,6 +194,25 @@ void MipsTargetStreamer::emitRRI(unsigned Opcode, unsigned Reg0, unsigned Reg1,
   emitRRX(Opcode, Reg0, Reg1, MCOperand::createImm(Imm), IDLoc, STI);
 }
 
+void MipsTargetStreamer::emitRRRX(unsigned Opcode, unsigned Reg0, unsigned Reg1,
+                                  unsigned Reg2, MCOperand Op3, SMLoc IDLoc,
+                                  const MCSubtargetInfo *STI) {
+  MCInst TmpInst;
+  TmpInst.setOpcode(Opcode);
+  TmpInst.addOperand(MCOperand::createReg(Reg0));
+  TmpInst.addOperand(MCOperand::createReg(Reg1));
+  TmpInst.addOperand(MCOperand::createReg(Reg2));
+  TmpInst.addOperand(Op3);
+  TmpInst.setLoc(IDLoc);
+  getStreamer().EmitInstruction(TmpInst, *STI);
+}
+
+void MipsTargetStreamer::emitRRRI(unsigned Opcode, unsigned Reg0, unsigned Reg1,
+                                  unsigned Reg2, int16_t Imm, SMLoc IDLoc,
+                                  const MCSubtargetInfo *STI) {
+  emitRRRX(Opcode, Reg0, Reg1, Reg2, MCOperand::createImm(Imm), IDLoc, STI);
+}
+
 void MipsTargetStreamer::emitRRIII(unsigned Opcode, unsigned Reg0,
                                    unsigned Reg1, int16_t Imm0, int16_t Imm1,
                                    int16_t Imm2, SMLoc IDLoc,
@@ -295,6 +314,58 @@ void MipsTargetStreamer::emitStoreWithSymOffset(
     emitRRR(Mips::ADDu, ATReg, ATReg, BaseReg, IDLoc, STI);
   // Emit the store with the adjusted base and offset.
   emitRRX(Opcode, SrcReg, ATReg, LoOperand, IDLoc, STI);
+}
+
+/// Emit a store-conditional instruction with an immediate offset.
+void MipsTargetStreamer::emitStoreConditionalWithImmOffset(
+    unsigned Opcode, unsigned SrcReg, unsigned BaseReg, int64_t Offset,
+    function_ref<unsigned()> GetATReg, SMLoc IDLoc,
+    const MCSubtargetInfo *STI) {
+  if (isInt<16>(Offset)) {
+    emitRRRI(Opcode, SrcReg, SrcReg, BaseReg, Offset, IDLoc, STI);
+    return;
+  }
+
+  // sc $8, offset($8) => lui $at, %hi(offset)
+  //                      add $at, $at, $8
+  //                      sc $8, %lo(offset)($at)
+
+  unsigned ATReg = GetATReg();
+  if (!ATReg)
+    return;
+
+  unsigned LoOffset = Offset & 0x0000ffff;
+  unsigned HiOffset = (Offset & 0xffff0000) >> 16;
+
+  // If msb of LoOffset is 1(negative number) we must increment HiOffset
+  // to account for the sign-extension of the low part.
+  if (LoOffset & 0x8000)
+    HiOffset++;
+
+  // Generate the base address in ATReg.
+  emitRI(Mips::LUi, ATReg, HiOffset, IDLoc, STI);
+  if (BaseReg != Mips::ZERO)
+    emitRRR(Mips::ADDu, ATReg, ATReg, BaseReg, IDLoc, STI);
+  // Emit the store-conditonal with the adjusted base and offset.
+  emitRRRI(Opcode, SrcReg, SrcReg, ATReg, LoOffset, IDLoc, STI);
+}
+
+/// Emit a store-conditional instruction with an symbol offset. Symbols are
+/// assumed to be out of range for a simm16 will be expanded to appropriate
+/// instructions.
+void MipsTargetStreamer::emitStoreConditionalWithSymOffset(
+    unsigned Opcode, unsigned SrcReg, unsigned BaseReg, MCOperand &HiOperand,
+    MCOperand &LoOperand, unsigned ATReg, SMLoc IDLoc,
+    const MCSubtargetInfo *STI) {
+  // sc $8, sym => lui $at, %hi(sym)
+  //               sc $8, %lo(sym)($at)
+
+  // Generate the base address in ATReg.
+  emitRX(Mips::LUi, ATReg, HiOperand, IDLoc, STI);
+  if (BaseReg != Mips::ZERO)
+    emitRRR(Mips::ADDu, ATReg, ATReg, BaseReg, IDLoc, STI);
+  // Emit the store with the adjusted base and offset.
+  emitRRRX(Opcode, SrcReg, SrcReg, ATReg, LoOperand, IDLoc, STI);
 }
 
 /// Emit a load instruction with an immediate offset. DstReg and TmpReg are
