@@ -135,4 +135,5 @@ bool RISCVAsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
 extern "C" void LLVMInitializeRISCVAsmPrinter() {
   RegisterAsmPrinter<RISCVAsmPrinter> X(getTheRISCV32Target());
   RegisterAsmPrinter<RISCVAsmPrinter> Y(getTheRISCV64Target());
+  RegisterAsmPrinter<RISCVAsmPrinter> C(getTheRISCV64CheriTarget());
 }

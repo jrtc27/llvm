@@ -27,11 +27,16 @@ using namespace llvm;
 extern "C" void LLVMInitializeRISCVTarget() {
   RegisterTargetMachine<RISCVTargetMachine> X(getTheRISCV32Target());
   RegisterTargetMachine<RISCVTargetMachine> Y(getTheRISCV64Target());
+  RegisterTargetMachine<RISCVTargetMachine> C(getTheRISCV64CheriTarget());
 }
 
 static std::string computeDataLayout(const Triple &TT) {
   if (TT.isArch64Bit()) {
-    return "e-m:e-p:64:64-i64:64-i128:128-n64-S128";
+    if (Triple(TT).getArch() == Triple::riscv64_cheri) {
+      return "e-m:e-pf200:128:128:128:64-p:64:64-i64:64-i128:128-n64-S128";
+    } else {
+      return "e-m:e-p:64:64-i64:64-i128:128-n64-S128";
+    }
   } else {
     assert(TT.isArch32Bit() && "only RV32 and RV64 are currently supported");
     return "e-m:e-p:32:32-i64:64-n32-S128";

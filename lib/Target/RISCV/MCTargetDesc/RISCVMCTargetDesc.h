@@ -35,6 +35,7 @@ class raw_pwrite_stream;
 
 Target &getTheRISCV32Target();
 Target &getTheRISCV64Target();
+Target &getTheRISCV64CheriTarget();
 
 MCCodeEmitter *createRISCVMCCodeEmitter(const MCInstrInfo &MCII,
                                         const MCRegisterInfo &MRI,
