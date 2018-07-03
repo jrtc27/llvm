@@ -30,10 +30,21 @@ extern "C" void LLVMInitializeRISCVTarget() {
   RegisterTargetMachine<RISCVTargetMachine> C(getTheRISCV64CheriTarget());
 }
 
-static std::string computeDataLayout(const Triple &TT) {
+static std::string computeDataLayout(const Triple &TT,
+                                     const TargetOptions &Options) {
   if (TT.isArch64Bit()) {
     if (Triple(TT).getArch() == Triple::riscv64_cheri) {
-      return "e-m:e-pf200:128:128:128:64-p:64:64-i64:64-i128:128-n64-S128";
+      StringRef ABI = Options.MCOptions.getABIName();
+      StringRef Layout =
+        "e-m:e-pf200:128:128:128:64-p:64:64-i64:64-i128:128-n64-S128";
+
+      StringRef PurecapOptions = "";
+      if (ABI == "purecap")
+        PurecapOptions = MCTargetOptions::cheriUsesCapabilityTable()
+                             ? "-A200-P200-G200"
+                             : "-A200-P200";
+
+      return (Layout + PurecapOptions).str();
     } else {
       return "e-m:e-p:64:64-i64:64-i128:128-n64-S128";
     }
@@ -62,7 +73,7 @@ RISCVTargetMachine::RISCVTargetMachine(const Target &T, const Triple &TT,
                                        Optional<Reloc::Model> RM,
                                        Optional<CodeModel::Model> CM,
                                        CodeGenOpt::Level OL, bool JIT)
-    : LLVMTargetMachine(T, computeDataLayout(TT), TT, CPU, FS, Options,
+    : LLVMTargetMachine(T, computeDataLayout(TT, Options), TT, CPU, FS, Options,
                         getEffectiveRelocModel(TT, RM),
                         getEffectiveCodeModel(CM), OL),
       TLOF(make_unique<RISCVELFTargetObjectFile>()),
