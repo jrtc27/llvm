@@ -67,6 +67,7 @@ public:
     r600,           // R600: AMD GPUs HD2XXX - HD6XXX
     amdgcn,         // AMDGCN: AMD GCN GPUs
     riscv32,        // RISC-V (32-bit): riscv32
+    riscv32_cheri,  // RISC-V (32-bit): riscv32 with CHERI
     riscv64,        // RISC-V (64-bit): riscv64
     riscv64_cheri,  // RISC-V (64-bit): riscv64 with CHERI
     sparc,          // Sparc: sparc

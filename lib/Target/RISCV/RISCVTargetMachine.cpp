@@ -27,31 +27,38 @@ using namespace llvm;
 extern "C" void LLVMInitializeRISCVTarget() {
   RegisterTargetMachine<RISCVTargetMachine> X(getTheRISCV32Target());
   RegisterTargetMachine<RISCVTargetMachine> Y(getTheRISCV64Target());
-  RegisterTargetMachine<RISCVTargetMachine> C(getTheRISCV64CheriTarget());
+  RegisterTargetMachine<RISCVTargetMachine> C32(getTheRISCV32CheriTarget());
+  RegisterTargetMachine<RISCVTargetMachine> C64(getTheRISCV64CheriTarget());
 }
 
 static std::string computeDataLayout(const Triple &TT,
                                      const TargetOptions &Options) {
-  if (TT.isArch64Bit()) {
-    if (Triple(TT).getArch() == Triple::riscv64_cheri) {
-      StringRef ABI = Options.MCOptions.getABIName();
-      StringRef Layout =
-        "e-m:e-pf200:128:128:128:64-p:64:64-i64:64-i128:128-n64-S128";
+  assert((TT.isArch32Bit() || TT.isArch64Bit()) &&
+         "only RV32 and RV64 are currently supported");
 
-      StringRef PurecapOptions = "";
-      if (ABI == "purecap")
-        PurecapOptions = MCTargetOptions::cheriUsesCapabilityTable()
-                             ? "-A200-P200-G200"
-                             : "-A200-P200";
+  StringRef IntegerTypes;
+  if (TT.isArch64Bit())
+    IntegerTypes = "-p:64:64-i64:64-i128:128-n64";
+  else
+    IntegerTypes = "-p:32:32-i64:64-n32";
 
-      return (Layout + PurecapOptions).str();
-    } else {
-      return "e-m:e-p:64:64-i64:64-i128:128-n64-S128";
-    }
-  } else {
-    assert(TT.isArch32Bit() && "only RV32 and RV64 are currently supported");
-    return "e-m:e-p:32:32-i64:64-n32-S128";
+  Triple::ArchType Arch = Triple(TT).getArch();
+  StringRef CapTypes = "";
+  StringRef PurecapOptions = "";
+  if (Arch == Triple::riscv32_cheri || Arch == Triple::riscv64_cheri) {
+    if (TT.isArch64Bit())
+      CapTypes = "-pf200:128:128:128:64";
+    else
+      CapTypes = "-pf200:64:64:64:32";
+
+    StringRef ABI = Options.MCOptions.getABIName();
+    if (ABI == "purecap")
+      PurecapOptions = MCTargetOptions::cheriUsesCapabilityTable()
+                           ? "-A200-P200-G200"
+                           : "-A200-P200";
   }
+
+  return ("e-m:e" + CapTypes + IntegerTypes + PurecapOptions + "-S128").str();
 }
 
 static Reloc::Model getEffectiveRelocModel(const Triple &TT,

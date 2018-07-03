@@ -51,6 +51,8 @@ extern "C" void LLVMInitializeRISCVDisassembler() {
   // Register the disassembler for each target.
   TargetRegistry::RegisterMCDisassembler(getTheRISCV32Target(),
                                          createRISCVDisassembler);
+  TargetRegistry::RegisterMCDisassembler(getTheRISCV32CheriTarget(),
+                                         createRISCVDisassembler);
   TargetRegistry::RegisterMCDisassembler(getTheRISCV64Target(),
                                          createRISCVDisassembler);
   TargetRegistry::RegisterMCDisassembler(getTheRISCV64CheriTarget(),

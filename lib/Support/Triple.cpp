@@ -43,6 +43,7 @@ StringRef Triple::getArchTypeName(ArchType Kind) {
   case r600:           return "r600";
   case amdgcn:         return "amdgcn";
   case riscv32:        return "riscv32";
+  case riscv32_cheri:  return "riscv32_cheri";
   case riscv64:        return "riscv64";
   case riscv64_cheri:  return "riscv64_cheri";
   case sparc:          return "sparc";
@@ -148,8 +149,10 @@ StringRef Triple::getArchTypePrefix(ArchType Kind) {
   case wasm64:      return "wasm";
 
   case riscv32:
+  case riscv32_cheri:
+  case riscv64:
   case riscv64_cheri:
-  case riscv64:     return "riscv";
+                    return "riscv";
   }
 }
 
@@ -283,6 +286,7 @@ Triple::ArchType Triple::getArchTypeForLLVMName(StringRef Name) {
     .Case("r600", r600)
     .Case("amdgcn", amdgcn)
     .Case("riscv32", riscv32)
+    .Case("riscv32_cheri", riscv32_cheri)
     .Case("riscv64", riscv64)
     .Case("riscv64_cheri", riscv64_cheri)
     .Case("hexagon", hexagon)
@@ -411,6 +415,7 @@ static Triple::ArchType parseArch(StringRef ArchName) {
     .Case("r600", Triple::r600)
     .Case("amdgcn", Triple::amdgcn)
     .Case("riscv32", Triple::riscv32)
+    .Case("riscv32_cheri", Triple::riscv32_cheri)
     .Case("riscv64", Triple::riscv64)
     .Case("riscv64_cheri", Triple::riscv64_cheri)
     .Case("hexagon", Triple::hexagon)
@@ -664,6 +669,7 @@ static Triple::ObjectFormatType getDefaultFormat(const Triple &T) {
   case Triple::renderscript32:
   case Triple::renderscript64:
   case Triple::riscv32:
+  case Triple::riscv32_cheri:
   case Triple::riscv64:
   case Triple::riscv64_cheri:
   case Triple::shave:
@@ -1205,6 +1211,7 @@ static unsigned getArchPointerBitWidth(llvm::Triple::ArchType Arch) {
   case llvm::Triple::ppc:
   case llvm::Triple::r600:
   case llvm::Triple::riscv32:
+  case llvm::Triple::riscv32_cheri:
   case llvm::Triple::sparc:
   case llvm::Triple::sparcel:
   case llvm::Triple::tce:
@@ -1273,7 +1280,6 @@ Triple Triple::get32BitArchVariant() const {
   case Triple::msp430:
   case Triple::systemz:
   case Triple::ppc64le:
-  case Triple::riscv64_cheri:
   case Triple::cheri: // No 32-bit version
     T.setArch(UnknownArch);
     break;
@@ -1294,6 +1300,7 @@ Triple Triple::get32BitArchVariant() const {
   case Triple::ppc:
   case Triple::r600:
   case Triple::riscv32:
+  case Triple::riscv32_cheri:
   case Triple::sparc:
   case Triple::sparcel:
   case Triple::tce:
@@ -1318,6 +1325,7 @@ Triple Triple::get32BitArchVariant() const {
   case Triple::ppc64:          T.setArch(Triple::ppc);     break;
   case Triple::sparcv9:        T.setArch(Triple::sparc);   break;
   case Triple::riscv64:        T.setArch(Triple::riscv32); break;
+  case Triple::riscv64_cheri:  T.setArch(Triple::riscv32_cheri); break;
   case Triple::x86_64:         T.setArch(Triple::x86);     break;
   case Triple::amdil64:        T.setArch(Triple::amdil);   break;
   case Triple::hsail64:        T.setArch(Triple::hsail);   break;
@@ -1382,6 +1390,7 @@ Triple Triple::get64BitArchVariant() const {
   case Triple::ppc:             T.setArch(Triple::ppc64);      break;
   case Triple::sparc:           T.setArch(Triple::sparcv9);    break;
   case Triple::riscv32:         T.setArch(Triple::riscv64);    break;
+  case Triple::riscv32_cheri:   T.setArch(Triple::riscv64_cheri); break;
   case Triple::x86:             T.setArch(Triple::x86_64);     break;
   case Triple::amdil:           T.setArch(Triple::amdil64);    break;
   case Triple::hsail:           T.setArch(Triple::hsail64);    break;
@@ -1417,6 +1426,7 @@ Triple Triple::getBigEndianArchVariant() const {
   case Triple::nvptx:
   case Triple::r600:
   case Triple::riscv32:
+  case Triple::riscv32_cheri:
   case Triple::riscv64:
   case Triple::riscv64_cheri:
   case Triple::shave:
@@ -1507,6 +1517,7 @@ bool Triple::isLittleEndian() const {
   case Triple::ppc64le:
   case Triple::r600:
   case Triple::riscv32:
+  case Triple::riscv32_cheri:
   case Triple::riscv64:
   case Triple::riscv64_cheri:
   case Triple::shave:
