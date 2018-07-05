@@ -46,12 +46,19 @@ BitVector RISCVRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   markSuperRegs(Reserved, RISCV::X3); // gp
   markSuperRegs(Reserved, RISCV::X4); // tp
   markSuperRegs(Reserved, RISCV::X8); // fp
+
+  markSuperRegs(Reserved, RISCV::C0); // czero
+  markSuperRegs(Reserved, RISCV::C1); // cra
+  markSuperRegs(Reserved, RISCV::C2); // csp
+  markSuperRegs(Reserved, RISCV::C3); // cgp
+  markSuperRegs(Reserved, RISCV::C4); // ctp
+  markSuperRegs(Reserved, RISCV::C8); // cfp
   assert(checkAllSuperRegsMarked(Reserved));
   return Reserved;
 }
 
 bool RISCVRegisterInfo::isConstantPhysReg(unsigned PhysReg) const {
-  return PhysReg == RISCV::X0;
+  return PhysReg == RISCV::X0 || PhysReg == RISCV::C0;
 }
 
 const uint32_t *RISCVRegisterInfo::getNoPreservedMask() const {

@@ -57,6 +57,28 @@ static MCOperand lowerSymbolOperand(const MachineOperand &MO, MCSymbol *Sym,
   return MCOperand::createExpr(ME);
 }
 
+static unsigned lowerOpcode(unsigned Opcode, const AsmPrinter &AP) {
+  const MCSubtargetInfo &STI = AP.getSubtargetInfo();
+  bool Is64Bit = STI.hasFeature(RISCV::Feature64Bit);
+
+  switch (Opcode) {
+    case RISCV::LCddc:
+      Opcode = Is64Bit ? RISCV::LCddc_128 : RISCV::LCddc_64;
+      break;
+    case RISCV::SCddc:
+      Opcode = Is64Bit ? RISCV::SCddc_128 : RISCV::SCddc_64;
+      break;
+    case RISCV::LCcap:
+      Opcode = Is64Bit ? RISCV::LCcap_128 : RISCV::LCcap_64;
+      break;
+    case RISCV::SCcap:
+      Opcode = Is64Bit ? RISCV::SCcap_128 : RISCV::SCcap_64;
+      break;
+  }
+
+  return Opcode;
+}
+
 bool llvm::LowerRISCVMachineOperandToMCOperand(const MachineOperand &MO,
                                                MCOperand &MCOp,
                                                const AsmPrinter &AP) {
@@ -98,7 +120,7 @@ bool llvm::LowerRISCVMachineOperandToMCOperand(const MachineOperand &MO,
 
 void llvm::LowerRISCVMachineInstrToMCInst(const MachineInstr *MI, MCInst &OutMI,
                                           const AsmPrinter &AP) {
-  OutMI.setOpcode(MI->getOpcode());
+  OutMI.setOpcode(lowerOpcode(MI->getOpcode(), AP));
 
   for (const MachineOperand &MO : MI->operands()) {
     MCOperand MCOp;

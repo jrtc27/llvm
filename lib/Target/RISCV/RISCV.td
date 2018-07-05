@@ -55,6 +55,11 @@ def IsRV32 : Predicate<"!Subtarget->is64Bit()">,
 def RV64           : HwMode<"+64bit">;
 def RV32           : HwMode<"-64bit">;
 
+def IsCheri128 : Predicate<"Subtarget->is64Bit()">,
+                           AssemblerPredicate<"Feature64Bit">;
+def IsCheri64  : Predicate<"!Subtarget->is64Bit()">,
+                           AssemblerPredicate<"!Feature64Bit">;
+
 def FeatureRelax
     : SubtargetFeature<"relax", "EnableLinkerRelax", "true",
                        "Enable Linker relaxation.">;
