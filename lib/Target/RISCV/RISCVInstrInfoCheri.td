@@ -184,11 +184,33 @@ def SCcap_128 : CheriStore_explicit<0b11100, "sc.cap",  GPCR, GPCR> {
 // Pseudo-instructions and codegen patterns
 //===----------------------------------------------------------------------===//
 
+multiclass CheriLdPat<PatFrag LoadOp, RVInst Inst, RegisterClass AddrTy> {
+  def : Pat<(LoadOp AddrTy:$rs1), (Inst AddrTy:$rs1)>;
+}
+
+multiclass CheriStPat<PatFrag StoreOp, RVInst Inst, RegisterClass StTy,
+                      RegisterClass AddrTy> {
+  def : Pat<(StoreOp StTy:$rs2, AddrTy:$rs1), (Inst StTy:$rs2, AddrTy:$rs1)>;
+}
+
 /// DDC-relative loads
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
 def LCddc  : Pseudo<(outs GPCR:$rd), (ins GPR:$rs1), [],
                     "lc.ddc", "$rd, $rs1">;
+
+defm : CheriLdPat<sextloadi8, LBddc, GPR>;
+defm : CheriLdPat<extloadi8, LBddc, GPR>;
+defm : CheriLdPat<sextloadi16, LHddc, GPR>;
+defm : CheriLdPat<extloadi16, LHddc, GPR>;
+defm : CheriLdPat<load, LWddc, GPR>, Requires<[IsRV32]>;
+defm : CheriLdPat<sextloadi32, LWddc, GPR>, Requires<[IsRV64]>;
+defm : CheriLdPat<extloadi32, LWddc, GPR>, Requires<[IsRV64]>;
+defm : CheriLdPat<load, LDddc, GPR>, Requires<[IsRV64]>;
+defm : CheriLdPat<zextloadi8, LBUddc, GPR>;
+defm : CheriLdPat<zextloadi16, LHUddc, GPR>;
+defm : CheriLdPat<zextloadi32, LWUddc, GPR>, Requires<[IsRV64]>;
+defm : CheriLdPat<load, LCddc, GPR>;
 
 /// DDC-relative stores
 
@@ -196,14 +218,41 @@ let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
 def SCddc  : Pseudo<(outs), (ins GPCR:$rs1, GPR:$rs2), [],
                     "sc.ddc", "$rs1, $rs2">;
 
+defm : CheriStPat<truncstorei8, SBddc, GPR, GPR>;
+defm : CheriStPat<truncstorei16, SHddc, GPR, GPR>;
+defm : CheriStPat<store, SWddc, GPR, GPR>, Requires<[IsRV32]>;
+defm : CheriStPat<truncstorei32, SWddc, GPR, GPR>, Requires<[IsRV64]>;
+defm : CheriStPat<store, SDddc, GPR, GPR>, Requires<[IsRV64]>;
+defm : CheriStPat<store, SCddc, GPCR, GPR>;
+
 /// Capability loads
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
 def LCcap  : Pseudo<(outs GPCR:$rd), (ins GPCR:$rs1), [],
                     "lc.cap", "$rd, $rs1">;
 
+defm : CheriLdPat<sextloadi8, LBcap, GPCR>;
+defm : CheriLdPat<extloadi8, LBcap, GPCR>;
+defm : CheriLdPat<sextloadi16, LHcap, GPCR>;
+defm : CheriLdPat<extloadi16, LHcap, GPCR>;
+defm : CheriLdPat<load, LWcap, GPCR>, Requires<[IsRV32]>;
+defm : CheriLdPat<sextloadi32, LWcap, GPCR>, Requires<[IsRV64]>;
+defm : CheriLdPat<extloadi32, LWcap, GPCR>, Requires<[IsRV64]>;
+defm : CheriLdPat<load, LDcap, GPCR>, Requires<[IsRV64]>;
+defm : CheriLdPat<zextloadi8, LBUcap, GPCR>;
+defm : CheriLdPat<zextloadi16, LHUcap, GPCR>;
+defm : CheriLdPat<zextloadi32, LWUcap, GPCR>, Requires<[IsRV64]>;
+defm : CheriLdPat<load, LCcap, GPCR>;
+
 /// Capability stores
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
 def SCcap  : Pseudo<(outs), (ins GPCR:$rs1, GPCR:$rs2), [],
                     "sc.cap", "$rs1, $rs2">;
+
+defm : CheriStPat<truncstorei8, SBcap, GPR, GPCR>;
+defm : CheriStPat<truncstorei16, SHcap, GPR, GPCR>;
+defm : CheriStPat<store, SWcap, GPR, GPCR>, Requires<[IsRV32]>;
+defm : CheriStPat<truncstorei32, SWcap, GPR, GPCR>, Requires<[IsRV64]>;
+defm : CheriStPat<store, SDcap, GPR, GPCR>, Requires<[IsRV64]>;
+defm : CheriStPat<store, SCcap, GPCR, GPCR>;
