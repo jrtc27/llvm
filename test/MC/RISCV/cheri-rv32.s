@@ -1,12 +1,12 @@
-# RUN: llvm-mc %s -triple=riscv32_cheri -show-encoding \
+# RUN: llvm-mc %s -triple=riscv32 -mattr=+cheri -show-encoding \
 # RUN:     | FileCheck -check-prefixes=CHECK,CHECK32,CHECK-INST %s
-# RUN: llvm-mc %s -triple=riscv64_cheri -show-encoding \
+# RUN: llvm-mc %s -triple=riscv64 -mattr=+cheri -show-encoding \
 # RUN:     | FileCheck -check-prefixes=CHECK,CHECK64,CHECK-INST %s
-# RUN: llvm-mc -filetype=obj -triple riscv32_cheri < %s \
-# RUN:     | llvm-objdump -d - \
+# RUN: llvm-mc -filetype=obj -triple riscv32 -mattr=+cheri < %s \
+# RUN:     | llvm-objdump -mattr=+cheri -d - \
 # RUN:     | FileCheck -check-prefix=CHECK-INST %s
-# RUN: llvm-mc -filetype=obj -triple riscv64_cheri < %s \
-# RUN:     | llvm-objdump -d - \
+# RUN: llvm-mc -filetype=obj -triple riscv64 -mattr=+cheri < %s \
+# RUN:     | llvm-objdump -mattr=+cheri -d - \
 # RUN:     | FileCheck -check-prefix=CHECK-INST %s
 
 # CHECK-INST: cgetperm ra, csp

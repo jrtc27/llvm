@@ -1,7 +1,7 @@
-# RUN: llvm-mc %s -triple=riscv64_cheri -show-encoding \
+# RUN: llvm-mc %s -triple=riscv64 -mattr=+cheri -show-encoding \
 # RUN:     | FileCheck -check-prefixes=CHECK,CHECK-INST %s
-# RUN: llvm-mc -filetype=obj -triple riscv64_cheri < %s \
-# RUN:     | llvm-objdump -riscv-no-aliases -d - \
+# RUN: llvm-mc -filetype=obj -triple riscv64 -mattr=+cheri < %s \
+# RUN:     | llvm-objdump -mattr=+cheri -riscv-no-aliases -d - \
 # RUN:     | FileCheck -check-prefix=CHECK-INST %s
 
 # CHECK-INST: ld.ddc ra, sp

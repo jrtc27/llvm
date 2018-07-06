@@ -39,9 +39,6 @@ RISCVSubtarget &RISCVSubtarget::initializeSubtargetDependencies(StringRef CPU,
     XLenVT = MVT::i64;
     XLen = 64;
   }
-  Triple::ArchType Arch = TT.getArch();
-  if (Arch == Triple::riscv32_cheri || Arch == Triple::riscv64_cheri)
-    IsCheri = true;
   return *this;
 }
 
