@@ -44,11 +44,12 @@ class RISCVSubtarget : public RISCVGenSubtargetInfo {
   RISCVRegisterInfo RegInfo;
   RISCVTargetLowering TLInfo;
   SelectionDAGTargetInfo TSInfo;
+  bool IsCheri;
 
   /// Initializes using the passed in CPU and feature strings so that we can
   /// use initializer lists for subtarget initialization.
   RISCVSubtarget &initializeSubtargetDependencies(StringRef CPU, StringRef FS,
-                                                  bool Is64Bit);
+                                                  const Triple &TT);
 
 public:
   // Initializes the data members to match that of the specified triple.
@@ -81,6 +82,10 @@ public:
   bool enableLinkerRelax() const { return EnableLinkerRelax; }
   MVT getXLenVT() const { return XLenVT; }
   unsigned getXLen() const { return XLen; }
+  bool isCheri() const { return IsCheri; }
+  MVT typeForCapabilities() const {
+    return is64Bit() ? MVT::iFATPTR128 : MVT::iFATPTR64;
+  }
 };
 } // End llvm namespace
 

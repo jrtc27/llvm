@@ -52,6 +52,10 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
     addRegisterClass(MVT::f32, &RISCV::FPR32RegClass);
   if (Subtarget.hasStdExtD())
     addRegisterClass(MVT::f64, &RISCV::FPR64RegClass);
+  if (Subtarget.isCheri()) {
+    addRegisterClass(Subtarget.typeForCapabilities(), &RISCV::GPCRRegClass);
+    addRegisterClass(Subtarget.typeForCapabilities(), &RISCV::SPCRRegClass);
+  }
 
   // Compute derived properties from the register classes.
   computeRegisterProperties(STI.getRegisterInfo());

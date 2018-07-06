@@ -28,8 +28,9 @@ void RISCVSubtarget::anchor() {}
 
 RISCVSubtarget &RISCVSubtarget::initializeSubtargetDependencies(StringRef CPU,
                                                                 StringRef FS,
-                                                                bool Is64Bit) {
+                                                                const Triple &TT) {
   // Determine default and user-specified characteristics
+  bool Is64Bit = TT.isArch64Bit();
   std::string CPUName = CPU;
   if (CPUName.empty())
     CPUName = Is64Bit ? "generic-rv64" : "generic-rv32";
@@ -38,11 +39,14 @@ RISCVSubtarget &RISCVSubtarget::initializeSubtargetDependencies(StringRef CPU,
     XLenVT = MVT::i64;
     XLen = 64;
   }
+  Triple::ArchType Arch = TT.getArch();
+  if (Arch == Triple::riscv32_cheri || Arch == Triple::riscv64_cheri)
+    IsCheri = true;
   return *this;
 }
 
 RISCVSubtarget::RISCVSubtarget(const Triple &TT, const std::string &CPU,
                                const std::string &FS, const TargetMachine &TM)
     : RISCVGenSubtargetInfo(TT, CPU, FS),
-      FrameLowering(initializeSubtargetDependencies(CPU, FS, TT.isArch64Bit())),
+      FrameLowering(initializeSubtargetDependencies(CPU, FS, TT)),
       InstrInfo(*this), RegInfo(getHwMode()), TLInfo(TM, *this) {}
