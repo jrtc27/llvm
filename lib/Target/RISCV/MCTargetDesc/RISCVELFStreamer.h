@@ -22,6 +22,10 @@ public:
 
   virtual void emitDirectiveOptionRVC();
   virtual void emitDirectiveOptionNoRVC();
+  virtual void emitDirectiveOptionPic();
+  virtual void emitDirectiveOptionNoPic();
+  virtual void emitDirectiveOptionPush();
+  virtual void emitDirectiveOptionPop();
 };
 }
 #endif

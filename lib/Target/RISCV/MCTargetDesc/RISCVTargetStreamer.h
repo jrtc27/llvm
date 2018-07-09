@@ -20,6 +20,10 @@ public:
 
   virtual void emitDirectiveOptionRVC() = 0;
   virtual void emitDirectiveOptionNoRVC() = 0;
+  virtual void emitDirectiveOptionPic() = 0;
+  virtual void emitDirectiveOptionNoPic() = 0;
+  virtual void emitDirectiveOptionPush() = 0;
+  virtual void emitDirectiveOptionPop() = 0;
 };
 
 // This part is for ascii assembly output
@@ -31,6 +35,10 @@ public:
 
   void emitDirectiveOptionRVC() override;
   void emitDirectiveOptionNoRVC() override;
+  void emitDirectiveOptionPic() override;
+  void emitDirectiveOptionNoPic() override;
+  void emitDirectiveOptionPush() override;
+  void emitDirectiveOptionPop() override;
 };
 
 }

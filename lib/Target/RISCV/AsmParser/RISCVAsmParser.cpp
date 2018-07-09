@@ -17,6 +17,7 @@
 #include "llvm/MC/MCExpr.h"
 #include "llvm/MC/MCInst.h"
 #include "llvm/MC/MCInstBuilder.h"
+#include "llvm/MC/MCObjectFileInfo.h"
 #include "llvm/MC/MCParser/MCAsmLexer.h"
 #include "llvm/MC/MCParser/MCParsedAsmOperand.h"
 #include "llvm/MC/MCParser/MCTargetAsmParser.h"
@@ -36,9 +37,33 @@ using namespace llvm;
 #include "RISCVGenCompressInstEmitter.inc"
 
 namespace {
+class RISCVAssemblerOptions {
+public:
+  RISCVAssemblerOptions(bool Pic_, const FeatureBitset &Features_)
+    : Pic(Pic_), Features(Features_) {}
+
+  RISCVAssemblerOptions(const RISCVAssemblerOptions *Opts) {
+    Pic = Opts->isPic();
+    Features = Opts->getFeatures();
+  }
+
+  bool isPic() const { return Pic; }
+  void setPic() { Pic = true; }
+  void setNoPic() { Pic = false; }
+
+  const FeatureBitset &getFeatures() const { return Features; }
+  void setFeatures(const FeatureBitset &Features_) { Features = Features_; }
+
+private:
+  bool Pic;
+  FeatureBitset Features;
+};
+
 struct RISCVOperand;
 
 class RISCVAsmParser : public MCTargetAsmParser {
+  SmallVector<std::unique_ptr<RISCVAssemblerOptions>, 2> AssemblerOptions;
+
   SMLoc getLoc() const { return getParser().getTok().getLoc(); }
   bool isRV64() const { return getSTI().hasFeature(RISCV::Feature64Bit); }
 
@@ -98,6 +123,7 @@ class RISCVAsmParser : public MCTargetAsmParser {
       MCSubtargetInfo &STI = copySTI();
       setAvailableFeatures(
           ComputeAvailableFeatures(STI.ToggleFeature(FeatureString)));
+      AssemblerOptions.back()->setFeatures(STI.getFeatureBits());
     }
   }
 
@@ -106,6 +132,7 @@ class RISCVAsmParser : public MCTargetAsmParser {
       MCSubtargetInfo &STI = copySTI();
       setAvailableFeatures(
           ComputeAvailableFeatures(STI.ToggleFeature(FeatureString)));
+      AssemblerOptions.back()->setFeatures(STI.getFeatureBits());
     }
   }
 public:
@@ -123,11 +150,21 @@ public:
   RISCVAsmParser(const MCSubtargetInfo &STI, MCAsmParser &Parser,
                  const MCInstrInfo &MII, const MCTargetOptions &Options)
       : MCTargetAsmParser(Options, STI, MII) {
+    MCAsmParserExtension::Initialize(Parser);
+
     Parser.addAliasForDirective(".half", ".2byte");
     Parser.addAliasForDirective(".hword", ".2byte");
     Parser.addAliasForDirective(".word", ".4byte");
     Parser.addAliasForDirective(".dword", ".8byte");
-    setAvailableFeatures(ComputeAvailableFeatures(STI.getFeatureBits()));
+
+    FeatureBitset Features = STI.getFeatureBits();
+    setAvailableFeatures(ComputeAvailableFeatures(Features));
+
+    bool IsPicEnabled =
+      getContext().getObjectFileInfo()->isPositionIndependent();
+
+    AssemblerOptions.push_back(
+        llvm::make_unique<RISCVAssemblerOptions>(IsPicEnabled, Features));
   }
 };
 
@@ -1110,9 +1147,65 @@ bool RISCVAsmParser::parseDirectiveOption() {
     return false;
   }
 
+  if (Option == "pic") {
+    getTargetStreamer().emitDirectiveOptionPic();
+
+    Parser.Lex();
+    if (Parser.getTok().isNot(AsmToken::EndOfStatement))
+      return Error(Parser.getTok().getLoc(),
+                   "unexpected token, expected end of statement");
+
+    AssemblerOptions.back()->setPic();
+    return false;
+  }
+
+  if (Option == "nopic") {
+    getTargetStreamer().emitDirectiveOptionNoPic();
+
+    Parser.Lex();
+    if (Parser.getTok().isNot(AsmToken::EndOfStatement))
+      return Error(Parser.getTok().getLoc(),
+                   "unexpected token, expected end of statement");
+
+    AssemblerOptions.back()->setNoPic();
+    return false;
+  }
+
+  if (Option == "push") {
+    getTargetStreamer().emitDirectiveOptionPush();
+
+    Parser.Lex();
+    if (Parser.getTok().isNot(AsmToken::EndOfStatement))
+      return Error(Parser.getTok().getLoc(),
+                   "unexpected token, expected end of statement");
+
+    AssemblerOptions.push_back(
+          llvm::make_unique<RISCVAssemblerOptions>(AssemblerOptions.back().get()));
+    return false;
+  }
+
+  if (Option == "pop") {
+    getTargetStreamer().emitDirectiveOptionPop();
+
+    Parser.Lex();
+    if (Parser.getTok().isNot(AsmToken::EndOfStatement))
+      return Error(Parser.getTok().getLoc(),
+                   "unexpected token, expected end of statement");
+
+    if (AssemblerOptions.size() == 1)
+      return Error(Parser.getTok().getLoc(),
+                   ".option pop with no .option push");
+
+    MCSubtargetInfo &STI = copySTI();
+    AssemblerOptions.pop_back();
+    setAvailableFeatures(
+        ComputeAvailableFeatures(AssemblerOptions.back()->getFeatures()));
+    STI.setFeatureBits(AssemblerOptions.back()->getFeatures());
+    return false;
+  }
+
   // Unknown option.
-  Warning(Parser.getTok().getLoc(),
-          "unknown option, expected 'rvc' or 'norvc'");
+  Warning(Parser.getTok().getLoc(), "unknown option: " + Option);
   Parser.eatToEndOfStatement();
   return false;
 }
