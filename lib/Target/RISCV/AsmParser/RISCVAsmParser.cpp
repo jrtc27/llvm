@@ -98,6 +98,10 @@ class RISCVAsmParser : public MCTargetAsmParser {
   // synthesize the desired immedate value into the destination register.
   void emitLoadImm(unsigned DestReg, int64_t Value, MCStreamer &Out);
 
+  // Helper to emit an AUIPC followed by either an ADDI or a word-sized load to
+  // place the address of a symbol into the destination register.
+  void emitLoadAddr(unsigned DestReg, const MCOperand &Addr, MCStreamer &Out);
+
   /// Helper for processing MC instructions that have been successfully matched
   /// by MatchAndEmitInstruction. Modifications to the emitted instructions,
   /// like the expansion of pseudo instructions (e.g., "li"), can be performed
@@ -910,17 +914,10 @@ OperandMatchResultTy RISCVAsmParser::parseImmediate(OperandVector &Operands) {
   case AsmToken::Plus:
   case AsmToken::Integer:
   case AsmToken::String:
+  case AsmToken::Identifier:
     if (getParser().parseExpression(Res))
       return MatchOperand_ParseFail;
     break;
-  case AsmToken::Identifier: {
-    StringRef Identifier;
-    if (getParser().parseIdentifier(Identifier))
-      return MatchOperand_ParseFail;
-    MCSymbol *Sym = getContext().getOrCreateSymbol(Identifier);
-    Res = MCSymbolRefExpr::create(Sym, MCSymbolRefExpr::VK_None, getContext());
-    break;
-  }
   case AsmToken::Percent:
     return parseOperandWithModifier(Operands);
   }
@@ -1295,6 +1292,39 @@ void RISCVAsmParser::emitLoadImm(unsigned DestReg, int64_t Value,
                             .addImm(Lo12));
 }
 
+void RISCVAsmParser::emitLoadAddr(unsigned DestReg, const MCOperand &Addr,
+                                  MCStreamer &Out) {
+  const MCExpr *SymExpr = Addr.getExpr();
+  RISCVMCExpr::VariantKind Hi20VK;
+  unsigned SecondOpcode;
+
+  if (AssemblerOptions.back()->isPic()) {
+    Hi20VK = RISCVMCExpr::VK_RISCV_GOT_HI;
+    SecondOpcode = isRV64() ? RISCV::LD : RISCV::LW;
+  } else {
+    Hi20VK = RISCVMCExpr::VK_RISCV_PCREL_HI;
+    SecondOpcode = RISCV::ADDI;
+  }
+
+  MCSymbol *TmpLabel = getContext().createTempSymbol();
+  Out.EmitLabel(TmpLabel);
+
+  const MCExpr *Hi20Expr = RISCVMCExpr::create(SymExpr, Hi20VK, getContext());
+  const MCExpr *TmpLabelExpr = MCSymbolRefExpr::create(TmpLabel, getContext());
+  const MCExpr *Lo12Expr =
+    RISCVMCExpr::create(TmpLabelExpr, RISCVMCExpr::VK_RISCV_PCREL_LO,
+                        getContext());
+
+  emitToStreamer(Out, MCInstBuilder(RISCV::AUIPC)
+                          .addReg(DestReg)
+                          .addExpr(Hi20Expr));
+
+  emitToStreamer(Out, MCInstBuilder(SecondOpcode)
+                          .addReg(DestReg)
+                          .addReg(DestReg)
+                          .addExpr(Lo12Expr));
+}
+
 bool RISCVAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
                                         MCStreamer &Out) {
   Inst.setLoc(IDLoc);
@@ -1308,6 +1338,11 @@ bool RISCVAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
     if (!isRV64())
       Imm = SignExtend64<32>(Imm);
     emitLoadImm(Reg, Imm, Out);
+    return false;
+  }
+
+  if (Inst.getOpcode() == RISCV::PseudoLA) {
+    emitLoadAddr(Inst.getOperand(0).getReg(), Inst.getOperand(1), Out);
     return false;
   }
 

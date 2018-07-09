@@ -54,6 +54,7 @@ bool RISCVMCExpr::evaluateAsRelocatableImpl(MCValue &Res,
       return true;
     case VK_RISCV_LO:
     case VK_RISCV_HI:
+    case VK_RISCV_GOT_HI:
     case VK_RISCV_PCREL_LO:
     case VK_RISCV_PCREL_HI:
       return false;
@@ -84,6 +85,8 @@ StringRef RISCVMCExpr::getVariantKindName(VariantKind Kind) {
     return "lo";
   case VK_RISCV_HI:
     return "hi";
+  case VK_RISCV_GOT_HI:
+    return "got_hi";
   case VK_RISCV_PCREL_LO:
     return "pcrel_lo";
   case VK_RISCV_PCREL_HI:
@@ -95,7 +98,7 @@ bool RISCVMCExpr::evaluateAsConstant(int64_t &Res) const {
   MCValue Value;
 
   if (Kind == VK_RISCV_PCREL_HI || Kind == VK_RISCV_PCREL_LO ||
-      Kind == VK_RISCV_CALL)
+      Kind == VK_RISCV_GOT_HI || Kind == VK_RISCV_CALL)
     return false;
 
   if (!getSubExpr()->evaluateAsRelocatable(Value, nullptr, nullptr))

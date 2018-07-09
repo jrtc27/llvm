@@ -78,6 +78,8 @@ unsigned RISCVELFObjectWriter::getRelocType(MCContext &Ctx,
     return ELF::R_RISCV_LO12_I;
   case RISCV::fixup_riscv_lo12_s:
     return ELF::R_RISCV_LO12_S;
+  case RISCV::fixup_riscv_got_hi20:
+    return ELF::R_RISCV_GOT_HI20;
   case RISCV::fixup_riscv_pcrel_hi20:
     return ELF::R_RISCV_PCREL_HI20;
   case RISCV::fixup_riscv_pcrel_lo12_i:
