@@ -196,6 +196,7 @@ def SPCR : RegisterClass<"RISCV", [CLenVT], 64, (add
     MTCC, MScratchC, MEPCC
   )> {
   let RegInfos = CapRegInfo;
+  let isAllocatable = 0;
 }
 
 // The order of registers represents the preferred allocation sequence.

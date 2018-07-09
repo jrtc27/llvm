@@ -33,6 +33,10 @@ RISCVRegisterInfo::RISCVRegisterInfo(unsigned HwMode)
 
 const MCPhysReg *
 RISCVRegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
+  const RISCVSubtarget &Subtarget = MF->getSubtarget<RISCVSubtarget>();
+  if (Subtarget.isCheri())
+    return CSR_Cheri_SaveList;
+
   return CSR_SaveList;
 }
 
@@ -53,6 +57,22 @@ BitVector RISCVRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   markSuperRegs(Reserved, RISCV::C3); // cgp
   markSuperRegs(Reserved, RISCV::C4); // ctp
   markSuperRegs(Reserved, RISCV::C8); // cfp
+
+  markSuperRegs(Reserved, RISCV::PCC);
+  markSuperRegs(Reserved, RISCV::DDC);
+
+  markSuperRegs(Reserved, RISCV::UTCC);
+  markSuperRegs(Reserved, RISCV::UScratchC);
+  markSuperRegs(Reserved, RISCV::UEPCC);
+
+  markSuperRegs(Reserved, RISCV::STCC);
+  markSuperRegs(Reserved, RISCV::SScratchC);
+  markSuperRegs(Reserved, RISCV::SEPCC);
+
+  markSuperRegs(Reserved, RISCV::MTCC);
+  markSuperRegs(Reserved, RISCV::MScratchC);
+  markSuperRegs(Reserved, RISCV::MEPCC);
+
   assert(checkAllSuperRegsMarked(Reserved));
   return Reserved;
 }
@@ -115,7 +135,11 @@ unsigned RISCVRegisterInfo::getFrameRegister(const MachineFunction &MF) const {
 }
 
 const uint32_t *
-RISCVRegisterInfo::getCallPreservedMask(const MachineFunction & /*MF*/,
+RISCVRegisterInfo::getCallPreservedMask(const MachineFunction &MF,
                                         CallingConv::ID /*CC*/) const {
+  const RISCVSubtarget &Subtarget = MF.getSubtarget<RISCVSubtarget>();
+  if (Subtarget.isCheri())
+    return CSR_Cheri_RegMask;
+
   return CSR_RegMask;
 }

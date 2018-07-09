@@ -201,6 +201,42 @@ def SCcap_128 : CheriStore_explicit<0b11100, "sc.cap",  GPCR, GPCR> {
 }
 
 //===----------------------------------------------------------------------===//
+// Memory-Access Instructions
+//===----------------------------------------------------------------------===//
+
+let Predicates = [IsCheri,IsCheri64] in {
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+def LC_64  : RVInstI<0x3, OPC_LOAD, (outs GPCR:$rd),
+                     (ins GPR:$rs1, simm12:$imm12),
+                     "lc", "$rd, ${imm12}(${rs1})"> {
+  let DecoderNamespace = "CHERI";
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+def SC_64  : RVInstS<0x3, OPC_STORE, (outs),
+                     (ins GPCR:$rs2, GPR:$rs1, simm12:$imm12),
+                     "sc", "$rs2, ${imm12}(${rs1})"> {
+  let DecoderNamespace = "CHERI";
+}
+}
+
+let Predicates = [IsCheri,IsCheri128] in {
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+def LC_128  : RVInstI<0x2, OPC_MISC_MEM, (outs GPCR:$rd),
+                      (ins GPR:$rs1, simm12:$imm12),
+                      "lc", "$rd, ${imm12}(${rs1})"> {
+  let DecoderNamespace = "CHERI";
+}
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+def SC_128  : RVInstS<0x4, OPC_STORE, (outs),
+                      (ins GPCR:$rs2, GPR:$rs1, simm12:$imm12),
+                      "sc", "$rs2, ${imm12}(${rs1})"> {
+  let DecoderNamespace = "CHERI";
+}
+}
+
+//===----------------------------------------------------------------------===//
 // Pseudo-instructions and codegen patterns
 //===----------------------------------------------------------------------===//
 
@@ -211,6 +247,16 @@ multiclass CheriLdPat<PatFrag LoadOp, RVInst Inst, RegisterClass AddrTy> {
 multiclass CheriStPat<PatFrag StoreOp, RVInst Inst, RegisterClass StTy,
                       RegisterClass AddrTy> {
   def : Pat<(StoreOp StTy:$rs2, AddrTy:$rs1), (Inst StTy:$rs2, AddrTy:$rs1)>;
+}
+
+let Predicates = [IsCheri] in {
+let hasSideEffects = 0, mayLoad = 1, mayStore = 0 in
+def LC  : Pseudo<(outs GPCR:$rd), (ins GPR:$rs1, simm12:$imm12), [],
+                 "lc", "$rd, ${imm12}(${rs1})">;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in
+def SC  : Pseudo<(outs), (ins GPCR:$rs1, GPR:$rs2, simm12:$imm12), [],
+                 "sc", "$rs1, ${imm12}(${rs2})">;
 }
 
 /// DDC-relative loads

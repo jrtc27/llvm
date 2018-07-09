@@ -15,6 +15,8 @@
 // RISCVISelLowering.cpp (CC_RISCV).
 
 def CSR : CalleeSavedRegs<(add X1, X3, X4, X8, X9, (sequence "X%u", 18, 27))>;
+def CSR_Cheri : CalleeSavedRegs<(add CSR, C1, C3, C4, C8, C9,
+                                     (sequence "C%u", 18, 27))>;
 
 // Needed for implementation of RISCVRegisterInfo::getNoPreservedMask()
 def CSR_NoRegs : CalleeSavedRegs<(add)>;

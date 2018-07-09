@@ -74,6 +74,12 @@ static unsigned lowerOpcode(unsigned Opcode, const AsmPrinter &AP) {
     case RISCV::SCcap:
       Opcode = Is64Bit ? RISCV::SCcap_128 : RISCV::SCcap_64;
       break;
+    case RISCV::LC:
+      Opcode = Is64Bit ? RISCV::LC_128 : RISCV::LC_64;
+      break;
+    case RISCV::SC:
+      Opcode = Is64Bit ? RISCV::SC_128 : RISCV::SC_64;
+      break;
   }
 
   return Opcode;

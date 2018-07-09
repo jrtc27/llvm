@@ -52,10 +52,8 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
     addRegisterClass(MVT::f32, &RISCV::FPR32RegClass);
   if (Subtarget.hasStdExtD())
     addRegisterClass(MVT::f64, &RISCV::FPR64RegClass);
-  if (Subtarget.isCheri()) {
+  if (Subtarget.isCheri())
     addRegisterClass(Subtarget.typeForCapabilities(), &RISCV::GPCRRegClass);
-    addRegisterClass(Subtarget.typeForCapabilities(), &RISCV::SPCRRegClass);
-  }
 
   // Compute derived properties from the register classes.
   computeRegisterProperties(STI.getRegisterInfo());
@@ -658,6 +656,11 @@ static const MCPhysReg ArgGPRs[] = {
   RISCV::X14, RISCV::X15, RISCV::X16, RISCV::X17
 };
 
+static const MCPhysReg ArgGPCRs[] = {
+  RISCV::C10, RISCV::C11, RISCV::C12, RISCV::C13,
+  RISCV::C14, RISCV::C15, RISCV::C16, RISCV::C17
+};
+
 // Pass a 2*XLEN argument that has been split into two XLEN values through
 // registers or the stack as necessary.
 static bool CC_RISCVAssign2XLen(unsigned XLen, CCState &State, CCValAssign VA1,
@@ -699,10 +702,12 @@ static bool CC_RISCVAssign2XLen(unsigned XLen, CCState &State, CCValAssign VA1,
 // Implements the RISC-V calling convention. Returns true upon failure.
 static bool CC_RISCV(const DataLayout &DL, unsigned ValNo, MVT ValVT, MVT LocVT,
                      CCValAssign::LocInfo LocInfo, ISD::ArgFlagsTy ArgFlags,
-                     CCState &State, bool IsFixed, bool IsRet, Type *OrigTy) {
+                     CCState &State, bool IsFixed, bool IsRet, Type *OrigTy,
+                     const RISCVSubtarget &Subtarget) {
   unsigned XLen = DL.getLargestLegalIntTypeSizeInBits();
   assert(XLen == 32 || XLen == 64);
   MVT XLenVT = XLen == 32 ? MVT::i32 : MVT::i64;
+  MVT CLenVT = Subtarget.typeForCapabilities();
   if (ValVT == MVT::f32) {
     LocVT = MVT::i32;
     LocInfo = CCValAssign::BCvt;
@@ -786,8 +791,17 @@ static bool CC_RISCV(const DataLayout &DL, unsigned ValNo, MVT ValVT, MVT LocVT,
   }
 
   // Allocate to a register if possible, or else a stack slot.
-  unsigned Reg = State.AllocateReg(ArgGPRs);
-  unsigned StackOffset = Reg ? 0 : State.AllocateStack(XLen / 8, XLen / 8);
+  ArrayRef<MCPhysReg> ArgRegs;
+  unsigned ArgBytes;
+  if (LocVT == CLenVT) {
+    ArgRegs = makeArrayRef(ArgGPCRs);
+    ArgBytes = DL.getPointerSize(200);
+  } else {
+    ArgRegs = makeArrayRef(ArgGPRs);
+    ArgBytes = XLen / 8;
+  }
+  unsigned Reg = State.AllocateReg(ArgRegs);
+  unsigned StackOffset = Reg ? 0 : State.AllocateStack(ArgBytes, ArgBytes);
 
   // If we reach this point and PendingLocs is non-empty, we must be at the
   // end of a split argument that must be passed indirectly.
@@ -807,7 +821,8 @@ static bool CC_RISCV(const DataLayout &DL, unsigned ValNo, MVT ValVT, MVT LocVT,
     return false;
   }
 
-  assert(LocVT == XLenVT && "Expected an XLenVT at this stage");
+  assert((LocVT == XLenVT || LocVT == CLenVT)
+         && "Expected an XLenVT or a CLenVT at this stage");
 
   if (Reg) {
     State.addLoc(CCValAssign::getReg(ValNo, ValVT, Reg, LocVT, LocInfo));
@@ -835,7 +850,7 @@ void RISCVTargetLowering::analyzeInputArgs(
       ArgTy = FType->getParamType(Ins[i].getOrigArgIndex());
 
     if (CC_RISCV(MF.getDataLayout(), i, ArgVT, ArgVT, CCValAssign::Full,
-                 ArgFlags, CCInfo, /*IsRet=*/true, IsRet, ArgTy)) {
+                 ArgFlags, CCInfo, /*IsRet=*/true, IsRet, ArgTy, Subtarget)) {
       LLVM_DEBUG(dbgs() << "InputArg #" << i << " has unhandled type "
                         << EVT(ArgVT).getEVTString() << '\n');
       llvm_unreachable(nullptr);
@@ -855,7 +870,7 @@ void RISCVTargetLowering::analyzeOutputArgs(
     Type *OrigTy = CLI ? CLI->getArgs()[Outs[i].OrigArgIndex].Ty : nullptr;
 
     if (CC_RISCV(MF.getDataLayout(), i, ArgVT, ArgVT, CCValAssign::Full,
-                 ArgFlags, CCInfo, Outs[i].IsFixed, IsRet, OrigTy)) {
+                 ArgFlags, CCInfo, Outs[i].IsFixed, IsRet, OrigTy, Subtarget)) {
       LLVM_DEBUG(dbgs() << "OutputArg #" << i << " has unhandled type "
                         << EVT(ArgVT).getEVTString() << "\n");
       llvm_unreachable(nullptr);
@@ -866,14 +881,21 @@ void RISCVTargetLowering::analyzeOutputArgs(
 // The caller is responsible for loading the full value if the argument is
 // passed with CCValAssign::Indirect.
 static SDValue unpackFromRegLoc(SelectionDAG &DAG, SDValue Chain,
-                                const CCValAssign &VA, const SDLoc &DL) {
+                                const CCValAssign &VA, const SDLoc &DL,
+                                const RISCVSubtarget &Subtarget) {
   MachineFunction &MF = DAG.getMachineFunction();
   MachineRegisterInfo &RegInfo = MF.getRegInfo();
   EVT LocVT = VA.getLocVT();
   EVT ValVT = VA.getValVT();
   SDValue Val;
+  const TargetRegisterClass *RC;
 
-  unsigned VReg = RegInfo.createVirtualRegister(&RISCV::GPRRegClass);
+  if (LocVT == Subtarget.typeForCapabilities())
+    RC = &RISCV::GPCRRegClass;
+  else
+    RC = &RISCV::GPRRegClass;
+
+  unsigned VReg = RegInfo.createVirtualRegister(RC);
   RegInfo.addLiveIn(VA.getLocReg(), VReg);
   Val = DAG.getCopyFromReg(Chain, DL, VReg, LocVT);
 
@@ -984,14 +1006,16 @@ SDValue RISCVTargetLowering::LowerFormalArguments(
 
   for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
     CCValAssign &VA = ArgLocs[i];
-    assert(VA.getLocVT() == XLenVT && "Unhandled argument type");
+    assert((VA.getLocVT() == XLenVT
+            || VA.getLocVT() == Subtarget.typeForCapabilities())
+           && "Unhandled argument type");
     SDValue ArgValue;
     // Passing f64 on RV32D with a soft float ABI must be handled as a special
     // case.
     if (VA.getLocVT() == MVT::i32 && VA.getValVT() == MVT::f64)
       ArgValue = unpackF64OnRV32DSoftABI(DAG, Chain, VA, DL);
     else if (VA.isRegLoc())
-      ArgValue = unpackFromRegLoc(DAG, Chain, VA, DL);
+      ArgValue = unpackFromRegLoc(DAG, Chain, VA, DL, Subtarget);
     else
       ArgValue = unpackFromMemLoc(DAG, Chain, VA, DL);
 
@@ -1439,7 +1463,7 @@ bool RISCVTargetLowering::CanLowerReturn(
     MVT VT = Outs[i].VT;
     ISD::ArgFlagsTy ArgFlags = Outs[i].Flags;
     if (CC_RISCV(MF.getDataLayout(), i, VT, VT, CCValAssign::Full, ArgFlags,
-                 CCInfo, /*IsFixed=*/true, /*IsRet=*/true, nullptr))
+                 CCInfo, /*IsFixed=*/true, /*IsRet=*/true, nullptr, Subtarget))
       return false;
   }
   return true;
