@@ -58,6 +58,8 @@ BitVector RISCVRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   markSuperRegs(Reserved, RISCV::C4); // ctp
   markSuperRegs(Reserved, RISCV::C8); // cfp
 
+  markSuperRegs(Reserved, RISCV::DDC_GPCR);
+
   markSuperRegs(Reserved, RISCV::PCC);
   markSuperRegs(Reserved, RISCV::DDC);
 

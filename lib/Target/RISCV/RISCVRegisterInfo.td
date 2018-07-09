@@ -139,6 +139,9 @@ let RegAltNameIndices = [ABIRegAltName] in {
   def C31 : RISCVRegCap<X31,"c31", ["ct6"]>, DwarfRegNum<[31]>;
   }
 
+  // CTo/FromPtr use cb=0 to mean DDC rather than C0, since C0 is meaningless
+  def DDC_GPCR  : RISCVRegSpecialCap<0, "DDC", ["DDC"]>;
+
   def PCC       : RISCVRegSpecialCap<0, "PCC", ["PCC"]>;
   def DDC       : RISCVRegSpecialCap<1, "DDC", ["DDC"]>;
 
@@ -212,6 +215,23 @@ def GPRNoX0 : RegisterClass<"RISCV", [XLenVT], 32, (add
   let RegInfos = RegInfoByHwMode<
       [RV32,              RV64,              DefaultMode],
       [RegInfo<32,32,32>, RegInfo<64,64,64>, RegInfo<32,32,32>]>;
+}
+
+def GPCRNoC0 : RegisterClass<"RISCV", [CLenVT], 64, (add
+    (sequence "C%u", 10, 17),
+    (sequence "C%u", 5, 7),
+    (sequence "C%u", 28, 31),
+    (sequence "C%u", 8, 9),
+    (sequence "C%u", 18, 27),
+    (sequence "C%u", 1, 4)
+  )> {
+  let RegInfos = CapRegInfo;
+}
+
+def GPCRC0IsDDC : RegisterClass<"RISCV", [CLenVT], 64, (add
+    GPCRNoC0, DDC_GPCR
+  )> {
+  let RegInfos = CapRegInfo;
 }
 
 def GPRNoX0X2 : RegisterClass<"RISCV", [XLenVT], 32, (add

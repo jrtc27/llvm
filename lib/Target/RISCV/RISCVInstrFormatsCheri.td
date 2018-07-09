@@ -109,9 +109,9 @@ class Cheri_ccc<bits<7> funct7, string opcodestr>
               (ins GPCR:$rs1, GPCR:$rs2), opcodestr, "$rd, $rs1, $rs2">;
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-class Cheri_ccr<bits<7> funct7, string opcodestr>
+class Cheri_ccr<bits<7> funct7, string opcodestr, RegisterClass rs1Class=GPCR>
     : RVInstR<funct7, 0, OPC_CHERI, (outs GPCR:$rd),
-              (ins GPCR:$rs1, GPR:$rs2), opcodestr, "$rd, $rs1, $rs2">;
+              (ins rs1Class:$rs1, GPR:$rs2), opcodestr, "$rd, $rs1, $rs2">;
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
 class Cheri_cci<bits<3> funct3, string opcodestr, bit simm>
@@ -125,9 +125,9 @@ class Cheri_cc<bits<7> funct7, bits<5> funct5, string opcodestr>
                     (ins GPCR:$rs1), opcodestr, "$rd, $rs1">;
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in
-class Cheri_rcc<bits<7> funct7, string opcodestr>
+class Cheri_rcc<bits<7> funct7, string opcodestr, RegisterClass rs2Class=GPCR>
     : RVInstR<funct7, 0, OPC_CHERI, (outs GPR:$rd),
-              (ins GPCR:$rs1, GPCR:$rs2), opcodestr, "$rd, $rs1, $rs2">;
+              (ins GPCR:$rs1, rs2Class:$rs2), opcodestr, "$rd, $rs1, $rs2">;
 
 let hasSideEffects = 1, mayLoad = 0, mayStore = 0 in
 class Cheri_ccs<bits<7> funct7, string opcodestr>

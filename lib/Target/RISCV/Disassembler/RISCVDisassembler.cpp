@@ -133,6 +133,31 @@ static DecodeStatus DecodeSPCRRegisterClass(MCInst &Inst, uint64_t RegNo,
   return MCDisassembler::Success;
 }
 
+static const unsigned GPCRC0IsDDCDecoderTable[] = {
+  RISCV::DDC_GPCR, RISCV::C1,  RISCV::C2,  RISCV::C3,
+  RISCV::C4,       RISCV::C5,  RISCV::C6,  RISCV::C7,
+  RISCV::C8,       RISCV::C9,  RISCV::C10, RISCV::C11,
+  RISCV::C12,      RISCV::C13, RISCV::C14, RISCV::C15,
+  RISCV::C16,      RISCV::C17, RISCV::C18, RISCV::C19,
+  RISCV::C20,      RISCV::C21, RISCV::C22, RISCV::C23,
+  RISCV::C24,      RISCV::C25, RISCV::C26, RISCV::C27,
+  RISCV::C28,      RISCV::C29, RISCV::C30, RISCV::C31
+};
+
+static DecodeStatus DecodeGPCRC0IsDDCRegisterClass(MCInst &Inst, uint64_t RegNo,
+                                           uint64_t Address,
+                                           const void *Decoder) {
+  if (RegNo > sizeof(GPCRC0IsDDCDecoderTable))
+    return MCDisassembler::Fail;
+
+  // We must define our own mapping from RegNo to register identifier.
+  // Accessing index RegNo in the register class will work in the case that
+  // registers were added in ascending order, but not in general.
+  unsigned Reg = GPCRC0IsDDCDecoderTable[RegNo];
+  Inst.addOperand(MCOperand::createReg(Reg));
+  return MCDisassembler::Success;
+}
+
 static const unsigned FPR32DecoderTable[] = {
   RISCV::F0_32,  RISCV::F1_32,  RISCV::F2_32,  RISCV::F3_32,
   RISCV::F4_32,  RISCV::F5_32,  RISCV::F6_32,  RISCV::F7_32,

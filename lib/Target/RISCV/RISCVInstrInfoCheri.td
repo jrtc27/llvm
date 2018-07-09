@@ -54,8 +54,8 @@ def : InstAlias<"csetboundsimm $cd, $cb, $imm",
 //===----------------------------------------------------------------------===//
 
 let Predicates = [IsCheri] in {
-def CToPtr      : Cheri_rcc<0x12, "ctoptr">;
-def CFromPtr    : Cheri_ccr<0x13, "cfromptr">;
+def CToPtr      : Cheri_rcc<0x12, "ctoptr", GPCRC0IsDDC>;
+def CFromPtr    : Cheri_ccr<0x13, "cfromptr", GPCRC0IsDDC>;
 def CMove       : Cheri_cc<0x7f, 0xa, "cmove">;
 def CSpecialRW  : Cheri_ccs<0x1, "cspecialrw">;
 }
@@ -245,6 +245,11 @@ def : Pat<(ptradd GPCR:$rs1, simm12:$imm),
           (CIncOffsetImm $rs1, simm12:$imm)>;
 def : Pat<(ptradd GPCR:$rs1, GPR:$rs2),
           (CIncOffset $rs1, $rs2)>;
+
+def : Pat<(inttoptr GPR:$rs2),
+          (CFromPtr DDC_GPCR, $rs2)>;
+def : Pat<(ptrtoint GPCR:$rs1),
+          (CToPtr $rs1, DDC_GPCR)>;
 
 /// Loads / Stores
 
