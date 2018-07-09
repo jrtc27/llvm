@@ -38,8 +38,7 @@ def CIncOffsetImm   : Cheri_cci<0x1, "cincoffset", 1>;
 def CSetBounds      : Cheri_ccr<0x8, "csetbounds">;
 def CSetBoundsExact : Cheri_ccr<0x9, "csetboundsexact">;
 def CSetBoundsImm   : Cheri_cci<0x2, "csetbounds", 0>;
-// Currently collides with Clear
-//def CClearTag       : Cheri_cc<0x7f, 0xb, "ccleartag">;
+def CClearTag       : Cheri_cc<0x7f, 0xb, "ccleartag">;
 def CBuildCap       : Cheri_ccc<0x1d, "cbuildcap">;
 def CCopyType       : Cheri_ccc<0x1e, "ccopytype">;
 def CCSeal          : Cheri_ccc<0x1f, "ccseal">;
@@ -102,7 +101,7 @@ def CTestSubset : Cheri_rcc<0x20, "ctestsubset">;
 //===----------------------------------------------------------------------===//
 
 let Predicates = [IsCheri] in {
-def Clear   : Cheri_clear<0x7f, 0xb, "clear">;
+def Clear   : Cheri_clear<0x7f, 0xd, "clear">;
 def FPClear : Cheri_clear<0x7f, 0x10, "fpclear">;
 }
 

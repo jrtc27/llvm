@@ -67,7 +67,9 @@ csetbounds c1, c2, 0xbd5
 # CHECK-INST: csetboundsimm cra, csp, 3029
 # CHECK: encoding: [0xdb,0x20,0x51,0xbd]
 csetboundsimm c1, c2, 0xbd5
-# TODO: ccleartag goes here once defined
+# CHECK-INST: ccleartag cra, csp
+# CHECK: encoding: [0xdb,0x00,0xb1,0xfe]
+ccleartag c1, c2
 # CHECK-INST: cbuildcap cra, csp, cgp
 # CHECK: encoding: [0xdb,0x00,0x31,0x3a]
 cbuildcap c1, c2, c3
@@ -115,7 +117,7 @@ cchecktype c1, c2
 ctestsubset x1, c2, c3
 
 # CHECK-INST: clear 1, 66
-# CHECK: encoding: [0x5b,0x01,0xb5,0xfe]
+# CHECK: encoding: [0x5b,0x01,0xd5,0xfe]
 clear 1, 0x42
 # CHECK-INST: fpclear 1, 66
 # CHECK: encoding: [0x5b,0x01,0x05,0xff]
