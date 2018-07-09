@@ -124,3 +124,18 @@ define void @sw_global_cap() nounwind {
   store i32 0, i32 addrspace(200)* %1
   ret void
 }
+
+define signext i32 @lw_elem1_global_cap() nounwind {
+; RV-LABEL: lw_elem1_global_cap:
+; RV:       # %bb.0:
+; RV-NEXT:    lui a0, %hi(G32)
+; RV-NEXT:    addi a0, a0, %lo(G32)
+; RV-NEXT:    lc.ddc ca0, a0
+; RV-NEXT:    cincoffsetimm ca0, ca0, 4
+; RV-NEXT:    lw.cap a0, ca0
+; RV-NEXT:    ret
+  %1 = load i32 addrspace(200)*, i32 addrspace(200)** @G32
+  %2 = getelementptr inbounds i32, i32 addrspace(200)* %1, i64 1
+  %3 = load i32, i32 addrspace(200)* %2
+  ret i32 %3
+}

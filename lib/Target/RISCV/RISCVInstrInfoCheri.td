@@ -240,6 +240,15 @@ def SC_128  : RVInstS<0x4, OPC_STORE, (outs),
 // Pseudo-instructions and codegen patterns
 //===----------------------------------------------------------------------===//
 
+/// Pointer arithmetic
+
+def : Pat<(ptradd GPCR:$rs1, simm12:$imm),
+          (CIncOffsetImm $rs1, simm12:$imm)>;
+def : Pat<(ptradd GPCR:$rs1, GPR:$rs2),
+          (CIncOffset $rs1, $rs2)>;
+
+/// Loads / Stores
+
 multiclass CheriLdPat<PatFrag LoadOp, RVInst Inst, RegisterClass AddrTy> {
   def : Pat<(LoadOp AddrTy:$rs1), (Inst AddrTy:$rs1)>;
 }
