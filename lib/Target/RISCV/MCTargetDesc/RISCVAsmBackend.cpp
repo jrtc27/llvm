@@ -21,6 +21,7 @@
 #include "llvm/MC/MCObjectWriter.h"
 #include "llvm/MC/MCSubtargetInfo.h"
 #include "llvm/MC/MCSymbol.h"
+#include "llvm/MC/MCValue.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -56,12 +57,21 @@ public:
   // during relaxation.
   bool shouldForceRelocation(const MCAssembler &Asm, const MCFixup &Fixup,
                              const MCValue &Target) override {
+    if (STI.getFeatureBits()[RISCV::FeatureRelax])
+      return true;
+
     if ((unsigned)Fixup.getKind() == RISCV::fixup_riscv_pcrel_lo12_i) {
       const MCExpr *T = cast<RISCVMCExpr>(Fixup.getValue())->getPCRelHiExpr();
+      // If we found no corresponding PCREL_HI, the instructions may
+      // cross a fragment, or there may in fact be a GOT_HI instead. In
+      // this case we must also leave it up to the linker.
+      if (!T)
+        return true;
       if (T->findAssociatedFragment() != Fixup.getValue()->findAssociatedFragment())
         return true;
     }
-    return STI.getFeatureBits()[RISCV::FeatureRelax];
+
+    return false;
   }
 
   bool fixupNeedsRelaxation(const MCFixup &Fixup, uint64_t Value,

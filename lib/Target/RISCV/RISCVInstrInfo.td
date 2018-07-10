@@ -483,9 +483,14 @@ def PseudoLI : Pseudo<(outs GPR:$rd), (ins ixlenimm:$imm), [],
                       "li", "$rd, $imm">;
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 0, Size = 8,
-    isCodeGenOnly = 0, isAsmParserOnly = 1 in
-def PseudoLA : Pseudo<(outs GPR:$rd), (ins bare_symbol:$addr), [],
-                      "la", "$rd, $addr">;
+    isCodeGenOnly = 0 in
+def PseudoLA  : Pseudo<(outs GPR:$rd), (ins bare_symbol:$addr), [],
+                       "la", "$rd, $addr">;
+
+let hasSideEffects = 0, mayLoad = 0, mayStore = 0, Size = 8,
+    isCodeGenOnly = 0 in
+def PseudoLLA : Pseudo<(outs GPR:$rd), (ins bare_symbol:$addr), [],
+                       "lla", "$rd, $addr">;
 
 def : InstAlias<"mv $rd, $rs",   (ADDI GPR:$rd, GPR:$rs,       0)>;
 def : InstAlias<"not $rd, $rs",  (XORI GPR:$rd, GPR:$rs,      -1)>;

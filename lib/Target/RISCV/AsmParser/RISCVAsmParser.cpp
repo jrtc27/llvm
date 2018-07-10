@@ -100,7 +100,7 @@ class RISCVAsmParser : public MCTargetAsmParser {
 
   // Helper to emit an AUIPC followed by either an ADDI or a word-sized load to
   // place the address of a symbol into the destination register.
-  void emitLoadAddr(unsigned DestReg, const MCOperand &Addr, MCStreamer &Out);
+  void expandLoadAddress(const MCInst &Inst, MCStreamer &Out);
 
   /// Helper for processing MC instructions that have been successfully matched
   /// by MatchAndEmitInstruction. Modifications to the emitted instructions,
@@ -1292,13 +1292,14 @@ void RISCVAsmParser::emitLoadImm(unsigned DestReg, int64_t Value,
                             .addImm(Lo12));
 }
 
-void RISCVAsmParser::emitLoadAddr(unsigned DestReg, const MCOperand &Addr,
-                                  MCStreamer &Out) {
-  const MCExpr *SymExpr = Addr.getExpr();
+void RISCVAsmParser::expandLoadAddress(const MCInst &Inst, MCStreamer &Out) {
+  MCOperand Dest = Inst.getOperand(0);
+  MCOperand Addr = Inst.getOperand(1);
+  const MCExpr *AddrExpr = Addr.getExpr();
   RISCVMCExpr::VariantKind Hi20VK;
   unsigned SecondOpcode;
 
-  if (AssemblerOptions.back()->isPic()) {
+  if (AssemblerOptions.back()->isPic() && Inst.getOpcode() == RISCV::PseudoLA) {
     Hi20VK = RISCVMCExpr::VK_RISCV_GOT_HI;
     SecondOpcode = isRV64() ? RISCV::LD : RISCV::LW;
   } else {
@@ -1309,19 +1310,19 @@ void RISCVAsmParser::emitLoadAddr(unsigned DestReg, const MCOperand &Addr,
   MCSymbol *TmpLabel = getContext().createTempSymbol();
   Out.EmitLabel(TmpLabel);
 
-  const MCExpr *Hi20Expr = RISCVMCExpr::create(SymExpr, Hi20VK, getContext());
+  const MCExpr *Hi20Expr = RISCVMCExpr::create(AddrExpr, Hi20VK, getContext());
   const MCExpr *TmpLabelExpr = MCSymbolRefExpr::create(TmpLabel, getContext());
   const MCExpr *Lo12Expr =
     RISCVMCExpr::create(TmpLabelExpr, RISCVMCExpr::VK_RISCV_PCREL_LO,
                         getContext());
 
   emitToStreamer(Out, MCInstBuilder(RISCV::AUIPC)
-                          .addReg(DestReg)
+                          .addOperand(Dest)
                           .addExpr(Hi20Expr));
 
   emitToStreamer(Out, MCInstBuilder(SecondOpcode)
-                          .addReg(DestReg)
-                          .addReg(DestReg)
+                          .addOperand(Dest)
+                          .addOperand(Dest)
                           .addExpr(Lo12Expr));
 }
 
@@ -1329,7 +1330,8 @@ bool RISCVAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
                                         MCStreamer &Out) {
   Inst.setLoc(IDLoc);
 
-  if (Inst.getOpcode() == RISCV::PseudoLI) {
+  unsigned Opcode = Inst.getOpcode();
+  if (Opcode == RISCV::PseudoLI) {
     auto Reg = Inst.getOperand(0).getReg();
     int64_t Imm = Inst.getOperand(1).getImm();
     // On RV32 the immediate here can either be a signed or an unsigned
@@ -1341,8 +1343,8 @@ bool RISCVAsmParser::processInstruction(MCInst &Inst, SMLoc IDLoc,
     return false;
   }
 
-  if (Inst.getOpcode() == RISCV::PseudoLA) {
-    emitLoadAddr(Inst.getOperand(0).getReg(), Inst.getOperand(1), Out);
+  if (Opcode == RISCV::PseudoLA || Opcode == RISCV::PseudoLLA) {
+    expandLoadAddress(Inst, Out);
     return false;
   }
 

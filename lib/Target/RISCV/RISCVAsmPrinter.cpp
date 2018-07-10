@@ -23,6 +23,7 @@
 #include "llvm/CodeGen/MachineModuleInfo.h"
 #include "llvm/MC/MCAsmInfo.h"
 #include "llvm/MC/MCInst.h"
+#include "llvm/MC/MCInstBuilder.h"
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/MC/MCSymbol.h"
 #include "llvm/Support/TargetRegistry.h"
@@ -57,6 +58,8 @@ public:
   bool lowerOperand(const MachineOperand &MO, MCOperand &MCOp) const {
     return LowerRISCVMachineOperandToMCOperand(MO, MCOp, *this);
   }
+
+  void expandLoadAddress(const MachineInstr *MI);
 };
 }
 
@@ -73,10 +76,58 @@ void RISCVAsmPrinter::EmitToStreamer(MCStreamer &S, const MCInst &Inst) {
 // instructions) auto-generated.
 #include "RISCVGenMCPseudoLowering.inc"
 
+void RISCVAsmPrinter::expandLoadAddress(const MachineInstr *MI) {
+  MCOperand Dest;
+  MCOperand Addr;
+
+  LowerRISCVMachineOperandToMCOperand(MI->getOperand(0), Dest, *this);
+  LowerRISCVMachineOperandToMCOperand(MI->getOperand(1), Addr, *this);
+
+  const MCExpr *AddrExpr = Addr.getExpr();
+
+  const MCSubtargetInfo &STI = getSubtargetInfo();
+  RISCVMCExpr::VariantKind Hi20VK;
+  unsigned SecondOpcode;
+
+  if (isPositionIndependent() && MI->getOpcode() == RISCV::PseudoLA) {
+    Hi20VK = RISCVMCExpr::VK_RISCV_GOT_HI;
+    SecondOpcode = STI.hasFeature(RISCV::Feature64Bit) ? RISCV::LD : RISCV::LW;
+  } else {
+    Hi20VK = RISCVMCExpr::VK_RISCV_PCREL_HI;
+    SecondOpcode = RISCV::ADDI;
+  }
+
+  MCSymbol *TmpLabel = OutContext.createTempSymbol();
+
+  const MCExpr *Hi20Expr = RISCVMCExpr::create(AddrExpr, Hi20VK, OutContext);
+  const MCExpr *TmpLabelExpr = MCSymbolRefExpr::create(TmpLabel, OutContext);
+  const MCExpr *Lo12Expr =
+    RISCVMCExpr::create(TmpLabelExpr, RISCVMCExpr::VK_RISCV_PCREL_LO,
+                        OutContext);
+
+  OutStreamer->EmitLabel(TmpLabel);
+  EmitToStreamer(*OutStreamer,
+                 MCInstBuilder(RISCV::AUIPC)
+                   .addOperand(Dest)
+                   .addExpr(Hi20Expr));
+
+  EmitToStreamer(*OutStreamer,
+                 MCInstBuilder(SecondOpcode)
+                   .addOperand(Dest)
+                   .addOperand(Dest)
+                   .addExpr(Lo12Expr));
+}
+
 void RISCVAsmPrinter::EmitInstruction(const MachineInstr *MI) {
   // Do any auto-generated pseudo lowerings.
   if (emitPseudoExpansionLowering(*OutStreamer, MI))
     return;
+
+  unsigned Opcode = MI->getOpcode();
+  if (Opcode == RISCV::PseudoLA || Opcode == RISCV::PseudoLLA) {
+    expandLoadAddress(MI);
+    return;
+  }
 
   MCInst TmpInst;
   LowerRISCVMachineInstrToMCInst(MI, TmpInst, *this);
