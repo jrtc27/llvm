@@ -22,6 +22,8 @@ public:
   virtual void emitDirectiveOptionNoRVC() = 0;
   virtual void emitDirectiveOptionPic() = 0;
   virtual void emitDirectiveOptionNoPic() = 0;
+  virtual void emitDirectiveOptionRelax() = 0;
+  virtual void emitDirectiveOptionNoRelax() = 0;
   virtual void emitDirectiveOptionPush() = 0;
   virtual void emitDirectiveOptionPop() = 0;
 };
@@ -37,6 +39,8 @@ public:
   void emitDirectiveOptionNoRVC() override;
   void emitDirectiveOptionPic() override;
   void emitDirectiveOptionNoPic() override;
+  void emitDirectiveOptionRelax() override;
+  void emitDirectiveOptionNoRelax() override;
   void emitDirectiveOptionPush() override;
   void emitDirectiveOptionPop() override;
 };

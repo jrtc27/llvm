@@ -1168,6 +1168,30 @@ bool RISCVAsmParser::parseDirectiveOption() {
     return false;
   }
 
+  if (Option == "relax") {
+    getTargetStreamer().emitDirectiveOptionRelax();
+
+    Parser.Lex();
+    if (Parser.getTok().isNot(AsmToken::EndOfStatement))
+      return Error(Parser.getTok().getLoc(),
+                   "unexpected token, expected end of statement");
+
+    setFeatureBits(RISCV::FeatureRelax, "relax");
+    return false;
+  }
+
+  if (Option == "norelax") {
+    getTargetStreamer().emitDirectiveOptionNoRelax();
+
+    Parser.Lex();
+    if (Parser.getTok().isNot(AsmToken::EndOfStatement))
+      return Error(Parser.getTok().getLoc(),
+                   "unexpected token, expected end of statement");
+
+    clearFeatureBits(RISCV::FeatureRelax, "relax");
+    return false;
+  }
+
   if (Option == "push") {
     getTargetStreamer().emitDirectiveOptionPush();
 
