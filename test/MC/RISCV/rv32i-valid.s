@@ -85,21 +85,21 @@ jal a0, a0
 # CHECK-ASM: encoding: [0x6f,0x05,0xe0,0x01]
 jal a0, CONST
 
-# CHECK-ASM-AND-OBJ: jalr a0, a1, -2048
+# CHECK-ASM-AND-OBJ: jalr a0, -2048(a1)
 # CHECK-ASM: encoding: [0x67,0x85,0x05,0x80]
-jalr a0, a1, -2048
-# CHECK-ASM-AND-OBJ: jalr a0, a1, -2048
+jalr a0, -2048(a1)
+# CHECK-ASM-AND-OBJ: jalr a0, -2048(a1)
 # CHECK-ASM: encoding: [0x67,0x85,0x05,0x80]
-jalr a0, a1, %lo(2048)
-# CHECK-ASM-AND-OBJ: jalr t2, t1, 2047
+jalr a0, %lo(2048)(a1)
+# CHECK-ASM-AND-OBJ: jalr t2, 2047(t1)
 # CHECK-ASM: encoding: [0xe7,0x03,0xf3,0x7f]
-jalr t2, t1, 2047
-# CHECK-ASM-AND-OBJ: jalr sp, zero, 256
+jalr t2, 2047(t1)
+# CHECK-ASM-AND-OBJ: jalr sp, 256(zero)
 # CHECK-ASM: encoding: [0x67,0x01,0x00,0x10]
 jalr sp, zero, 256
-# CHECK-ASM-AND-OBJ: jalr a1, a2, 30
+# CHECK-ASM-AND-OBJ: jalr a1, 30(a2)
 # CHECK-ASM: encoding: [0xe7,0x05,0xe6,0x01]
-jalr a1, a2, CONST
+jalr a1, CONST(a2)
 
 # CHECK-ASM-AND-OBJ: beq s1, s1, 102
 # CHECK-ASM: encoding: [0x63,0x83,0x94,0x06]
