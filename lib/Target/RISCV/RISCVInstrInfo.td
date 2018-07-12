@@ -538,11 +538,12 @@ def : InstAlias<"bleu $rs, $rt, $offset",
                 (BGEU GPR:$rt, GPR:$rs, simm13_lsb0:$offset), 0>;
 
 // "ret" has more weight since "ret" and "jr" alias the same "jalr" instruction.
-def : InstAlias<"j $offset",   (JAL  X0, simm21_lsb0:$offset)>;
-def : InstAlias<"jal $offset", (JAL  X1, simm21_lsb0:$offset)>;
-def : InstAlias<"jr $rs",      (JALR X0, GPR:$rs, 0)>;
-def : InstAlias<"jalr $rs",    (JALR X1, GPR:$rs, 0)>;
-def : InstAlias<"ret",         (JALR X0,      X1, 0), 2>;
+def : InstAlias<"j $offset",     (JAL       X0, simm21_lsb0:$offset)>;
+def : InstAlias<"jal $offset",   (JAL       X1, simm21_lsb0:$offset)>;
+def : InstAlias<"jr $rs",        (JALR      X0, GPR:$rs, 0)>;
+def : InstAlias<"jalr $rs",      (JALR      X1, GPR:$rs, 0)>;
+def : InstAlias<"jalr $rd, $rs", (JALR GPR:$rd, GPR:$rs, 0)>;
+def : InstAlias<"ret",           (JALR      X0,      X1, 0), 2>;
 // TODO call
 // TODO tail
 
