@@ -33,6 +33,8 @@ bool RISCVAsmBackend::shouldForceRelocation(const MCAssembler &Asm,
   switch ((unsigned)Fixup.getKind()) {
   default:
     break;
+  case RISCV::fixup_riscv_got_hi20:
+    return true;
   case RISCV::fixup_riscv_pcrel_lo12_i:
   case RISCV::fixup_riscv_pcrel_lo12_s:
     // For pcrel_lo12, force a relocation if the target of the corresponding
@@ -47,6 +49,9 @@ bool RISCVAsmBackend::shouldForceRelocation(const MCAssembler &Asm,
     switch ((unsigned)T->getKind()) {
     default:
       llvm_unreachable("Unexpected fixup kind for pcrel_lo12");
+      break;
+    case RISCV::fixup_riscv_got_hi20:
+      ShouldForce = true;
       break;
     case RISCV::fixup_riscv_pcrel_hi20:
       ShouldForce = T->getValue()->findAssociatedFragment() !=
@@ -186,6 +191,7 @@ static uint64_t adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
     return (((Value >> 5) & 0x7f) << 25) | ((Value & 0x1f) << 7);
   case RISCV::fixup_riscv_hi20:
   case RISCV::fixup_riscv_pcrel_hi20:
+  case RISCV::fixup_riscv_got_hi20:
     // Add 1 if bit 11 is 1, to compensate for low 12 bits being negative.
     return ((Value + 0x800) >> 12) & 0xfffff;
   case RISCV::fixup_riscv_jal: {
