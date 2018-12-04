@@ -34,21 +34,26 @@ bool RISCVAsmBackend::shouldForceRelocation(const MCAssembler &Asm,
   switch ((unsigned)Fixup.getKind()) {
   default:
     return false;
+  case RISCV::fixup_riscv_got_hi20:
+    return true;
   case RISCV::fixup_riscv_pcrel_lo12_i:
   case RISCV::fixup_riscv_pcrel_lo12_s:
     // For pcrel_lo12, MCAssembler determines if the fixup can be resolved
-    // based on the difference between pcrel_hi20 and pcrel_lo12. However,
-    // it should actually be based on pcrel_lo12 and the target of pcrel_hi20.
+    // based on the difference between the AUIPC and pcrel_lo12. However, it
+    // should actually be based on pcrel_lo12, the type of the corresponding
+    // hi20, and the target of the hi20.
     //
-    // Force a relocation here if the target isn't in same section.
-    const MCExpr *T = cast<RISCVMCExpr>(Fixup.getValue())->getPCRelHiExpr();
+    // Force a relocation here if the target isn't in same section, or if the
+    // target is something other than a pcrel_hi20 (such as a got_hi20).
+    const MCFixup *T = cast<RISCVMCExpr>(Fixup.getValue())->getPCRelHiFixup();
     if (!T) {
       Asm.getContext().reportError(Fixup.getLoc(),
                                    "could not find corresponding %pcrel_hi");
       return false;
     }
 
-    return T->findAssociatedFragment() !=
+    return (unsigned)T->getKind() != RISCV::fixup_riscv_pcrel_hi20
+        || T->getValue()->findAssociatedFragment() !=
            Fixup.getValue()->findAssociatedFragment();
   }
 }
@@ -179,6 +184,7 @@ static uint64_t adjustFixupValue(const MCFixup &Fixup, uint64_t Value,
     return (((Value >> 5) & 0x7f) << 25) | ((Value & 0x1f) << 7);
   case RISCV::fixup_riscv_hi20:
   case RISCV::fixup_riscv_pcrel_hi20:
+  case RISCV::fixup_riscv_got_hi20:
     // Add 1 if bit 11 is 1, to compensate for low 12 bits being negative.
     return ((Value + 0x800) >> 12) & 0xfffff;
   case RISCV::fixup_riscv_jal: {

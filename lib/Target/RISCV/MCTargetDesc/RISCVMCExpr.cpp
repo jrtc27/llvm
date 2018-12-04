@@ -41,7 +41,7 @@ void RISCVMCExpr::printImpl(raw_ostream &OS, const MCAsmInfo *MAI) const {
     OS << ')';
 }
 
-const MCExpr *RISCVMCExpr::getPCRelHiExpr() const {
+const MCFixup *RISCVMCExpr::getPCRelHiFixup() const {
   MCValue AUIPCLoc;
   if (!getSubExpr()->evaluateAsRelocatable(AUIPCLoc, nullptr, nullptr))
     return nullptr;
@@ -56,16 +56,19 @@ const MCExpr *RISCVMCExpr::getPCRelHiExpr() const {
     return nullptr;
 
   const MCSymbol *AUIPCSymbol = &AUIPCSRE->getSymbol();
-  const MCExpr *TargetExpr = nullptr;
   for (const MCFixup &F : DF->getFixups()) {
-    if ((unsigned)F.getKind() != RISCV::fixup_riscv_pcrel_hi20)
+    switch ((unsigned)F.getKind()) {
+    default:
       continue;
+    case RISCV::fixup_riscv_got_hi20:
+    case RISCV::fixup_riscv_pcrel_hi20:
+      break;
+    }
     if (F.getOffset() != AUIPCSymbol->getOffset())
       continue;
-    TargetExpr = F.getValue();
-    break;
+    return &F;
   }
-  return TargetExpr;
+  return nullptr;
 }
 
 bool RISCVMCExpr::evaluatePCRelLo(MCValue &Res, const MCAsmLayout *Layout,
@@ -91,12 +94,13 @@ bool RISCVMCExpr::evaluatePCRelLo(MCValue &Res, const MCAsmLayout *Layout,
   if (!AUIPCSymbol)
     return false;
 
-  const MCExpr *TargetExpr = getPCRelHiExpr();
-  if (!TargetExpr)
+  const MCFixup *TargetFixup = getPCRelHiFixup();
+  if (!TargetFixup ||
+      (unsigned)TargetFixup->getKind() != RISCV::fixup_riscv_pcrel_hi20)
     return false;
 
   MCValue Target;
-  if (!TargetExpr->evaluateAsValue(Target, *Layout))
+  if (!TargetFixup->getValue()->evaluateAsValue(Target, *Layout))
     return false;
 
   if (!Target.getSymA() || !Target.getSymA()->getSymbol().isInSection())
@@ -131,6 +135,7 @@ bool RISCVMCExpr::evaluateAsRelocatableImpl(MCValue &Res,
     case VK_RISCV_HI:
     case VK_RISCV_PCREL_LO:
     case VK_RISCV_PCREL_HI:
+    case VK_RISCV_GOT_HI:
       return false;
     }
   }
@@ -148,6 +153,7 @@ RISCVMCExpr::VariantKind RISCVMCExpr::getVariantKindForName(StringRef name) {
       .Case("hi", VK_RISCV_HI)
       .Case("pcrel_lo", VK_RISCV_PCREL_LO)
       .Case("pcrel_hi", VK_RISCV_PCREL_HI)
+      .Case("got_pcrel_hi", VK_RISCV_GOT_HI)
       .Default(VK_RISCV_Invalid);
 }
 
@@ -163,6 +169,8 @@ StringRef RISCVMCExpr::getVariantKindName(VariantKind Kind) {
     return "pcrel_lo";
   case VK_RISCV_PCREL_HI:
     return "pcrel_hi";
+  case VK_RISCV_GOT_HI:
+    return "got_pcrel_hi";
   }
 }
 
@@ -170,7 +178,7 @@ bool RISCVMCExpr::evaluateAsConstant(int64_t &Res) const {
   MCValue Value;
 
   if (Kind == VK_RISCV_PCREL_HI || Kind == VK_RISCV_PCREL_LO ||
-      Kind == VK_RISCV_CALL)
+      Kind == VK_RISCV_GOT_HI || Kind == VK_RISCV_CALL)
     return false;
 
   if (!getSubExpr()->evaluateAsRelocatable(Value, nullptr, nullptr))
