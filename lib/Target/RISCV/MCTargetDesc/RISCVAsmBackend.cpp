@@ -8,6 +8,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "RISCVAsmBackend.h"
+#include "RISCVMCExpr.h"
 #include "llvm/ADT/APInt.h"
 #include "llvm/MC/MCAssembler.h"
 #include "llvm/MC/MCContext.h"
@@ -20,6 +21,37 @@
 #include "llvm/Support/raw_ostream.h"
 
 using namespace llvm;
+
+// If linker relaxation is enabled, or the relax option had previously been
+// enabled, always emit relocations even if the fixup can be resolved. This is
+// necessary for correctness as offsets may change during relaxation.
+bool RISCVAsmBackend::shouldForceRelocation(const MCAssembler &Asm,
+                                            const MCFixup &Fixup,
+                                            const MCValue &Target) {
+  if (STI.getFeatureBits()[RISCV::FeatureRelax] || ForceRelocs)
+    return true;
+
+  switch ((unsigned)Fixup.getKind()) {
+  default:
+    return false;
+  case RISCV::fixup_riscv_pcrel_lo12_i:
+  case RISCV::fixup_riscv_pcrel_lo12_s:
+    // For pcrel_lo12, MCAssembler determines if the fixup can be resolved
+    // based on the difference between pcrel_hi20 and pcrel_lo12. However,
+    // it should actually be based on pcrel_lo12 and the target of pcrel_hi20.
+    //
+    // Force a relocation here if the target isn't in same section.
+    const MCExpr *T = cast<RISCVMCExpr>(Fixup.getValue())->getPCRelHiExpr();
+    if (!T) {
+      Asm.getContext().reportError(Fixup.getLoc(),
+                                   "could not find corresponding %pcrel_hi");
+      return false;
+    }
+
+    return T->findAssociatedFragment() !=
+           Fixup.getValue()->findAssociatedFragment();
+  }
+}
 
 bool RISCVAsmBackend::fixupNeedsRelaxationAdvanced(const MCFixup &Fixup,
                                                    bool Resolved,
