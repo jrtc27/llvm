@@ -237,6 +237,9 @@ unsigned RISCVMCCodeEmitter::getImmOpValue(const MCInst &MI, unsigned OpNo,
     case RISCVMCExpr::VK_RISCV_CALL:
       FixupKind = RISCV::fixup_riscv_call;
       break;
+    case RISCVMCExpr::VK_RISCV_CALL_PLT:
+      FixupKind = RISCV::fixup_riscv_call_plt;
+      break;
     }
   } else if (Kind == MCExpr::SymbolRef &&
              cast<MCSymbolRefExpr>(Expr)->getKind() == MCSymbolRefExpr::VK_None) {
@@ -258,7 +261,8 @@ unsigned RISCVMCCodeEmitter::getImmOpValue(const MCInst &MI, unsigned OpNo,
   ++MCNumFixups;
 
   if (EnableRelax) {
-    if (FixupKind == RISCV::fixup_riscv_call) {
+    if (FixupKind == RISCV::fixup_riscv_call ||
+        FixupKind == RISCV::fixup_riscv_call_plt) {
       Fixups.push_back(
       MCFixup::create(0, Expr, MCFixupKind(RISCV::fixup_riscv_relax),
                       MI.getLoc()));
