@@ -350,6 +350,25 @@ static SDValue getTargetNode(ConstantPoolSDNode *N, SDLoc DL, EVT Ty,
 }
 
 template <class NodeTy>
+SDValue RISCVTargetLowering::getAddrPIC(NodeTy *N, SelectionDAG &DAG,
+                                        bool UseGOT, unsigned Flags) const {
+  SDLoc DL(N);
+  EVT Ty = getPointerTy(DAG.getDataLayout());
+  SDValue Addr = getTargetNode(N, DL, Ty, DAG, Flags);
+
+  if (UseGOT)
+    // Use PC-relative addressing to access the GOT for this symbol, then load
+    // the address from the GOT. This generates the pattern (PseudoLA sym),
+    // which expands to (ld (addi (auipc %got_pcrel_hi(sym)) %pcrel_lo(sym))).
+    return SDValue(DAG.getMachineNode(RISCV::PseudoLA, DL, Ty, Addr), 0);
+
+  // Use PC-relative addressing to access the symbol. This generates the pattern
+  // (PseudoLLA sym), which expands to
+  // (addi (auipc %pcrel_hi(sym)) %pcrel_lo(sym)).
+  return SDValue(DAG.getMachineNode(RISCV::PseudoLLA, DL, Ty, Addr), 0);
+}
+
+template <class NodeTy>
 SDValue RISCVTargetLowering::getAddr(NodeTy *N, SelectionDAG &DAG,
                                      unsigned Flags) const {
   SDLoc DL(N);
@@ -384,10 +403,14 @@ SDValue RISCVTargetLowering::lowerGlobalAddress(SDValue Op,
   int64_t Offset = N->getOffset();
   MVT XLenVT = Subtarget.getXLenVT();
 
-  if (isPositionIndependent())
-    report_fatal_error("Unable to lowerGlobalAddress");
-
-  SDValue Addr = getAddr(N, DAG);
+  SDValue Addr;
+  if (isPositionIndependent()) {
+    const GlobalValue *GV = N->getGlobal();
+    bool UseGOT =
+        !getTargetMachine().shouldAssumeDSOLocal(*GV->getParent(), GV);
+    Addr = getAddrPIC(N, DAG, UseGOT);
+  } else
+    Addr = getAddr(N, DAG);
 
   // In order to maximise the opportunity for common subexpression elimination,
   // emit a separate ADD node for the global address offset instead of folding
@@ -404,7 +427,7 @@ SDValue RISCVTargetLowering::lowerBlockAddress(SDValue Op,
   BlockAddressSDNode *N = cast<BlockAddressSDNode>(Op);
 
   if (isPositionIndependent())
-    report_fatal_error("Unable to lowerBlockAddress");
+    return getAddrPIC(N, DAG, /*UseGOT=*/false);
 
   return getAddr(N, DAG);
 }
@@ -414,7 +437,7 @@ SDValue RISCVTargetLowering::lowerConstantPool(SDValue Op,
   ConstantPoolSDNode *N = cast<ConstantPoolSDNode>(Op);
 
   if (isPositionIndependent())
-    report_fatal_error("Unable to lowerConstantPool");
+    return getAddrPIC(N, DAG, /*UseGOT=*/false);
 
   return getAddr(N, DAG);
 }
