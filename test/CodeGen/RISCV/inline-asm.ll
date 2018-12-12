@@ -92,4 +92,19 @@ define void @constraint_K() {
   ret void
 }
 
+define void @constraint_A(i8* %a) {
+; RV32I-LABEL: constraint_A:
+; RV32I:       # %bb.0:
+; RV32I-NEXT:    #APP
+; RV32I-NEXT:    sb s0, 0(a0)
+; RV32I-NEXT:    #NO_APP
+; RV32I-NEXT:    #APP
+; RV32I-NEXT:    lb s1, 0(a0)
+; RV32I-NEXT:    #NO_APP
+; RV32I-NEXT:    ret
+  tail call void asm sideeffect "sb s0, $0", "*A"(i8* %a)
+  tail call void asm sideeffect "lb s1, $0", "*A"(i8* %a)
+  ret void
+}
+
 ; TODO: expend tests for more complex constraints, out of range immediates etc
