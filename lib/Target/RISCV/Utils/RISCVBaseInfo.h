@@ -50,6 +50,7 @@ enum {
 enum {
   MO_None,
   MO_CALL,
+  MO_PLT,
   MO_LO,
   MO_HI,
   MO_PCREL_HI,
