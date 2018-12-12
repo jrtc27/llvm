@@ -350,48 +350,44 @@ static SDValue getTargetNode(ConstantPoolSDNode *N, SDLoc DL, EVT Ty,
 }
 
 template <class NodeTy>
-SDValue RISCVTargetLowering::getAddrPIC(NodeTy *N, SelectionDAG &DAG,
-                                        bool UseGOT, unsigned Flags) const {
-  SDLoc DL(N);
-  EVT Ty = getPointerTy(DAG.getDataLayout());
-  SDValue Addr = getTargetNode(N, DL, Ty, DAG, Flags);
-
-  if (UseGOT)
-    // Use PC-relative addressing to access the GOT for this symbol, then load
-    // the address from the GOT. This generates the pattern (PseudoLA sym),
-    // which expands to (ld (addi (auipc %got_pcrel_hi(sym)) %pcrel_lo(sym))).
-    return SDValue(DAG.getMachineNode(RISCV::PseudoLA, DL, Ty, Addr), 0);
-
-  // Use PC-relative addressing to access the symbol. This generates the pattern
-  // (PseudoLLA sym), which expands to
-  // (addi (auipc %pcrel_hi(sym)) %pcrel_lo(sym)).
-  return SDValue(DAG.getMachineNode(RISCV::PseudoLLA, DL, Ty, Addr), 0);
-}
-
-template <class NodeTy>
 SDValue RISCVTargetLowering::getAddr(NodeTy *N, SelectionDAG &DAG,
-                                     unsigned Flags) const {
+                                     bool IsLocal) const {
   SDLoc DL(N);
   EVT Ty = getPointerTy(DAG.getDataLayout());
 
-  switch (getTargetMachine().getCodeModel()) {
-  default:
-    report_fatal_error("Unsupported code model for lowering");
-  case CodeModel::Small: {
-    // Generate a sequence for accessing addresses within the first 2 GiB of
-    // address space. This generates the pattern (addi (lui %hi(sym)) %lo(sym)).
-    SDValue AddrHi = getTargetNode(N, DL, Ty, DAG, Flags | RISCVII::MO_HI);
-    SDValue AddrLo = getTargetNode(N, DL, Ty, DAG, Flags | RISCVII::MO_LO);
-    SDValue MNHi = SDValue(DAG.getMachineNode(RISCV::LUI, DL, Ty, AddrHi), 0);
-    return SDValue(DAG.getMachineNode(RISCV::ADDI, DL, Ty, MNHi, AddrLo), 0);
-  }
-  case CodeModel::Medium: {
-    // Generate a sequence for accessing addresses within any 2GiB range within
-    // the address space. This generates the pattern (PseudoLLA sym), which
-    // expands to (addi (auipc %pcrel_hi(sym)) %pcrel_lo(sym)).
-    SDValue Addr = getTargetNode(N, DL, Ty, DAG, Flags);
+  if (isPositionIndependent()) {
+    SDValue Addr = getTargetNode(N, DL, Ty, DAG, 0);
+
+    if (!IsLocal)
+      // Use PC-relative addressing to access the GOT for this symbol, then load
+      // the address from the GOT. This generates the pattern (PseudoLA sym),
+      // which expands to (ld (addi (auipc %got_pcrel_hi(sym)) %pcrel_lo(auipc))).
+      return SDValue(DAG.getMachineNode(RISCV::PseudoLA, DL, Ty, Addr), 0);
+
+    // Use PC-relative addressing to access the symbol. This generates the pattern
+    // (PseudoLLA sym), which expands to
+    // (addi (auipc %pcrel_hi(sym)) %pcrel_lo(auipc)).
     return SDValue(DAG.getMachineNode(RISCV::PseudoLLA, DL, Ty, Addr), 0);
-  }
+  } else {
+    switch (getTargetMachine().getCodeModel()) {
+    default:
+      report_fatal_error("Unsupported code model for lowering");
+    case CodeModel::Small: {
+      // Generate a sequence for accessing addresses within the first 2 GiB of
+      // address space. This generates the pattern (addi (lui %hi(sym)) %lo(sym)).
+      SDValue AddrHi = getTargetNode(N, DL, Ty, DAG, RISCVII::MO_HI);
+      SDValue AddrLo = getTargetNode(N, DL, Ty, DAG, RISCVII::MO_LO);
+      SDValue MNHi = SDValue(DAG.getMachineNode(RISCV::LUI, DL, Ty, AddrHi), 0);
+      return SDValue(DAG.getMachineNode(RISCV::ADDI, DL, Ty, MNHi, AddrLo), 0);
+    }
+    case CodeModel::Medium: {
+      // Generate a sequence for accessing addresses within any 2GiB range within
+      // the address space. This generates the pattern (PseudoLLA sym), which
+      // expands to (addi (auipc %pcrel_hi(sym)) %pcrel_lo(auipc)).
+      SDValue Addr = getTargetNode(N, DL, Ty, DAG, 0);
+      return SDValue(DAG.getMachineNode(RISCV::PseudoLLA, DL, Ty, Addr), 0);
+    }
+    }
   }
 }
 
@@ -403,14 +399,10 @@ SDValue RISCVTargetLowering::lowerGlobalAddress(SDValue Op,
   int64_t Offset = N->getOffset();
   MVT XLenVT = Subtarget.getXLenVT();
 
-  SDValue Addr;
-  if (isPositionIndependent()) {
-    const GlobalValue *GV = N->getGlobal();
-    bool UseGOT =
-        !getTargetMachine().shouldAssumeDSOLocal(*GV->getParent(), GV);
-    Addr = getAddrPIC(N, DAG, UseGOT);
-  } else
-    Addr = getAddr(N, DAG);
+  const GlobalValue *GV = N->getGlobal();
+  bool IsLocal =
+    getTargetMachine().shouldAssumeDSOLocal(*GV->getParent(), GV);
+  SDValue Addr = getAddr(N, DAG, IsLocal);
 
   // In order to maximise the opportunity for common subexpression elimination,
   // emit a separate ADD node for the global address offset instead of folding
@@ -426,20 +418,14 @@ SDValue RISCVTargetLowering::lowerBlockAddress(SDValue Op,
                                                SelectionDAG &DAG) const {
   BlockAddressSDNode *N = cast<BlockAddressSDNode>(Op);
 
-  if (isPositionIndependent())
-    return getAddrPIC(N, DAG, /*UseGOT=*/false);
-
-  return getAddr(N, DAG);
+  return getAddr(N, DAG, /*IsLocal=*/true);
 }
 
 SDValue RISCVTargetLowering::lowerConstantPool(SDValue Op,
                                                SelectionDAG &DAG) const {
   ConstantPoolSDNode *N = cast<ConstantPoolSDNode>(Op);
 
-  if (isPositionIndependent())
-    return getAddrPIC(N, DAG, /*UseGOT=*/false);
-
-  return getAddr(N, DAG);
+  return getAddr(N, DAG, /*IsLocal=*/true);
 }
 
 SDValue RISCVTargetLowering::lowerSELECT(SDValue Op, SelectionDAG &DAG) const {

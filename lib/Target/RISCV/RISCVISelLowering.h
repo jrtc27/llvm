@@ -112,10 +112,7 @@ private:
   }
 
   template <class NodeTy>
-  SDValue getAddrPIC(NodeTy *N, SelectionDAG &DAG, bool UseGOT,
-                     unsigned Flags = 0) const;
-  template <class NodeTy>
-  SDValue getAddr(NodeTy *N, SelectionDAG &DAG, unsigned Flags = 0) const;
+  SDValue getAddr(NodeTy *N, SelectionDAG &DAG, bool IsLocal) const;
 
   SDValue lowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
   SDValue lowerBlockAddress(SDValue Op, SelectionDAG &DAG) const;
