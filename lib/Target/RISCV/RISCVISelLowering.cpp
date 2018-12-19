@@ -1876,10 +1876,27 @@ RISCVTargetLowering::shouldExpandAtomicCmpXchgInIR(
 Value *RISCVTargetLowering::emitMaskedAtomicCmpXchgIntrinsic(
     IRBuilder<> &Builder, AtomicCmpXchgInst *CI, Value *AlignedAddr,
     Value *CmpVal, Value *NewVal, Value *Mask, AtomicOrdering Ord) const {
-  Value *Ordering = Builder.getInt32(static_cast<uint32_t>(Ord));
+  unsigned XLen = Subtarget.getXLen();
+  Value *Ordering = Builder.getIntN(XLen, static_cast<uint64_t>(Ord));
   Type *Tys[] = {AlignedAddr->getType()};
+  Intrinsic::ID ID;
+
+  if (XLen == 64) {
+    ID = Intrinsic::riscv_masked_cmpxchg_i64;
+    CmpVal = Builder.CreateSExt(CmpVal, Builder.getInt64Ty());
+    NewVal = Builder.CreateSExt(NewVal, Builder.getInt64Ty());
+    Mask = Builder.CreateSExt(Mask, Builder.getInt64Ty());
+  } else {
+    ID = Intrinsic::riscv_masked_cmpxchg_i32;
+  }
+
   Function *MaskedCmpXchg = Intrinsic::getDeclaration(
-      CI->getModule(), Intrinsic::riscv_masked_cmpxchg_i32, Tys);
-  return Builder.CreateCall(MaskedCmpXchg,
-                            {AlignedAddr, CmpVal, NewVal, Mask, Ordering});
+      CI->getModule(), ID, Tys);
+  Value *Result =
+    Builder.CreateCall(MaskedCmpXchg,
+                       {AlignedAddr, CmpVal, NewVal, Mask, Ordering});
+
+  if (XLen == 64)
+    Result = Builder.CreateTrunc(Result, Builder.getInt32Ty());
+  return Result;
 }

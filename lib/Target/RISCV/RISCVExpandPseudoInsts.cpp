@@ -124,6 +124,8 @@ bool RISCVExpandPseudo::expandMI(MachineBasicBlock &MBB,
                                 NextMBBI);
   case RISCV::PseudoCmpXchg32:
     return expandAtomicCmpXchg(MBB, MBBI, false, 32, NextMBBI);
+  case RISCV::PseudoCmpXchg64:
+    return expandAtomicCmpXchg(MBB, MBBI, false, 64, NextMBBI);
   case RISCV::PseudoMaskedCmpXchg32:
     return expandAtomicCmpXchg(MBB, MBBI, true, 32, NextMBBI);
   case RISCV::PseudoLLA:
@@ -517,7 +519,8 @@ bool RISCVExpandPseudo::expandAtomicMinMaxOp(
 bool RISCVExpandPseudo::expandAtomicCmpXchg(
     MachineBasicBlock &MBB, MachineBasicBlock::iterator MBBI, bool IsMasked,
     int Width, MachineBasicBlock::iterator &NextMBBI) {
-  assert(Width == 32 && "RV64 atomic expansion currently unsupported");
+  assert((Width == 32 || IsMasked == false) &&
+         "Should only use 32-bit masked atomic compare-exchange");
   MachineInstr &MI = *MBBI;
   DebugLoc DL = MI.getDebugLoc();
   MachineFunction *MF = MBB.getParent();
@@ -549,18 +552,18 @@ bool RISCVExpandPseudo::expandAtomicCmpXchg(
 
   if (!IsMasked) {
     // .loophead:
-    //   lr.w dest, (addr)
+    //   lr.[w|d] dest, (addr)
     //   bne dest, cmpval, done
-    BuildMI(LoopHeadMBB, DL, TII->get(getLRForRMW32(Ordering)), DestReg)
+    BuildMI(LoopHeadMBB, DL, TII->get(getLRForRMW(Ordering, Width)), DestReg)
         .addReg(AddrReg);
     BuildMI(LoopHeadMBB, DL, TII->get(RISCV::BNE))
         .addReg(DestReg)
         .addReg(CmpValReg)
         .addMBB(DoneMBB);
     // .looptail:
-    //   sc.w scratch, newval, (addr)
+    //   sc.[w|d] scratch, newval, (addr)
     //   bnez scratch, loophead
-    BuildMI(LoopTailMBB, DL, TII->get(getSCForRMW32(Ordering)), ScratchReg)
+    BuildMI(LoopTailMBB, DL, TII->get(getSCForRMW(Ordering, Width)), ScratchReg)
         .addReg(AddrReg)
         .addReg(NewValReg);
     BuildMI(LoopTailMBB, DL, TII->get(RISCV::BNE))

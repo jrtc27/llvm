@@ -235,7 +235,7 @@ def : PseudoMaskedAMOPat<int_riscv_masked_atomicrmw_umin_i32,
 
 class PseudoCmpXchg
     : Pseudo<(outs GPR:$res, GPR:$scratch),
-             (ins GPR:$addr, GPR:$cmpval, GPR:$newval, i32imm:$ordering), []> {
+             (ins GPR:$addr, GPR:$cmpval, GPR:$newval, ixlenimm:$ordering), []> {
   let Constraints = "@earlyclobber $res,@earlyclobber $scratch";
   let mayLoad = 1;
   let mayStore = 1;
@@ -263,7 +263,7 @@ defm : PseudoCmpXchgPat<"atomic_cmp_swap_32", PseudoCmpXchg32>;
 def PseudoMaskedCmpXchg32
     : Pseudo<(outs GPR:$res, GPR:$scratch),
              (ins GPR:$addr, GPR:$cmpval, GPR:$newval, GPR:$mask,
-              i32imm:$ordering), []> {
+              ixlenimm:$ordering), []> {
   let Constraints = "@earlyclobber $res,@earlyclobber $scratch";
   let mayLoad = 1;
   let mayStore = 1;
@@ -332,4 +332,15 @@ def : PseudoMaskedAMOPat<int_riscv_masked_atomicrmw_umax_i64,
                          PseudoMaskedAtomicLoadUMax32>;
 def : PseudoMaskedAMOPat<int_riscv_masked_atomicrmw_umin_i64,
                          PseudoMaskedAtomicLoadUMin32>;
+
+/// Compare and exchange
+
+def PseudoCmpXchg64 : PseudoCmpXchg;
+defm : PseudoCmpXchgPat<"atomic_cmp_swap_64", PseudoCmpXchg64>;
+
+def : Pat<(int_riscv_masked_cmpxchg_i64
+            GPR:$addr, GPR:$cmpval, GPR:$newval, GPR:$mask, imm:$ordering),
+          (PseudoMaskedCmpXchg32
+            GPR:$addr, GPR:$cmpval, GPR:$newval, GPR:$mask, imm:$ordering)>;
+
 } // Predicates = [HasStdExtA, IsRV64]
