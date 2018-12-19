@@ -97,6 +97,9 @@ bool RISCVExpandPseudo::expandMI(MachineBasicBlock &MBB,
   case RISCV::PseudoAtomicLoadNand32:
     return expandAtomicBinOp(MBB, MBBI, AtomicRMWInst::Nand, false, 32,
                              NextMBBI);
+  case RISCV::PseudoAtomicLoadNand64:
+    return expandAtomicBinOp(MBB, MBBI, AtomicRMWInst::Nand, false, 64,
+                             NextMBBI);
   case RISCV::PseudoMaskedAtomicSwap32:
     return expandAtomicBinOp(MBB, MBBI, AtomicRMWInst::Xchg, true, 32,
                              NextMBBI);
@@ -166,12 +169,61 @@ static unsigned getSCForRMW32(AtomicOrdering Ordering) {
   }
 }
 
+static unsigned getLRForRMW64(AtomicOrdering Ordering) {
+  switch (Ordering) {
+  default:
+    llvm_unreachable("Unexpected AtomicOrdering");
+  case AtomicOrdering::Monotonic:
+    return RISCV::LR_D;
+  case AtomicOrdering::Acquire:
+    return RISCV::LR_D_AQ;
+  case AtomicOrdering::Release:
+    return RISCV::LR_D;
+  case AtomicOrdering::AcquireRelease:
+    return RISCV::LR_D_AQ;
+  case AtomicOrdering::SequentiallyConsistent:
+    return RISCV::LR_D_AQ_RL;
+  }
+}
+
+static unsigned getSCForRMW64(AtomicOrdering Ordering) {
+  switch (Ordering) {
+  default:
+    llvm_unreachable("Unexpected AtomicOrdering");
+  case AtomicOrdering::Monotonic:
+    return RISCV::SC_D;
+  case AtomicOrdering::Acquire:
+    return RISCV::SC_D;
+  case AtomicOrdering::Release:
+    return RISCV::SC_D_RL;
+  case AtomicOrdering::AcquireRelease:
+    return RISCV::SC_D_RL;
+  case AtomicOrdering::SequentiallyConsistent:
+    return RISCV::SC_D_AQ_RL;
+  }
+}
+
+static unsigned getLRForRMW(AtomicOrdering Ordering, int Width) {
+  if (Width == 32)
+    return getLRForRMW32(Ordering);
+  if (Width == 64)
+    return getLRForRMW64(Ordering);
+  llvm_unreachable("Unexpected LR width\n");
+}
+
+static unsigned getSCForRMW(AtomicOrdering Ordering, int Width) {
+  if (Width == 32)
+    return getSCForRMW32(Ordering);
+  if (Width == 64)
+    return getSCForRMW64(Ordering);
+  llvm_unreachable("Unexpected SC width\n");
+}
+
 static void doAtomicBinOpExpansion(const RISCVInstrInfo *TII, MachineInstr &MI,
                                    DebugLoc DL, MachineBasicBlock *ThisMBB,
                                    MachineBasicBlock *LoopMBB,
                                    MachineBasicBlock *DoneMBB,
                                    AtomicRMWInst::BinOp BinOp, int Width) {
-  assert(Width == 32 && "RV64 atomic expansion currently unsupported");
   unsigned DestReg = MI.getOperand(0).getReg();
   unsigned ScratchReg = MI.getOperand(1).getReg();
   unsigned AddrReg = MI.getOperand(2).getReg();
@@ -180,11 +232,11 @@ static void doAtomicBinOpExpansion(const RISCVInstrInfo *TII, MachineInstr &MI,
       static_cast<AtomicOrdering>(MI.getOperand(4).getImm());
 
   // .loop:
-  //   lr.w dest, (addr)
+  //   lr.[w|d] dest, (addr)
   //   binop scratch, dest, val
-  //   sc.w scratch, scratch, (addr)
+  //   sc.[w|d] scratch, scratch, (addr)
   //   bnez scratch, loop
-  BuildMI(LoopMBB, DL, TII->get(getLRForRMW32(Ordering)), DestReg)
+  BuildMI(LoopMBB, DL, TII->get(getLRForRMW(Ordering, Width)), DestReg)
       .addReg(AddrReg);
   switch (BinOp) {
   default:
@@ -198,7 +250,7 @@ static void doAtomicBinOpExpansion(const RISCVInstrInfo *TII, MachineInstr &MI,
         .addImm(-1);
     break;
   }
-  BuildMI(LoopMBB, DL, TII->get(getSCForRMW32(Ordering)), ScratchReg)
+  BuildMI(LoopMBB, DL, TII->get(getSCForRMW(Ordering, Width)), ScratchReg)
       .addReg(AddrReg)
       .addReg(ScratchReg);
   BuildMI(LoopMBB, DL, TII->get(RISCV::BNE))
