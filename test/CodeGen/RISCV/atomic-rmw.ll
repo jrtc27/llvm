@@ -55,9 +55,11 @@ define i8 @atomicrmw_xchg_i8_monotonic(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB0_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -68,7 +70,9 @@ define i8 @atomicrmw_xchg_i8_monotonic(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB0_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xchg i8* %a, i8 %b monotonic
   ret i8 %1
@@ -121,9 +125,11 @@ define i8 @atomicrmw_xchg_i8_acquire(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB1_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -134,7 +140,9 @@ define i8 @atomicrmw_xchg_i8_acquire(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB1_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xchg i8* %a, i8 %b acquire
   ret i8 %1
@@ -187,9 +195,11 @@ define i8 @atomicrmw_xchg_i8_release(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB2_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -200,7 +210,9 @@ define i8 @atomicrmw_xchg_i8_release(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB2_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xchg i8* %a, i8 %b release
   ret i8 %1
@@ -253,9 +265,11 @@ define i8 @atomicrmw_xchg_i8_acq_rel(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB3_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -266,7 +280,9 @@ define i8 @atomicrmw_xchg_i8_acq_rel(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB3_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xchg i8* %a, i8 %b acq_rel
   ret i8 %1
@@ -319,9 +335,11 @@ define i8 @atomicrmw_xchg_i8_seq_cst(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB4_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aqrl a4, (a0)
@@ -332,7 +350,9 @@ define i8 @atomicrmw_xchg_i8_seq_cst(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    sc.w.aqrl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB4_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xchg i8* %a, i8 %b seq_cst
   ret i8 %1
@@ -385,9 +405,11 @@ define i8 @atomicrmw_add_i8_monotonic(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB5_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -398,7 +420,9 @@ define i8 @atomicrmw_add_i8_monotonic(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB5_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw add i8* %a, i8 %b monotonic
   ret i8 %1
@@ -451,9 +475,11 @@ define i8 @atomicrmw_add_i8_acquire(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB6_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -464,7 +490,9 @@ define i8 @atomicrmw_add_i8_acquire(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB6_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw add i8* %a, i8 %b acquire
   ret i8 %1
@@ -517,9 +545,11 @@ define i8 @atomicrmw_add_i8_release(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB7_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -530,7 +560,9 @@ define i8 @atomicrmw_add_i8_release(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB7_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw add i8* %a, i8 %b release
   ret i8 %1
@@ -583,9 +615,11 @@ define i8 @atomicrmw_add_i8_acq_rel(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB8_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -596,7 +630,9 @@ define i8 @atomicrmw_add_i8_acq_rel(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB8_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw add i8* %a, i8 %b acq_rel
   ret i8 %1
@@ -649,9 +685,11 @@ define i8 @atomicrmw_add_i8_seq_cst(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB9_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aqrl a4, (a0)
@@ -662,7 +700,9 @@ define i8 @atomicrmw_add_i8_seq_cst(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.aqrl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB9_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw add i8* %a, i8 %b seq_cst
   ret i8 %1
@@ -715,9 +755,11 @@ define i8 @atomicrmw_sub_i8_monotonic(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB10_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -728,7 +770,9 @@ define i8 @atomicrmw_sub_i8_monotonic(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB10_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw sub i8* %a, i8 %b monotonic
   ret i8 %1
@@ -781,9 +825,11 @@ define i8 @atomicrmw_sub_i8_acquire(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB11_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -794,7 +840,9 @@ define i8 @atomicrmw_sub_i8_acquire(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB11_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw sub i8* %a, i8 %b acquire
   ret i8 %1
@@ -847,9 +895,11 @@ define i8 @atomicrmw_sub_i8_release(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB12_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -860,7 +910,9 @@ define i8 @atomicrmw_sub_i8_release(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB12_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw sub i8* %a, i8 %b release
   ret i8 %1
@@ -913,9 +965,11 @@ define i8 @atomicrmw_sub_i8_acq_rel(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB13_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -926,7 +980,9 @@ define i8 @atomicrmw_sub_i8_acq_rel(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB13_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw sub i8* %a, i8 %b acq_rel
   ret i8 %1
@@ -979,9 +1035,11 @@ define i8 @atomicrmw_sub_i8_seq_cst(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB14_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aqrl a4, (a0)
@@ -992,7 +1050,9 @@ define i8 @atomicrmw_sub_i8_seq_cst(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    sc.w.aqrl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB14_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw sub i8* %a, i8 %b seq_cst
   ret i8 %1
@@ -1046,7 +1106,9 @@ define i8 @atomicrmw_and_i8_monotonic(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    or a1, a3, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoand.w a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw and i8* %a, i8 %b monotonic
   ret i8 %1
@@ -1100,7 +1162,9 @@ define i8 @atomicrmw_and_i8_acquire(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    or a1, a3, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoand.w.aq a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw and i8* %a, i8 %b acquire
   ret i8 %1
@@ -1154,7 +1218,9 @@ define i8 @atomicrmw_and_i8_release(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    or a1, a3, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoand.w.rl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw and i8* %a, i8 %b release
   ret i8 %1
@@ -1208,7 +1274,9 @@ define i8 @atomicrmw_and_i8_acq_rel(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    or a1, a3, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoand.w.aqrl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw and i8* %a, i8 %b acq_rel
   ret i8 %1
@@ -1262,7 +1330,9 @@ define i8 @atomicrmw_and_i8_seq_cst(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    or a1, a3, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoand.w.aqrl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw and i8* %a, i8 %b seq_cst
   ret i8 %1
@@ -1316,9 +1386,11 @@ define i8 @atomicrmw_nand_i8_monotonic(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB20_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -1330,7 +1402,9 @@ define i8 @atomicrmw_nand_i8_monotonic(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB20_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw nand i8* %a, i8 %b monotonic
   ret i8 %1
@@ -1384,9 +1458,11 @@ define i8 @atomicrmw_nand_i8_acquire(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB21_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -1398,7 +1474,9 @@ define i8 @atomicrmw_nand_i8_acquire(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB21_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw nand i8* %a, i8 %b acquire
   ret i8 %1
@@ -1452,9 +1530,11 @@ define i8 @atomicrmw_nand_i8_release(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB22_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -1466,7 +1546,9 @@ define i8 @atomicrmw_nand_i8_release(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB22_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw nand i8* %a, i8 %b release
   ret i8 %1
@@ -1520,9 +1602,11 @@ define i8 @atomicrmw_nand_i8_acq_rel(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB23_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -1534,7 +1618,9 @@ define i8 @atomicrmw_nand_i8_acq_rel(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB23_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw nand i8* %a, i8 %b acq_rel
   ret i8 %1
@@ -1588,9 +1674,11 @@ define i8 @atomicrmw_nand_i8_seq_cst(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a3, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a3, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB24_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aqrl a4, (a0)
@@ -1602,7 +1690,9 @@ define i8 @atomicrmw_nand_i8_seq_cst(i8* %a, i8 %b) {
 ; RV64IA-NEXT:    sc.w.aqrl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB24_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw nand i8* %a, i8 %b seq_cst
   ret i8 %1
@@ -1648,7 +1738,9 @@ define i8 @atomicrmw_or_i8_monotonic(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoor.w a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw or i8* %a, i8 %b monotonic
   ret i8 %1
@@ -1694,7 +1786,9 @@ define i8 @atomicrmw_or_i8_acquire(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoor.w.aq a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw or i8* %a, i8 %b acquire
   ret i8 %1
@@ -1740,7 +1834,9 @@ define i8 @atomicrmw_or_i8_release(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoor.w.rl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw or i8* %a, i8 %b release
   ret i8 %1
@@ -1786,7 +1882,9 @@ define i8 @atomicrmw_or_i8_acq_rel(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoor.w.aqrl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw or i8* %a, i8 %b acq_rel
   ret i8 %1
@@ -1832,7 +1930,9 @@ define i8 @atomicrmw_or_i8_seq_cst(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoor.w.aqrl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw or i8* %a, i8 %b seq_cst
   ret i8 %1
@@ -1878,7 +1978,9 @@ define i8 @atomicrmw_xor_i8_monotonic(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoxor.w a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xor i8* %a, i8 %b monotonic
   ret i8 %1
@@ -1924,7 +2026,9 @@ define i8 @atomicrmw_xor_i8_acquire(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoxor.w.aq a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xor i8* %a, i8 %b acquire
   ret i8 %1
@@ -1970,7 +2074,9 @@ define i8 @atomicrmw_xor_i8_release(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoxor.w.rl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xor i8* %a, i8 %b release
   ret i8 %1
@@ -2016,7 +2122,9 @@ define i8 @atomicrmw_xor_i8_acq_rel(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoxor.w.aqrl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xor i8* %a, i8 %b acq_rel
   ret i8 %1
@@ -2062,7 +2170,9 @@ define i8 @atomicrmw_xor_i8_seq_cst(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoxor.w.aqrl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xor i8* %a, i8 %b seq_cst
   ret i8 %1
@@ -2189,30 +2299,34 @@ define i8 @atomicrmw_max_i8_monotonic(i8 *%a, i8 %b) nounwind {
 ; RV64IA:       # %bb.0:
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 56
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    addi a4, zero, 255
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    addi a3, zero, 255
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    addi a4, zero, 56
+; RV64IA-NEXT:    sub a6, a4, a2
+; RV64IA-NEXT:    sext.w a7, a3
 ; RV64IA-NEXT:    slli a1, a1, 56
 ; RV64IA-NEXT:    srai a1, a1, 56
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB35_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a4, a1, .LBB35_3
+; RV64IA-NEXT:    and a3, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a3, a3, a6
+; RV64IA-NEXT:    sra a3, a3, a6
+; RV64IA-NEXT:    bge a3, a1, .LBB35_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB35_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB35_3: # in Loop: Header=BB35_1 Depth=1
-; RV64IA-NEXT:    sc.w a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB35_1
+; RV64IA-NEXT:    sc.w a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB35_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw max i8* %a, i8 %b monotonic
   ret i8 %1
@@ -2345,30 +2459,34 @@ define i8 @atomicrmw_max_i8_acquire(i8 *%a, i8 %b) nounwind {
 ; RV64IA:       # %bb.0:
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 56
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    addi a4, zero, 255
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    addi a3, zero, 255
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    addi a4, zero, 56
+; RV64IA-NEXT:    sub a6, a4, a2
+; RV64IA-NEXT:    sext.w a7, a3
 ; RV64IA-NEXT:    slli a1, a1, 56
 ; RV64IA-NEXT:    srai a1, a1, 56
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB36_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a4, a1, .LBB36_3
+; RV64IA-NEXT:    and a3, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a3, a3, a6
+; RV64IA-NEXT:    sra a3, a3, a6
+; RV64IA-NEXT:    bge a3, a1, .LBB36_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB36_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB36_3: # in Loop: Header=BB36_1 Depth=1
-; RV64IA-NEXT:    sc.w a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB36_1
+; RV64IA-NEXT:    sc.w a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB36_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw max i8* %a, i8 %b acquire
   ret i8 %1
@@ -2501,30 +2619,34 @@ define i8 @atomicrmw_max_i8_release(i8 *%a, i8 %b) nounwind {
 ; RV64IA:       # %bb.0:
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 56
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    addi a4, zero, 255
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    addi a3, zero, 255
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    addi a4, zero, 56
+; RV64IA-NEXT:    sub a6, a4, a2
+; RV64IA-NEXT:    sext.w a7, a3
 ; RV64IA-NEXT:    slli a1, a1, 56
 ; RV64IA-NEXT:    srai a1, a1, 56
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB37_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a4, a1, .LBB37_3
+; RV64IA-NEXT:    and a3, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a3, a3, a6
+; RV64IA-NEXT:    sra a3, a3, a6
+; RV64IA-NEXT:    bge a3, a1, .LBB37_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB37_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB37_3: # in Loop: Header=BB37_1 Depth=1
-; RV64IA-NEXT:    sc.w.rl a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB37_1
+; RV64IA-NEXT:    sc.w.rl a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB37_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw max i8* %a, i8 %b release
   ret i8 %1
@@ -2663,30 +2785,34 @@ define i8 @atomicrmw_max_i8_acq_rel(i8 *%a, i8 %b) nounwind {
 ; RV64IA:       # %bb.0:
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 56
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    addi a4, zero, 255
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    addi a3, zero, 255
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    addi a4, zero, 56
+; RV64IA-NEXT:    sub a6, a4, a2
+; RV64IA-NEXT:    sext.w a7, a3
 ; RV64IA-NEXT:    slli a1, a1, 56
 ; RV64IA-NEXT:    srai a1, a1, 56
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB38_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a4, a1, .LBB38_3
+; RV64IA-NEXT:    and a3, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a3, a3, a6
+; RV64IA-NEXT:    sra a3, a3, a6
+; RV64IA-NEXT:    bge a3, a1, .LBB38_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB38_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB38_3: # in Loop: Header=BB38_1 Depth=1
-; RV64IA-NEXT:    sc.w.rl a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB38_1
+; RV64IA-NEXT:    sc.w.rl a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB38_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw max i8* %a, i8 %b acq_rel
   ret i8 %1
@@ -2819,30 +2945,34 @@ define i8 @atomicrmw_max_i8_seq_cst(i8 *%a, i8 %b) nounwind {
 ; RV64IA:       # %bb.0:
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 56
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    addi a4, zero, 255
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    addi a3, zero, 255
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    addi a4, zero, 56
+; RV64IA-NEXT:    sub a6, a4, a2
+; RV64IA-NEXT:    sext.w a7, a3
 ; RV64IA-NEXT:    slli a1, a1, 56
 ; RV64IA-NEXT:    srai a1, a1, 56
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB39_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aqrl a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a4, a1, .LBB39_3
+; RV64IA-NEXT:    and a3, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a3, a3, a6
+; RV64IA-NEXT:    sra a3, a3, a6
+; RV64IA-NEXT:    bge a3, a1, .LBB39_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB39_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB39_3: # in Loop: Header=BB39_1 Depth=1
-; RV64IA-NEXT:    sc.w.aqrl a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB39_1
+; RV64IA-NEXT:    sc.w.aqrl a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB39_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw max i8* %a, i8 %b seq_cst
   ret i8 %1
@@ -2969,30 +3099,34 @@ define i8 @atomicrmw_min_i8_monotonic(i8 *%a, i8 %b) nounwind {
 ; RV64IA:       # %bb.0:
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 56
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    addi a4, zero, 255
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    addi a3, zero, 255
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    addi a4, zero, 56
+; RV64IA-NEXT:    sub a6, a4, a2
+; RV64IA-NEXT:    sext.w a7, a3
 ; RV64IA-NEXT:    slli a1, a1, 56
 ; RV64IA-NEXT:    srai a1, a1, 56
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB40_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a1, a4, .LBB40_3
+; RV64IA-NEXT:    and a3, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a3, a3, a6
+; RV64IA-NEXT:    sra a3, a3, a6
+; RV64IA-NEXT:    bge a1, a3, .LBB40_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB40_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB40_3: # in Loop: Header=BB40_1 Depth=1
-; RV64IA-NEXT:    sc.w a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB40_1
+; RV64IA-NEXT:    sc.w a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB40_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw min i8* %a, i8 %b monotonic
   ret i8 %1
@@ -3125,30 +3259,34 @@ define i8 @atomicrmw_min_i8_acquire(i8 *%a, i8 %b) nounwind {
 ; RV64IA:       # %bb.0:
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 56
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    addi a4, zero, 255
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    addi a3, zero, 255
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    addi a4, zero, 56
+; RV64IA-NEXT:    sub a6, a4, a2
+; RV64IA-NEXT:    sext.w a7, a3
 ; RV64IA-NEXT:    slli a1, a1, 56
 ; RV64IA-NEXT:    srai a1, a1, 56
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB41_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a1, a4, .LBB41_3
+; RV64IA-NEXT:    and a3, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a3, a3, a6
+; RV64IA-NEXT:    sra a3, a3, a6
+; RV64IA-NEXT:    bge a1, a3, .LBB41_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB41_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB41_3: # in Loop: Header=BB41_1 Depth=1
-; RV64IA-NEXT:    sc.w a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB41_1
+; RV64IA-NEXT:    sc.w a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB41_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw min i8* %a, i8 %b acquire
   ret i8 %1
@@ -3281,30 +3419,34 @@ define i8 @atomicrmw_min_i8_release(i8 *%a, i8 %b) nounwind {
 ; RV64IA:       # %bb.0:
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 56
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    addi a4, zero, 255
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    addi a3, zero, 255
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    addi a4, zero, 56
+; RV64IA-NEXT:    sub a6, a4, a2
+; RV64IA-NEXT:    sext.w a7, a3
 ; RV64IA-NEXT:    slli a1, a1, 56
 ; RV64IA-NEXT:    srai a1, a1, 56
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB42_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a1, a4, .LBB42_3
+; RV64IA-NEXT:    and a3, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a3, a3, a6
+; RV64IA-NEXT:    sra a3, a3, a6
+; RV64IA-NEXT:    bge a1, a3, .LBB42_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB42_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB42_3: # in Loop: Header=BB42_1 Depth=1
-; RV64IA-NEXT:    sc.w.rl a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB42_1
+; RV64IA-NEXT:    sc.w.rl a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB42_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw min i8* %a, i8 %b release
   ret i8 %1
@@ -3443,30 +3585,34 @@ define i8 @atomicrmw_min_i8_acq_rel(i8 *%a, i8 %b) nounwind {
 ; RV64IA:       # %bb.0:
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 56
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    addi a4, zero, 255
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    addi a3, zero, 255
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    addi a4, zero, 56
+; RV64IA-NEXT:    sub a6, a4, a2
+; RV64IA-NEXT:    sext.w a7, a3
 ; RV64IA-NEXT:    slli a1, a1, 56
 ; RV64IA-NEXT:    srai a1, a1, 56
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB43_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a1, a4, .LBB43_3
+; RV64IA-NEXT:    and a3, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a3, a3, a6
+; RV64IA-NEXT:    sra a3, a3, a6
+; RV64IA-NEXT:    bge a1, a3, .LBB43_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB43_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB43_3: # in Loop: Header=BB43_1 Depth=1
-; RV64IA-NEXT:    sc.w.rl a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB43_1
+; RV64IA-NEXT:    sc.w.rl a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB43_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw min i8* %a, i8 %b acq_rel
   ret i8 %1
@@ -3599,30 +3745,34 @@ define i8 @atomicrmw_min_i8_seq_cst(i8 *%a, i8 %b) nounwind {
 ; RV64IA:       # %bb.0:
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 56
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    addi a4, zero, 255
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    addi a3, zero, 255
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    addi a4, zero, 56
+; RV64IA-NEXT:    sub a6, a4, a2
+; RV64IA-NEXT:    sext.w a7, a3
 ; RV64IA-NEXT:    slli a1, a1, 56
 ; RV64IA-NEXT:    srai a1, a1, 56
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB44_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aqrl a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a1, a4, .LBB44_3
+; RV64IA-NEXT:    and a3, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a3, a3, a6
+; RV64IA-NEXT:    sra a3, a3, a6
+; RV64IA-NEXT:    bge a1, a3, .LBB44_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB44_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB44_3: # in Loop: Header=BB44_1 Depth=1
-; RV64IA-NEXT:    sc.w.aqrl a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB44_1
+; RV64IA-NEXT:    sc.w.aqrl a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB44_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw min i8* %a, i8 %b seq_cst
   ret i8 %1
@@ -3741,9 +3891,11 @@ define i8 @atomicrmw_umax_i8_monotonic(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a6, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a6, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB45_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -3758,7 +3910,9 @@ define i8 @atomicrmw_umax_i8_monotonic(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB45_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umax i8* %a, i8 %b monotonic
   ret i8 %1
@@ -3883,9 +4037,11 @@ define i8 @atomicrmw_umax_i8_acquire(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a6, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a6, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB46_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -3900,7 +4056,9 @@ define i8 @atomicrmw_umax_i8_acquire(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB46_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umax i8* %a, i8 %b acquire
   ret i8 %1
@@ -4025,9 +4183,11 @@ define i8 @atomicrmw_umax_i8_release(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a6, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a6, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB47_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -4042,7 +4202,9 @@ define i8 @atomicrmw_umax_i8_release(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB47_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umax i8* %a, i8 %b release
   ret i8 %1
@@ -4173,9 +4335,11 @@ define i8 @atomicrmw_umax_i8_acq_rel(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a6, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a6, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB48_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -4190,7 +4354,9 @@ define i8 @atomicrmw_umax_i8_acq_rel(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB48_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umax i8* %a, i8 %b acq_rel
   ret i8 %1
@@ -4315,9 +4481,11 @@ define i8 @atomicrmw_umax_i8_seq_cst(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a6, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a6, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB49_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aqrl a4, (a0)
@@ -4332,7 +4500,9 @@ define i8 @atomicrmw_umax_i8_seq_cst(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.aqrl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB49_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umax i8* %a, i8 %b seq_cst
   ret i8 %1
@@ -4451,9 +4621,11 @@ define i8 @atomicrmw_umin_i8_monotonic(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a6, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a6, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB50_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -4468,7 +4640,9 @@ define i8 @atomicrmw_umin_i8_monotonic(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB50_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umin i8* %a, i8 %b monotonic
   ret i8 %1
@@ -4593,9 +4767,11 @@ define i8 @atomicrmw_umin_i8_acquire(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a6, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a6, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB51_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -4610,7 +4786,9 @@ define i8 @atomicrmw_umin_i8_acquire(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB51_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umin i8* %a, i8 %b acquire
   ret i8 %1
@@ -4735,9 +4913,11 @@ define i8 @atomicrmw_umin_i8_release(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a6, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a6, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB52_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -4752,7 +4932,9 @@ define i8 @atomicrmw_umin_i8_release(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB52_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umin i8* %a, i8 %b release
   ret i8 %1
@@ -4883,9 +5065,11 @@ define i8 @atomicrmw_umin_i8_acq_rel(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a6, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a6, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB53_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -4900,7 +5084,9 @@ define i8 @atomicrmw_umin_i8_acq_rel(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB53_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umin i8* %a, i8 %b acq_rel
   ret i8 %1
@@ -5025,9 +5211,11 @@ define i8 @atomicrmw_umin_i8_seq_cst(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    slli a2, a0, 3
 ; RV64IA-NEXT:    andi a2, a2, 24
 ; RV64IA-NEXT:    addi a3, zero, 255
-; RV64IA-NEXT:    sllw a6, a3, a2
+; RV64IA-NEXT:    sll a3, a3, a2
+; RV64IA-NEXT:    sext.w a6, a3
 ; RV64IA-NEXT:    andi a1, a1, 255
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a2
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB54_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aqrl a4, (a0)
@@ -5042,7 +5230,9 @@ define i8 @atomicrmw_umin_i8_seq_cst(i8 *%a, i8 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.aqrl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB54_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a2
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umin i8* %a, i8 %b seq_cst
   ret i8 %1
@@ -5098,8 +5288,10 @@ define i16 @atomicrmw_xchg_i16_monotonic(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB55_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -5110,7 +5302,9 @@ define i16 @atomicrmw_xchg_i16_monotonic(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB55_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xchg i16* %a, i16 %b monotonic
   ret i16 %1
@@ -5166,8 +5360,10 @@ define i16 @atomicrmw_xchg_i16_acquire(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB56_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -5178,7 +5374,9 @@ define i16 @atomicrmw_xchg_i16_acquire(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB56_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xchg i16* %a, i16 %b acquire
   ret i16 %1
@@ -5234,8 +5432,10 @@ define i16 @atomicrmw_xchg_i16_release(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB57_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -5246,7 +5446,9 @@ define i16 @atomicrmw_xchg_i16_release(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB57_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xchg i16* %a, i16 %b release
   ret i16 %1
@@ -5302,8 +5504,10 @@ define i16 @atomicrmw_xchg_i16_acq_rel(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB58_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -5314,7 +5518,9 @@ define i16 @atomicrmw_xchg_i16_acq_rel(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB58_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xchg i16* %a, i16 %b acq_rel
   ret i16 %1
@@ -5370,8 +5576,10 @@ define i16 @atomicrmw_xchg_i16_seq_cst(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB59_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aqrl a4, (a0)
@@ -5382,7 +5590,9 @@ define i16 @atomicrmw_xchg_i16_seq_cst(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    sc.w.aqrl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB59_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xchg i16* %a, i16 %b seq_cst
   ret i16 %1
@@ -5438,8 +5648,10 @@ define i16 @atomicrmw_add_i16_monotonic(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB60_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -5450,7 +5662,9 @@ define i16 @atomicrmw_add_i16_monotonic(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB60_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw add i16* %a, i16 %b monotonic
   ret i16 %1
@@ -5506,8 +5720,10 @@ define i16 @atomicrmw_add_i16_acquire(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB61_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -5518,7 +5734,9 @@ define i16 @atomicrmw_add_i16_acquire(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB61_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw add i16* %a, i16 %b acquire
   ret i16 %1
@@ -5574,8 +5792,10 @@ define i16 @atomicrmw_add_i16_release(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB62_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -5586,7 +5806,9 @@ define i16 @atomicrmw_add_i16_release(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB62_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw add i16* %a, i16 %b release
   ret i16 %1
@@ -5642,8 +5864,10 @@ define i16 @atomicrmw_add_i16_acq_rel(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB63_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -5654,7 +5878,9 @@ define i16 @atomicrmw_add_i16_acq_rel(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB63_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw add i16* %a, i16 %b acq_rel
   ret i16 %1
@@ -5710,8 +5936,10 @@ define i16 @atomicrmw_add_i16_seq_cst(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB64_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aqrl a4, (a0)
@@ -5722,7 +5950,9 @@ define i16 @atomicrmw_add_i16_seq_cst(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.aqrl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB64_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw add i16* %a, i16 %b seq_cst
   ret i16 %1
@@ -5778,8 +6008,10 @@ define i16 @atomicrmw_sub_i16_monotonic(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB65_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -5790,7 +6022,9 @@ define i16 @atomicrmw_sub_i16_monotonic(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB65_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw sub i16* %a, i16 %b monotonic
   ret i16 %1
@@ -5846,8 +6080,10 @@ define i16 @atomicrmw_sub_i16_acquire(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB66_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -5858,7 +6094,9 @@ define i16 @atomicrmw_sub_i16_acquire(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB66_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw sub i16* %a, i16 %b acquire
   ret i16 %1
@@ -5914,8 +6152,10 @@ define i16 @atomicrmw_sub_i16_release(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB67_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -5926,7 +6166,9 @@ define i16 @atomicrmw_sub_i16_release(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB67_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw sub i16* %a, i16 %b release
   ret i16 %1
@@ -5982,8 +6224,10 @@ define i16 @atomicrmw_sub_i16_acq_rel(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB68_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -5994,7 +6238,9 @@ define i16 @atomicrmw_sub_i16_acq_rel(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB68_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw sub i16* %a, i16 %b acq_rel
   ret i16 %1
@@ -6050,8 +6296,10 @@ define i16 @atomicrmw_sub_i16_seq_cst(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB69_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aqrl a4, (a0)
@@ -6062,7 +6310,9 @@ define i16 @atomicrmw_sub_i16_seq_cst(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    sc.w.aqrl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB69_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw sub i16* %a, i16 %b seq_cst
   ret i16 %1
@@ -6118,7 +6368,9 @@ define i16 @atomicrmw_and_i16_monotonic(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    or a1, a2, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoand.w a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a3
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw and i16* %a, i16 %b monotonic
   ret i16 %1
@@ -6174,7 +6426,9 @@ define i16 @atomicrmw_and_i16_acquire(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    or a1, a2, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoand.w.aq a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a3
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw and i16* %a, i16 %b acquire
   ret i16 %1
@@ -6230,7 +6484,9 @@ define i16 @atomicrmw_and_i16_release(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    or a1, a2, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoand.w.rl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a3
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw and i16* %a, i16 %b release
   ret i16 %1
@@ -6286,7 +6542,9 @@ define i16 @atomicrmw_and_i16_acq_rel(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    or a1, a2, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoand.w.aqrl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a3
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw and i16* %a, i16 %b acq_rel
   ret i16 %1
@@ -6342,7 +6600,9 @@ define i16 @atomicrmw_and_i16_seq_cst(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    or a1, a2, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoand.w.aqrl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a3
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw and i16* %a, i16 %b seq_cst
   ret i16 %1
@@ -6399,8 +6659,10 @@ define i16 @atomicrmw_nand_i16_monotonic(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB75_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -6412,7 +6674,9 @@ define i16 @atomicrmw_nand_i16_monotonic(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB75_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw nand i16* %a, i16 %b monotonic
   ret i16 %1
@@ -6469,8 +6733,10 @@ define i16 @atomicrmw_nand_i16_acquire(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB76_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -6482,7 +6748,9 @@ define i16 @atomicrmw_nand_i16_acquire(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB76_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw nand i16* %a, i16 %b acquire
   ret i16 %1
@@ -6539,8 +6807,10 @@ define i16 @atomicrmw_nand_i16_release(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB77_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -6552,7 +6822,9 @@ define i16 @atomicrmw_nand_i16_release(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB77_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw nand i16* %a, i16 %b release
   ret i16 %1
@@ -6609,8 +6881,10 @@ define i16 @atomicrmw_nand_i16_acq_rel(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB78_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -6622,7 +6896,9 @@ define i16 @atomicrmw_nand_i16_acq_rel(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB78_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw nand i16* %a, i16 %b acq_rel
   ret i16 %1
@@ -6679,8 +6955,10 @@ define i16 @atomicrmw_nand_i16_seq_cst(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a2, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a2, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB79_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aqrl a4, (a0)
@@ -6692,7 +6970,9 @@ define i16 @atomicrmw_nand_i16_seq_cst(i16* %a, i16 %b) {
 ; RV64IA-NEXT:    sc.w.aqrl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB79_1
 ; RV64IA-NEXT:  # %bb.2:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw nand i16* %a, i16 %b seq_cst
   ret i16 %1
@@ -6742,7 +7022,9 @@ define i16 @atomicrmw_or_i16_monotonic(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoor.w a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw or i16* %a, i16 %b monotonic
   ret i16 %1
@@ -6792,7 +7074,9 @@ define i16 @atomicrmw_or_i16_acquire(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoor.w.aq a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw or i16* %a, i16 %b acquire
   ret i16 %1
@@ -6842,7 +7126,9 @@ define i16 @atomicrmw_or_i16_release(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoor.w.rl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw or i16* %a, i16 %b release
   ret i16 %1
@@ -6892,7 +7178,9 @@ define i16 @atomicrmw_or_i16_acq_rel(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoor.w.aqrl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw or i16* %a, i16 %b acq_rel
   ret i16 %1
@@ -6942,7 +7230,9 @@ define i16 @atomicrmw_or_i16_seq_cst(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoor.w.aqrl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw or i16* %a, i16 %b seq_cst
   ret i16 %1
@@ -6992,7 +7282,9 @@ define i16 @atomicrmw_xor_i16_monotonic(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoxor.w a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xor i16* %a, i16 %b monotonic
   ret i16 %1
@@ -7042,7 +7334,9 @@ define i16 @atomicrmw_xor_i16_acquire(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoxor.w.aq a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xor i16* %a, i16 %b acquire
   ret i16 %1
@@ -7092,7 +7386,9 @@ define i16 @atomicrmw_xor_i16_release(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoxor.w.rl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xor i16* %a, i16 %b release
   ret i16 %1
@@ -7142,7 +7438,9 @@ define i16 @atomicrmw_xor_i16_acq_rel(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoxor.w.aqrl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xor i16* %a, i16 %b acq_rel
   ret i16 %1
@@ -7192,7 +7490,9 @@ define i16 @atomicrmw_xor_i16_seq_cst(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sll a1, a1, a2
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:    amoxor.w.aqrl a0, a1, (a0)
-; RV64IA-NEXT:    srlw a0, a0, a2
+; RV64IA-NEXT:    slli a0, a0, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a2
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw xor i16* %a, i16 %b seq_cst
   ret i16 %1
@@ -7318,33 +7618,37 @@ define i16 @atomicrmw_max_i16_monotonic(i16 *%a, i16 %b) nounwind {
 ;
 ; RV64IA-LABEL: atomicrmw_max_i16_monotonic:
 ; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    slli a2, a0, 3
-; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 48
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    lui a2, 16
+; RV64IA-NEXT:    addiw a2, a2, -1
+; RV64IA-NEXT:    slli a3, a0, 3
+; RV64IA-NEXT:    andi a3, a3, 24
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    addi a4, zero, 48
+; RV64IA-NEXT:    sub a6, a4, a3
+; RV64IA-NEXT:    sext.w a7, a2
 ; RV64IA-NEXT:    slli a1, a1, 48
 ; RV64IA-NEXT:    srai a1, a1, 48
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB90_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a4, a1, .LBB90_3
+; RV64IA-NEXT:    and a2, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a2, a2, a6
+; RV64IA-NEXT:    sra a2, a2, a6
+; RV64IA-NEXT:    bge a2, a1, .LBB90_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB90_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB90_3: # in Loop: Header=BB90_1 Depth=1
-; RV64IA-NEXT:    sc.w a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB90_1
+; RV64IA-NEXT:    sc.w a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB90_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw max i16* %a, i16 %b monotonic
   ret i16 %1
@@ -7476,33 +7780,37 @@ define i16 @atomicrmw_max_i16_acquire(i16 *%a, i16 %b) nounwind {
 ;
 ; RV64IA-LABEL: atomicrmw_max_i16_acquire:
 ; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    slli a2, a0, 3
-; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 48
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    lui a2, 16
+; RV64IA-NEXT:    addiw a2, a2, -1
+; RV64IA-NEXT:    slli a3, a0, 3
+; RV64IA-NEXT:    andi a3, a3, 24
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    addi a4, zero, 48
+; RV64IA-NEXT:    sub a6, a4, a3
+; RV64IA-NEXT:    sext.w a7, a2
 ; RV64IA-NEXT:    slli a1, a1, 48
 ; RV64IA-NEXT:    srai a1, a1, 48
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB91_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a4, a1, .LBB91_3
+; RV64IA-NEXT:    and a2, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a2, a2, a6
+; RV64IA-NEXT:    sra a2, a2, a6
+; RV64IA-NEXT:    bge a2, a1, .LBB91_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB91_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB91_3: # in Loop: Header=BB91_1 Depth=1
-; RV64IA-NEXT:    sc.w a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB91_1
+; RV64IA-NEXT:    sc.w a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB91_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw max i16* %a, i16 %b acquire
   ret i16 %1
@@ -7634,33 +7942,37 @@ define i16 @atomicrmw_max_i16_release(i16 *%a, i16 %b) nounwind {
 ;
 ; RV64IA-LABEL: atomicrmw_max_i16_release:
 ; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    slli a2, a0, 3
-; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 48
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    lui a2, 16
+; RV64IA-NEXT:    addiw a2, a2, -1
+; RV64IA-NEXT:    slli a3, a0, 3
+; RV64IA-NEXT:    andi a3, a3, 24
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    addi a4, zero, 48
+; RV64IA-NEXT:    sub a6, a4, a3
+; RV64IA-NEXT:    sext.w a7, a2
 ; RV64IA-NEXT:    slli a1, a1, 48
 ; RV64IA-NEXT:    srai a1, a1, 48
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB92_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a4, a1, .LBB92_3
+; RV64IA-NEXT:    and a2, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a2, a2, a6
+; RV64IA-NEXT:    sra a2, a2, a6
+; RV64IA-NEXT:    bge a2, a1, .LBB92_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB92_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB92_3: # in Loop: Header=BB92_1 Depth=1
-; RV64IA-NEXT:    sc.w.rl a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB92_1
+; RV64IA-NEXT:    sc.w.rl a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB92_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw max i16* %a, i16 %b release
   ret i16 %1
@@ -7798,33 +8110,37 @@ define i16 @atomicrmw_max_i16_acq_rel(i16 *%a, i16 %b) nounwind {
 ;
 ; RV64IA-LABEL: atomicrmw_max_i16_acq_rel:
 ; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    slli a2, a0, 3
-; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 48
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    lui a2, 16
+; RV64IA-NEXT:    addiw a2, a2, -1
+; RV64IA-NEXT:    slli a3, a0, 3
+; RV64IA-NEXT:    andi a3, a3, 24
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    addi a4, zero, 48
+; RV64IA-NEXT:    sub a6, a4, a3
+; RV64IA-NEXT:    sext.w a7, a2
 ; RV64IA-NEXT:    slli a1, a1, 48
 ; RV64IA-NEXT:    srai a1, a1, 48
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB93_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a4, a1, .LBB93_3
+; RV64IA-NEXT:    and a2, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a2, a2, a6
+; RV64IA-NEXT:    sra a2, a2, a6
+; RV64IA-NEXT:    bge a2, a1, .LBB93_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB93_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB93_3: # in Loop: Header=BB93_1 Depth=1
-; RV64IA-NEXT:    sc.w.rl a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB93_1
+; RV64IA-NEXT:    sc.w.rl a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB93_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw max i16* %a, i16 %b acq_rel
   ret i16 %1
@@ -7956,33 +8272,37 @@ define i16 @atomicrmw_max_i16_seq_cst(i16 *%a, i16 %b) nounwind {
 ;
 ; RV64IA-LABEL: atomicrmw_max_i16_seq_cst:
 ; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    slli a2, a0, 3
-; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 48
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    lui a2, 16
+; RV64IA-NEXT:    addiw a2, a2, -1
+; RV64IA-NEXT:    slli a3, a0, 3
+; RV64IA-NEXT:    andi a3, a3, 24
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    addi a4, zero, 48
+; RV64IA-NEXT:    sub a6, a4, a3
+; RV64IA-NEXT:    sext.w a7, a2
 ; RV64IA-NEXT:    slli a1, a1, 48
 ; RV64IA-NEXT:    srai a1, a1, 48
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB94_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aqrl a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a4, a1, .LBB94_3
+; RV64IA-NEXT:    and a2, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a2, a2, a6
+; RV64IA-NEXT:    sra a2, a2, a6
+; RV64IA-NEXT:    bge a2, a1, .LBB94_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB94_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB94_3: # in Loop: Header=BB94_1 Depth=1
-; RV64IA-NEXT:    sc.w.aqrl a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB94_1
+; RV64IA-NEXT:    sc.w.aqrl a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB94_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw max i16* %a, i16 %b seq_cst
   ret i16 %1
@@ -8108,33 +8428,37 @@ define i16 @atomicrmw_min_i16_monotonic(i16 *%a, i16 %b) nounwind {
 ;
 ; RV64IA-LABEL: atomicrmw_min_i16_monotonic:
 ; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    slli a2, a0, 3
-; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 48
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    lui a2, 16
+; RV64IA-NEXT:    addiw a2, a2, -1
+; RV64IA-NEXT:    slli a3, a0, 3
+; RV64IA-NEXT:    andi a3, a3, 24
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    addi a4, zero, 48
+; RV64IA-NEXT:    sub a6, a4, a3
+; RV64IA-NEXT:    sext.w a7, a2
 ; RV64IA-NEXT:    slli a1, a1, 48
 ; RV64IA-NEXT:    srai a1, a1, 48
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB95_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a1, a4, .LBB95_3
+; RV64IA-NEXT:    and a2, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a2, a2, a6
+; RV64IA-NEXT:    sra a2, a2, a6
+; RV64IA-NEXT:    bge a1, a2, .LBB95_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB95_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB95_3: # in Loop: Header=BB95_1 Depth=1
-; RV64IA-NEXT:    sc.w a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB95_1
+; RV64IA-NEXT:    sc.w a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB95_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw min i16* %a, i16 %b monotonic
   ret i16 %1
@@ -8266,33 +8590,37 @@ define i16 @atomicrmw_min_i16_acquire(i16 *%a, i16 %b) nounwind {
 ;
 ; RV64IA-LABEL: atomicrmw_min_i16_acquire:
 ; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    slli a2, a0, 3
-; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 48
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    lui a2, 16
+; RV64IA-NEXT:    addiw a2, a2, -1
+; RV64IA-NEXT:    slli a3, a0, 3
+; RV64IA-NEXT:    andi a3, a3, 24
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    addi a4, zero, 48
+; RV64IA-NEXT:    sub a6, a4, a3
+; RV64IA-NEXT:    sext.w a7, a2
 ; RV64IA-NEXT:    slli a1, a1, 48
 ; RV64IA-NEXT:    srai a1, a1, 48
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB96_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a1, a4, .LBB96_3
+; RV64IA-NEXT:    and a2, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a2, a2, a6
+; RV64IA-NEXT:    sra a2, a2, a6
+; RV64IA-NEXT:    bge a1, a2, .LBB96_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB96_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB96_3: # in Loop: Header=BB96_1 Depth=1
-; RV64IA-NEXT:    sc.w a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB96_1
+; RV64IA-NEXT:    sc.w a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB96_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw min i16* %a, i16 %b acquire
   ret i16 %1
@@ -8424,33 +8752,37 @@ define i16 @atomicrmw_min_i16_release(i16 *%a, i16 %b) nounwind {
 ;
 ; RV64IA-LABEL: atomicrmw_min_i16_release:
 ; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    slli a2, a0, 3
-; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 48
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    lui a2, 16
+; RV64IA-NEXT:    addiw a2, a2, -1
+; RV64IA-NEXT:    slli a3, a0, 3
+; RV64IA-NEXT:    andi a3, a3, 24
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    addi a4, zero, 48
+; RV64IA-NEXT:    sub a6, a4, a3
+; RV64IA-NEXT:    sext.w a7, a2
 ; RV64IA-NEXT:    slli a1, a1, 48
 ; RV64IA-NEXT:    srai a1, a1, 48
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB97_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a1, a4, .LBB97_3
+; RV64IA-NEXT:    and a2, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a2, a2, a6
+; RV64IA-NEXT:    sra a2, a2, a6
+; RV64IA-NEXT:    bge a1, a2, .LBB97_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB97_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB97_3: # in Loop: Header=BB97_1 Depth=1
-; RV64IA-NEXT:    sc.w.rl a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB97_1
+; RV64IA-NEXT:    sc.w.rl a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB97_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw min i16* %a, i16 %b release
   ret i16 %1
@@ -8588,33 +8920,37 @@ define i16 @atomicrmw_min_i16_acq_rel(i16 *%a, i16 %b) nounwind {
 ;
 ; RV64IA-LABEL: atomicrmw_min_i16_acq_rel:
 ; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    slli a2, a0, 3
-; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 48
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    lui a2, 16
+; RV64IA-NEXT:    addiw a2, a2, -1
+; RV64IA-NEXT:    slli a3, a0, 3
+; RV64IA-NEXT:    andi a3, a3, 24
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    addi a4, zero, 48
+; RV64IA-NEXT:    sub a6, a4, a3
+; RV64IA-NEXT:    sext.w a7, a2
 ; RV64IA-NEXT:    slli a1, a1, 48
 ; RV64IA-NEXT:    srai a1, a1, 48
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB98_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a1, a4, .LBB98_3
+; RV64IA-NEXT:    and a2, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a2, a2, a6
+; RV64IA-NEXT:    sra a2, a2, a6
+; RV64IA-NEXT:    bge a1, a2, .LBB98_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB98_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB98_3: # in Loop: Header=BB98_1 Depth=1
-; RV64IA-NEXT:    sc.w.rl a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB98_1
+; RV64IA-NEXT:    sc.w.rl a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB98_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw min i16* %a, i16 %b acq_rel
   ret i16 %1
@@ -8746,33 +9082,37 @@ define i16 @atomicrmw_min_i16_seq_cst(i16 *%a, i16 %b) nounwind {
 ;
 ; RV64IA-LABEL: atomicrmw_min_i16_seq_cst:
 ; RV64IA:       # %bb.0:
-; RV64IA-NEXT:    slli a2, a0, 3
-; RV64IA-NEXT:    andi a2, a2, 24
-; RV64IA-NEXT:    addi a3, zero, 48
-; RV64IA-NEXT:    sub a6, a3, a2
-; RV64IA-NEXT:    lui a4, 16
-; RV64IA-NEXT:    addiw a4, a4, -1
-; RV64IA-NEXT:    sllw a7, a4, a2
+; RV64IA-NEXT:    lui a2, 16
+; RV64IA-NEXT:    addiw a2, a2, -1
+; RV64IA-NEXT:    slli a3, a0, 3
+; RV64IA-NEXT:    andi a3, a3, 24
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    addi a4, zero, 48
+; RV64IA-NEXT:    sub a6, a4, a3
+; RV64IA-NEXT:    sext.w a7, a2
 ; RV64IA-NEXT:    slli a1, a1, 48
 ; RV64IA-NEXT:    srai a1, a1, 48
-; RV64IA-NEXT:    sllw a1, a1, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB99_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aqrl a5, (a0)
-; RV64IA-NEXT:    and a4, a5, a7
-; RV64IA-NEXT:    mv a3, a5
-; RV64IA-NEXT:    sll a4, a4, a6
-; RV64IA-NEXT:    sra a4, a4, a6
-; RV64IA-NEXT:    bge a1, a4, .LBB99_3
+; RV64IA-NEXT:    and a2, a5, a7
+; RV64IA-NEXT:    mv a4, a5
+; RV64IA-NEXT:    sll a2, a2, a6
+; RV64IA-NEXT:    sra a2, a2, a6
+; RV64IA-NEXT:    bge a1, a2, .LBB99_3
 ; RV64IA-NEXT:  # %bb.2: # in Loop: Header=BB99_1 Depth=1
-; RV64IA-NEXT:    xor a3, a5, a1
-; RV64IA-NEXT:    and a3, a3, a7
-; RV64IA-NEXT:    xor a3, a5, a3
+; RV64IA-NEXT:    xor a4, a5, a1
+; RV64IA-NEXT:    and a4, a4, a7
+; RV64IA-NEXT:    xor a4, a5, a4
 ; RV64IA-NEXT:  .LBB99_3: # in Loop: Header=BB99_1 Depth=1
-; RV64IA-NEXT:    sc.w.aqrl a3, a3, (a0)
-; RV64IA-NEXT:    bnez a3, .LBB99_1
+; RV64IA-NEXT:    sc.w.aqrl a4, a4, (a0)
+; RV64IA-NEXT:    bnez a4, .LBB99_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a5, a2
+; RV64IA-NEXT:    slli a0, a5, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw min i16* %a, i16 %b seq_cst
   ret i16 %1
@@ -8902,8 +9242,10 @@ define i16 @atomicrmw_umax_i16_monotonic(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a6, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a6, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB100_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -8918,7 +9260,9 @@ define i16 @atomicrmw_umax_i16_monotonic(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB100_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umax i16* %a, i16 %b monotonic
   ret i16 %1
@@ -9054,8 +9398,10 @@ define i16 @atomicrmw_umax_i16_acquire(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a6, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a6, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB101_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -9070,7 +9416,9 @@ define i16 @atomicrmw_umax_i16_acquire(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB101_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umax i16* %a, i16 %b acquire
   ret i16 %1
@@ -9206,8 +9554,10 @@ define i16 @atomicrmw_umax_i16_release(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a6, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a6, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB102_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -9222,7 +9572,9 @@ define i16 @atomicrmw_umax_i16_release(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB102_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umax i16* %a, i16 %b release
   ret i16 %1
@@ -9364,8 +9716,10 @@ define i16 @atomicrmw_umax_i16_acq_rel(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a6, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a6, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB103_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -9380,7 +9734,9 @@ define i16 @atomicrmw_umax_i16_acq_rel(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB103_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umax i16* %a, i16 %b acq_rel
   ret i16 %1
@@ -9516,8 +9872,10 @@ define i16 @atomicrmw_umax_i16_seq_cst(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a6, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a6, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB104_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aqrl a4, (a0)
@@ -9532,7 +9890,9 @@ define i16 @atomicrmw_umax_i16_seq_cst(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.aqrl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB104_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umax i16* %a, i16 %b seq_cst
   ret i16 %1
@@ -9662,8 +10022,10 @@ define i16 @atomicrmw_umin_i16_monotonic(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a6, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a6, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB105_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -9678,7 +10040,9 @@ define i16 @atomicrmw_umin_i16_monotonic(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB105_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umin i16* %a, i16 %b monotonic
   ret i16 %1
@@ -9814,8 +10178,10 @@ define i16 @atomicrmw_umin_i16_acquire(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a6, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a6, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB106_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -9830,7 +10196,9 @@ define i16 @atomicrmw_umin_i16_acquire(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sc.w a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB106_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umin i16* %a, i16 %b acquire
   ret i16 %1
@@ -9966,8 +10334,10 @@ define i16 @atomicrmw_umin_i16_release(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a6, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a6, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB107_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w a4, (a0)
@@ -9982,7 +10352,9 @@ define i16 @atomicrmw_umin_i16_release(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB107_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umin i16* %a, i16 %b release
   ret i16 %1
@@ -10124,8 +10496,10 @@ define i16 @atomicrmw_umin_i16_acq_rel(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a6, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a6, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB108_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aq a4, (a0)
@@ -10140,7 +10514,9 @@ define i16 @atomicrmw_umin_i16_acq_rel(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.rl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB108_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umin i16* %a, i16 %b acq_rel
   ret i16 %1
@@ -10276,8 +10652,10 @@ define i16 @atomicrmw_umin_i16_seq_cst(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    and a1, a1, a2
 ; RV64IA-NEXT:    slli a3, a0, 3
 ; RV64IA-NEXT:    andi a3, a3, 24
-; RV64IA-NEXT:    sllw a6, a2, a3
-; RV64IA-NEXT:    sllw a1, a1, a3
+; RV64IA-NEXT:    sll a2, a2, a3
+; RV64IA-NEXT:    sext.w a6, a2
+; RV64IA-NEXT:    sll a1, a1, a3
+; RV64IA-NEXT:    sext.w a1, a1
 ; RV64IA-NEXT:    andi a0, a0, -4
 ; RV64IA-NEXT:  .LBB109_1: # =>This Inner Loop Header: Depth=1
 ; RV64IA-NEXT:    lr.w.aqrl a4, (a0)
@@ -10292,7 +10670,9 @@ define i16 @atomicrmw_umin_i16_seq_cst(i16 *%a, i16 %b) nounwind {
 ; RV64IA-NEXT:    sc.w.aqrl a5, a5, (a0)
 ; RV64IA-NEXT:    bnez a5, .LBB109_1
 ; RV64IA-NEXT:  # %bb.4:
-; RV64IA-NEXT:    srlw a0, a4, a3
+; RV64IA-NEXT:    slli a0, a4, 32
+; RV64IA-NEXT:    srli a0, a0, 32
+; RV64IA-NEXT:    srl a0, a0, a3
 ; RV64IA-NEXT:    ret
   %1 = atomicrmw umin i16* %a, i16 %b seq_cst
   ret i16 %1
