@@ -465,6 +465,7 @@ bool AVRAsmBackend::writeNopData(raw_ostream &OS, uint64_t Count) const {
 }
 
 bool AVRAsmBackend::shouldForceRelocation(const MCAssembler &Asm,
+                                          const MCAsmLayout &Layout,
                                           const MCFixup &Fixup,
                                           const MCValue &Target) {
   switch ((unsigned) Fixup.getKind()) {

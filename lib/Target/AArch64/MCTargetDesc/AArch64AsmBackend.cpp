@@ -92,7 +92,9 @@ public:
 
   unsigned getFixupKindContainereSizeInBytes(unsigned Kind) const;
 
-  bool shouldForceRelocation(const MCAssembler &Asm, const MCFixup &Fixup,
+  bool shouldForceRelocation(const MCAssembler &Asm,
+                             const MCAsmLayout &Layout,
+                             const MCFixup &Fixup,
                              const MCValue &Target) override;
 };
 
@@ -361,6 +363,7 @@ bool AArch64AsmBackend::writeNopData(raw_ostream &OS, uint64_t Count) const {
 }
 
 bool AArch64AsmBackend::shouldForceRelocation(const MCAssembler &Asm,
+                                              const MCAsmLayout &Layout,
                                               const MCFixup &Fixup,
                                               const MCValue &Target) {
   // The ADRP instruction adds some multiple of 0x1000 to the current PC &

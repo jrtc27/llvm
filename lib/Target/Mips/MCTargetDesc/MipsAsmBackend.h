@@ -88,7 +88,9 @@ public:
 
   bool writeNopData(raw_ostream &OS, uint64_t Count) const override;
 
-  bool shouldForceRelocation(const MCAssembler &Asm, const MCFixup &Fixup,
+  bool shouldForceRelocation(const MCAssembler &Asm,
+                             const MCAsmLayout &Layout,
+                             const MCFixup &Fixup,
                              const MCValue &Target) override;
 
   bool isMicroMips(const MCSymbol *Sym) const override;

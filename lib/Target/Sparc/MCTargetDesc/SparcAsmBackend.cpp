@@ -224,7 +224,9 @@ namespace {
       return InfosBE[Kind - FirstTargetFixupKind];
     }
 
-    bool shouldForceRelocation(const MCAssembler &Asm, const MCFixup &Fixup,
+    bool shouldForceRelocation(const MCAssembler &Asm,
+                               const MCAsmLayout &Layout,
+                               const MCFixup &Fixup,
                                const MCValue &Target) override {
       switch ((Sparc::Fixups)Fixup.getKind()) {
       default:

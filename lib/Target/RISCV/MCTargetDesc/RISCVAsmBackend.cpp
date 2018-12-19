@@ -17,6 +17,7 @@
 #include "llvm/MC/MCExpr.h"
 #include "llvm/MC/MCObjectWriter.h"
 #include "llvm/MC/MCSymbol.h"
+#include "llvm/MC/MCValue.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
@@ -26,6 +27,7 @@ using namespace llvm;
 // enabled, always emit relocations even if the fixup can be resolved. This is
 // necessary for correctness as offsets may change during relaxation.
 bool RISCVAsmBackend::shouldForceRelocation(const MCAssembler &Asm,
+                                            const MCAsmLayout &Layout,
                                             const MCFixup &Fixup,
                                             const MCValue &Target) {
   if (STI.getFeatureBits()[RISCV::FeatureRelax] || ForceRelocs)
@@ -52,9 +54,25 @@ bool RISCVAsmBackend::shouldForceRelocation(const MCAssembler &Asm,
       return false;
     }
 
-    return (unsigned)T->getKind() != RISCV::fixup_riscv_pcrel_hi20
-        || T->getValue()->findAssociatedFragment() !=
-           Fixup.getValue()->findAssociatedFragment();
+    if ((unsigned)T->getKind() != RISCV::fixup_riscv_pcrel_hi20)
+      return true;
+
+    MCValue RealTarget;
+    if (!T->getValue()->evaluateAsRelocatable(RealTarget, &Layout, T))
+      return true;
+
+    if (!RealTarget.getSymA())
+      return true;
+
+    const MCSymbol &SA = RealTarget.getSymA()->getSymbol();
+    if (!SA.isInSection())
+      return true;
+
+    const MCObjectWriter *Writer = Asm.getWriterPtr();
+    assert(Writer && "Expected to have a writer in shouldForceRelocation");
+
+    return !Writer->isSymbolRefDifferenceFullyResolvedImpl(
+        Asm, SA, *Fixup.getValue()->findAssociatedFragment(), false, true);
   }
 }
 

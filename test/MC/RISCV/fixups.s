@@ -35,15 +35,26 @@ sw t1, %pcrel_lo(1b)(t1)
 # CHECK-FIXUP: fixup A - offset: 0, value: %pcrel_lo(.Ltmp0), kind: fixup_riscv_pcrel_lo12_s
 # CHECK-INSTR: sw t1, -16(t1)
 
+2:
+auipc t1, %pcrel_hi(.LBB3)
+# CHECK-FIXUP: fixup A - offset: 0, value: %pcrel_hi(.LBB3), kind: fixup_riscv_pcrel_hi20
+# CHECK-INSTR: auipc t1, 0
+addi t1, t1, %pcrel_lo(2b)
+# CHECK-FIXUP: fixup A - offset: 0, value: %pcrel_lo(.Ltmp1), kind: fixup_riscv_pcrel_lo12_i
+# CHECK-INSTR: addi t1, t1, 8
+
+# Start new fragment
+.align 2
+.LBB3:
 jal zero, .LBB0
 # CHECK-FIXUP: fixup A - offset: 0, value: .LBB0, kind: fixup_riscv_jal
-# CHECK-INSTR: jal zero, -28
+# CHECK-INSTR: jal zero, -36
 jal zero, .LBB2
 # CHECK-FIXUP: fixup A - offset: 0, value: .LBB2, kind: fixup_riscv_jal
 # CHECK-INSTR: jal zero, 330996
 beq a0, a1, .LBB0
 # CHECK-FIXUP: fixup A - offset: 0, value: .LBB0, kind: fixup_riscv_branch
-# CHECK-INSTR: beq a0, a1, -36
+# CHECK-INSTR: beq a0, a1, -44
 blt a0, a1, .LBB1
 # CHECK-FIXUP: fixup A - offset: 0, value: .LBB1, kind: fixup_riscv_branch
 # CHECK-INSTR: blt a0, a1, 1108

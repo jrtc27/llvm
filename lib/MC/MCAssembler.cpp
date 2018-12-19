@@ -275,7 +275,8 @@ bool MCAssembler::evaluateFixup(const MCAsmLayout &Layout,
   }
 
   // Let the backend force a relocation if needed.
-  if (IsResolved && getBackend().shouldForceRelocation(*this, Fixup, Target)) {
+  if (IsResolved &&
+      getBackend().shouldForceRelocation(*this, Layout, Fixup, Target)) {
     IsResolved = false;
     WasForced = true;
   }
