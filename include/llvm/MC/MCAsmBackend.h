@@ -82,6 +82,7 @@ public:
 
   /// Hook to check if a relocation is needed for some target specific reason.
   virtual bool shouldForceRelocation(const MCAssembler &Asm,
+                                     const MCAsmLayout &Layout,
                                      const MCFixup &Fixup,
                                      const MCValue &Target) {
     return false;

@@ -756,6 +756,7 @@ unsigned ARMAsmBackend::adjustFixupValue(const MCAssembler &Asm,
 }
 
 bool ARMAsmBackend::shouldForceRelocation(const MCAssembler &Asm,
+                                          const MCAsmLayout &Layout,
                                           const MCFixup &Fixup,
                                           const MCValue &Target) {
   const MCSymbolRefExpr *A = Target.getSymA();
