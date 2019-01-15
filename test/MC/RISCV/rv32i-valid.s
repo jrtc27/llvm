@@ -273,3 +273,34 @@ csrrsi t2, 0xfff, 31
 # CHECK-ASM-AND-OBJ: csrrci t1, sscratch, 5
 # CHECK-ASM: encoding: [0x73,0xf3,0x02,0x14]
 csrrci t1, 0x140, 5
+
+# CHECK-ASM-AND-OBJ: addi a1, a0, -1
+# CHECK-ASM: encoding: [0x93,0x05,0xf5,0xff]
+addi a1, a0, ~0
+# CHECK-ASM-AND-OBJ: addi a1, a0, 1
+# CHECK-ASM: encoding: [0x93,0x05,0x15,0x00]
+addi a1, a0, !0
+# CHECK-ASM-AND-OBJ: addi a1, a0, 1
+# CHECK-ASM: encoding: [0x93,0x05,0x15,0x00]
+addi a1, a0, (1)
+# CHECK-ASM-AND-OBJ: addi a1, a0, 2
+# CHECK-ASM: encoding: [0x93,0x05,0x25,0x00]
+addi a1, a0, 1+1
+# CHECK-ASM-AND-OBJ: addi a1, a0, 2
+# CHECK-ASM: encoding: [0x93,0x05,0x25,0x00]
+addi a1, a0, (1+1)
+# CHECK-ASM-AND-OBJ: lw a1, -1(a0)
+# CHECK-ASM: encoding: [0x83,0x25,0xf5,0xff]
+lw a1, (~0)(a0)
+# CHECK-ASM-AND-OBJ: lw a1, 1(a0)
+# CHECK-ASM: encoding: [0x83,0x25,0x15,0x00]
+lw a1, (!0)(a0)
+# CHECK-ASM-AND-OBJ: lw a1, 1(a0)
+# CHECK-ASM: encoding: [0x83,0x25,0x15,0x00]
+lw a1, (1)(a0)
+# CHECK-ASM-AND-OBJ: lw a1, 2(a0)
+# CHECK-ASM: encoding: [0x83,0x25,0x25,0x00]
+lw a1, 1+1(a0)
+# CHECK-ASM-AND-OBJ: lw a1, 2(a0)
+# CHECK-ASM: encoding: [0x83,0x25,0x25,0x00]
+lw a1, (1+1)(a0)
