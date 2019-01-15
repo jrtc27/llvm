@@ -1459,8 +1459,7 @@ SDValue RISCVTargetLowering::LowerCall(CallLoweringInfo &CLI,
                                                  nullptr))
       OpFlags = RISCVII::MO_PLT;
 
-    Callee =
-        DAG.getTargetExternalFunctionSymbol(S->getSymbol(), PtrVT, OpFlags);
+    Callee = DAG.getTargetExternalFunctionSymbol(S->getSymbol(), OpFlags);
   }
 
   // The first call operand is the chain and the second is the target address.
