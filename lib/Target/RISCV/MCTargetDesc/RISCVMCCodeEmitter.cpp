@@ -57,6 +57,10 @@ public:
                           SmallVectorImpl<MCFixup> &Fixups,
                           const MCSubtargetInfo &STI) const;
 
+  void expandAddTPRel(const MCInst &MI, raw_ostream &OS,
+                      SmallVectorImpl<MCFixup> &Fixups,
+                      const MCSubtargetInfo &STI) const;
+
   /// TableGen'erated function for getting the binary encoding for an
   /// instruction.
   uint64_t getBinaryCodeForInstr(const MCInst &MI,
@@ -121,6 +125,37 @@ void RISCVMCCodeEmitter::expandFunctionCall(const MCInst &MI, raw_ostream &OS,
   support::endian::write(OS, Binary, support::little);
 }
 
+// Expand PseudoAddTPRel to a simple ADD with the correct relocation.
+void RISCVMCCodeEmitter::expandAddTPRel(const MCInst &MI, raw_ostream &OS,
+                                        SmallVectorImpl<MCFixup> &Fixups,
+                                        const MCSubtargetInfo &STI) const {
+  MCOperand DestReg = MI.getOperand(0);
+  MCOperand SrcReg = MI.getOperand(1);
+  MCOperand TPReg = MI.getOperand(2);
+  assert(TPReg.isReg() && TPReg.getReg() == RISCV::X4 &&
+         "Expected thread pointer as second input to TP-relative add");
+
+  MCOperand SrcSymbol = MI.getOperand(3);
+  assert(SrcSymbol.isExpr() &&
+         "Expected expression as third input to TP-relative add");
+
+  const RISCVMCExpr *Expr = dyn_cast<RISCVMCExpr>(SrcSymbol.getExpr());
+  assert(Expr && Expr->getKind() == RISCVMCExpr::VK_RISCV_TPREL_ADD &&
+         "Expected tprel_add relocation on TP-relative symbol");
+
+  // Emit the correct tprel_add relocation for the symbol.
+  Fixups.push_back(MCFixup::create(
+      0, Expr, MCFixupKind(RISCV::fixup_riscv_tprel_add), MI.getLoc()));
+
+  // Emit a normal ADD instruction with the given operands.
+  MCInst TmpInst = MCInstBuilder(RISCV::ADD)
+                       .addOperand(DestReg)
+                       .addOperand(SrcReg)
+                       .addOperand(TPReg);
+  uint32_t Binary = getBinaryCodeForInstr(TmpInst, Fixups, STI);
+  support::endian::write(OS, Binary, support::little);
+}
+
 void RISCVMCCodeEmitter::encodeInstruction(const MCInst &MI, raw_ostream &OS,
                                            SmallVectorImpl<MCFixup> &Fixups,
                                            const MCSubtargetInfo &STI) const {
@@ -132,6 +167,12 @@ void RISCVMCCodeEmitter::encodeInstruction(const MCInst &MI, raw_ostream &OS,
       MI.getOpcode() == RISCV::PseudoTAIL) {
     expandFunctionCall(MI, OS, Fixups, STI);
     MCNumEmitted += 2;
+    return;
+  }
+
+  if (MI.getOpcode() == RISCV::PseudoAddTPRel) {
+    expandAddTPRel(MI, OS, Fixups, STI);
+    MCNumEmitted += 1;
     return;
   }
 
@@ -207,6 +248,7 @@ unsigned RISCVMCCodeEmitter::getImmOpValue(const MCInst &MI, unsigned OpNo,
     switch (RVExpr->getKind()) {
     case RISCVMCExpr::VK_RISCV_None:
     case RISCVMCExpr::VK_RISCV_Invalid:
+    case RISCVMCExpr::VK_RISCV_TPREL_ADD:
       llvm_unreachable("Unhandled fixup kind!");
     case RISCVMCExpr::VK_RISCV_LO:
       if (MIFrm == RISCVII::InstFormatI)
@@ -233,6 +275,18 @@ unsigned RISCVMCCodeEmitter::getImmOpValue(const MCInst &MI, unsigned OpNo,
       break;
     case RISCVMCExpr::VK_RISCV_GOT_HI:
       FixupKind = RISCV::fixup_riscv_got_hi20;
+      break;
+    case RISCVMCExpr::VK_RISCV_TPREL_LO:
+      if (MIFrm == RISCVII::InstFormatI)
+        FixupKind = RISCV::fixup_riscv_tprel_lo12_i;
+      else if (MIFrm == RISCVII::InstFormatS)
+        FixupKind = RISCV::fixup_riscv_tprel_lo12_s;
+      else
+        llvm_unreachable(
+            "VK_RISCV_TPREL_LO used with unexpected instruction format");
+      break;
+    case RISCVMCExpr::VK_RISCV_TPREL_HI:
+      FixupKind = RISCV::fixup_riscv_tprel_hi20;
       break;
     case RISCVMCExpr::VK_RISCV_CALL:
       FixupKind = RISCV::fixup_riscv_call;
