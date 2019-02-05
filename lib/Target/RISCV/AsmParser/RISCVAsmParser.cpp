@@ -284,7 +284,8 @@ public:
     if (!isImm() || evaluateConstantImm(getImm(), Imm, VK))
       return false;
     return RISCVAsmParser::classifySymbolRef(getImm(), VK, Imm) &&
-           VK == RISCVMCExpr::VK_RISCV_CALL;
+           (VK == RISCVMCExpr::VK_RISCV_CALL ||
+            VK == RISCVMCExpr::VK_RISCV_CALL_PLT);
   }
 
   bool isCSRSystemRegister() const { return isSystemRegister(); }
@@ -1121,6 +1122,11 @@ OperandMatchResultTy RISCVAsmParser::parseBareSymbol(OperandVector &Operands) {
   if (getParser().parseIdentifier(Identifier))
     return MatchOperand_ParseFail;
 
+  if (Identifier.consume_back("@plt")) {
+    Error(getLoc(), "'@plt' operand not valid for instruction");
+    return MatchOperand_ParseFail;
+  }
+
   MCSymbol *Sym = getContext().getOrCreateSymbol(Identifier);
   Res = MCSymbolRefExpr::create(Sym, MCSymbolRefExpr::VK_None, getContext());
   Operands.push_back(RISCVOperand::createImm(Res, S, E, isRV64()));
@@ -1139,9 +1145,13 @@ OperandMatchResultTy RISCVAsmParser::parseCallSymbol(OperandVector &Operands) {
   if (getParser().parseIdentifier(Identifier))
     return MatchOperand_ParseFail;
 
+  RISCVMCExpr::VariantKind Kind = RISCVMCExpr::VK_RISCV_CALL;
+  if (Identifier.consume_back("@plt"))
+    Kind = RISCVMCExpr::VK_RISCV_CALL_PLT;
+
   MCSymbol *Sym = getContext().getOrCreateSymbol(Identifier);
   Res = MCSymbolRefExpr::create(Sym, MCSymbolRefExpr::VK_None, getContext());
-  Res = RISCVMCExpr::create(Res, RISCVMCExpr::VK_RISCV_CALL, getContext());
+  Res = RISCVMCExpr::create(Res, Kind, getContext());
   Operands.push_back(RISCVOperand::createImm(Res, S, E, isRV64()));
   return MatchOperand_Success;
 }
