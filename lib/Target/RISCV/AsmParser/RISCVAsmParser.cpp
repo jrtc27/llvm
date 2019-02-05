@@ -969,19 +969,23 @@ OperandMatchResultTy RISCVAsmParser::parseRegister(OperandVector &Operands,
                                                    bool AllowParens) {
   SMLoc FirstS = getLoc();
   bool HadParens = false;
-  AsmToken Buf[2];
+  AsmToken LParen;
 
   // If this a parenthesised register name is allowed, parse it atomically
   if (AllowParens && getLexer().is(AsmToken::LParen)) {
+    AsmToken Buf[2];
     size_t ReadCount = getLexer().peekTokens(Buf);
     if (ReadCount == 2 && Buf[1].getKind() == AsmToken::RParen) {
       HadParens = true;
+      LParen = getParser().getTok();
       getParser().Lex(); // Eat '('
     }
   }
 
   switch (getLexer().getKind()) {
   default:
+    if (HadParens)
+      getLexer().UnLex(LParen);
     return MatchOperand_NoMatch;
   case AsmToken::Identifier:
     StringRef Name = getLexer().getTok().getIdentifier();
@@ -990,7 +994,7 @@ OperandMatchResultTy RISCVAsmParser::parseRegister(OperandVector &Operands,
       RegNo = MatchRegisterAltName(Name);
       if (RegNo == 0) {
         if (HadParens)
-          getLexer().UnLex(Buf[0]);
+          getLexer().UnLex(LParen);
         return MatchOperand_NoMatch;
       }
     }
