@@ -123,7 +123,7 @@ bool RISCVAsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
     if (!MO.isReg())
       return true;
 
-    OS << "0(" << RISCVInstPrinter::getRegisterName(MO.getReg()) << ")";
+    OS << "(" << RISCVInstPrinter::getRegisterName(MO.getReg()) << ")";
     return false;
   }
 
